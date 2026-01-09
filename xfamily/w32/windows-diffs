@@ -1,0 +1,90 @@
+#! /bin/bash
+
+echo family.h
+diff --strip-trailing-cr -s /usr/local/src/xfamily/v022/family.h /data/users/pub/usr-local-src/xfamily/w32-compiled/family.h
+
+echo ==================================================================================================================================
+echo classes.h
+
+diff --strip-trailing-cr -s /usr/local/src/xfamily/v022/classes.h /data/users/pub/usr-local-src/xfamily/w32-compiled/classes.h
+
+echo ==================================================================================================================================
+echo fixes.h
+
+diff --strip-trailing-cr -s /usr/local/src/xfamily/v022/fixes.h /data/users/pub/usr-local-src/xfamily/w32-compiled/fixes.h
+
+echo ==================================================================================================================================
+echo tags.h
+
+diff --strip-trailing-cr -s /usr/local/src/xfamily/v022/tags.h /data/users/pub/usr-local-src/xfamily/w32-compiled/tags.h
+
+echo ==================================================================================================================================
+echo menucodes.h
+
+diff --strip-trailing-cr -s /usr/local/src/xfamily/v022/menucodes.h /data/users/pub/usr-local-src/xfamily/w32-compiled/menucodes.h
+
+echo ==================================================================================================================================
+echo structure.h
+
+diff --strip-trailing-cr -s /usr/local/src/xfamily/v022/structure.h /data/users/pub/usr-local-src/xfamily/w32-compiled/structure.h
+
+echo ==================================================================================================================================
+echo objects.h
+
+diff --strip-trailing-cr -s /usr/local/src/xfamily/v022/objects.h /data/users/pub/usr-local-src/xfamily/w32-compiled/objects.h
+
+echo ==================================================================================================================================
+echo trees.h
+
+diff --strip-trailing-cr -s /usr/local/src/xfamily/v022/trees.h /data/users/pub/usr-local-src/xfamily/w32-compiled/trees.h
+
+echo ==================================================================================================================================
+echo gui.h
+
+diff --strip-trailing-cr -s /usr/local/src/xfamily/v022/gui.h /data/users/pub/usr-local-src/xfamily/w32-compiled/gui.h
+
+echo ==================================================================================================================================
+echo display.h
+
+diff --strip-trailing-cr -s /usr/local/src/xfamily/v022/display.h /data/users/pub/usr-local-src/xfamily/w32-compiled/display.h
+
+echo ==================================================================================================================================
+echo callback.h
+
+diff --strip-trailing-cr -s /usr/local/src/xfamily/v022/callback.h /data/users/pub/usr-local-src/xfamily/w32-compiled/callback.h
+
+echo ==================================================================================================================================
+echo main.cpp
+
+diff --strip-trailing-cr -s /usr/local/src/xfamily/v022/main.cxx /data/users/pub/usr-local-src/xfamily/w32-compiled/main.cpp
+
+echo ==================================================================================================================================
+echo structure.cpp
+
+diff --strip-trailing-cr -s /usr/local/src/xfamily/v022/structure.cxx /data/users/pub/usr-local-src/xfamily/w32-compiled/structure.cpp
+
+echo ==================================================================================================================================
+echo objects.cpp
+
+diff --strip-trailing-cr -s /usr/local/src/xfamily/v022/objects.cxx /data/users/pub/usr-local-src/xfamily/w32-compiled/objects.cpp
+
+echo ==================================================================================================================================
+echo trees.cpp
+
+diff --strip-trailing-cr -s /usr/local/src/xfamily/v022/trees.cxx /data/users/pub/usr-local-src/xfamily/w32-compiled/trees.cpp
+
+echo ==================================================================================================================================
+echo gui.cpp
+
+diff --strip-trailing-cr -s /usr/local/src/xfamily/v022/gui.cxx /data/users/pub/usr-local-src/xfamily/w32-compiled/gui.cpp
+
+echo ==================================================================================================================================
+echo display.cpp
+
+diff --strip-trailing-cr -s /usr/local/src/xfamily/v022/display.cxx /data/users/pub/usr-local-src/xfamily/w32-compiled/display.cpp
+
+echo ==================================================================================================================================
+echo callback.cpp
+
+diff --strip-trailing-cr -s /usr/local/src/xfamily/v022/callback.cxx /data/users/pub/usr-local-src/xfamily/w32-compiled/callback.cpp
+

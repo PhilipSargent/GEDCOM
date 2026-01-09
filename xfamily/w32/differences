@@ -1,0 +1,621 @@
+family.h
+Files /usr/local/src/xfamily/v022/family.h and /data/users/pub/usr-local-src/xfamily/w32-compiled/family.h are identical
+==================================================================================================================================
+classes.h
+Files /usr/local/src/xfamily/v022/classes.h and /data/users/pub/usr-local-src/xfamily/w32-compiled/classes.h are identical
+==================================================================================================================================
+fixes.h
+6a7
+> #define WIN32 1
+==================================================================================================================================
+tags.h
+Files /usr/local/src/xfamily/v022/tags.h and /data/users/pub/usr-local-src/xfamily/w32-compiled/tags.h are identical
+==================================================================================================================================
+menucodes.h
+Files /usr/local/src/xfamily/v022/menucodes.h and /data/users/pub/usr-local-src/xfamily/w32-compiled/menucodes.h are identical
+==================================================================================================================================
+structure.h
+Files /usr/local/src/xfamily/v022/structure.h and /data/users/pub/usr-local-src/xfamily/w32-compiled/structure.h are identical
+==================================================================================================================================
+objects.h
+Files /usr/local/src/xfamily/v022/objects.h and /data/users/pub/usr-local-src/xfamily/w32-compiled/objects.h are identical
+==================================================================================================================================
+trees.h
+Files /usr/local/src/xfamily/v022/trees.h and /data/users/pub/usr-local-src/xfamily/w32-compiled/trees.h are identical
+==================================================================================================================================
+gui.h
+Files /usr/local/src/xfamily/v022/gui.h and /data/users/pub/usr-local-src/xfamily/w32-compiled/gui.h are identical
+==================================================================================================================================
+display.h
+Files /usr/local/src/xfamily/v022/display.h and /data/users/pub/usr-local-src/xfamily/w32-compiled/display.h are identical
+==================================================================================================================================
+callback.h
+Files /usr/local/src/xfamily/v022/callback.h and /data/users/pub/usr-local-src/xfamily/w32-compiled/callback.h are identical
+==================================================================================================================================
+main.cpp
+79d78
+< #ifdef WIN32
+81,83d79
+< #else
+<     strncpy( id, notedid, strlen(notedid)-1 );
+< #endif
+113d108
+< #ifdef WIN32
+115,117d109
+< #else
+<       strncpy( id, notedid, strlen(notedid)-1 );
+< #endif
+==================================================================================================================================
+structure.cpp
+Files /usr/local/src/xfamily/v022/structure.cxx and /data/users/pub/usr-local-src/xfamily/w32-compiled/structure.cpp are identical
+==================================================================================================================================
+objects.cpp
+31,90c31,90
+< GEDCOM_tag *DATE_tag = NULL;
+< GEDCOM_tag *NAME_tag = NULL;
+< GEDCOM_tag *INDI_tag = NULL;
+< GEDCOM_tag *SEX_tag = NULL;
+< GEDCOM_tag *CONT_tag = NULL;
+< GEDCOM_tag *FAMC_tag = NULL;
+< GEDCOM_tag *CHIL_tag = NULL;
+< GEDCOM_tag *FAMS_tag = NULL;
+< GEDCOM_tag *BIRT_tag = NULL;
+< GEDCOM_tag *DEAT_tag = NULL;
+< GEDCOM_tag *NOTE_tag = NULL;
+< GEDCOM_tag *FAM_tag = NULL;
+< GEDCOM_tag *HUSB_tag = NULL;
+< GEDCOM_tag *WIFE_tag = NULL;
+< GEDCOM_tag *PLAC_tag = NULL;
+< GEDCOM_tag *SOUR_tag = NULL;
+< GEDCOM_tag *MARR_tag = NULL;
+< GEDCOM_tag *LVG_tag = NULL;
+< GEDCOM_tag *BURI_tag = NULL;
+< GEDCOM_tag *SITE_tag = NULL;
+< GEDCOM_tag *CEME_tag = NULL;
+< GEDCOM_tag *TITL_tag = NULL;
+< GEDCOM_tag *TIME_tag = NULL;
+< GEDCOM_tag *BAPM_tag = NULL;
+< GEDCOM_tag *CHR_tag = NULL;
+< GEDCOM_tag *CREM_tag = NULL;
+< GEDCOM_tag *CAUS_tag = NULL;
+< GEDCOM_tag *PLOT_tag = NULL;
+< GEDCOM_tag *AGE_tag = NULL;
+< GEDCOM_tag *FIDE_tag = NULL;
+< GEDCOM_tag *QUAY_tag = NULL;
+< GEDCOM_tag *ORIG_tag = NULL;
+< GEDCOM_tag *CLAS_tag = NULL;
+< GEDCOM_tag *OCCU_tag = NULL;
+< GEDCOM_tag *EVEN_tag = NULL;
+< GEDCOM_tag *PUBL_tag = NULL;
+< GEDCOM_tag *TEXT_tag = NULL;
+< GEDCOM_tag *PHOTO_tag = NULL;
+< GEDCOM_tag *TYPE_tag = NULL;
+< GEDCOM_tag *PUBR_tag = NULL;
+< GEDCOM_tag *CONC_tag = NULL;
+< GEDCOM_tag *PAGE_tag = NULL;
+< GEDCOM_tag *REPO_tag = NULL;
+< GEDCOM_tag *CNTC_tag = NULL;
+< GEDCOM_tag *ADDR_tag = NULL;
+< GEDCOM_tag *ENGA_tag = NULL;
+< GEDCOM_tag *DIV_tag = NULL;
+< GEDCOM_tag *INFT_tag = NULL;
+< GEDCOM_tag *MARL_tag = NULL;
+< GEDCOM_tag *VERS_tag = NULL;
+< GEDCOM_tag *GEDC_tag = NULL;
+< GEDCOM_tag *HEAD_tag = NULL;
+< GEDCOM_tag *TRLR_tag = NULL;
+< GEDCOM_tag *root_tag = NULL;
+< GEDCOM_tag *heads_tag = NULL;
+< GEDCOM_tag *indis_tag = NULL;
+< GEDCOM_tag *fams_tag = NULL;
+< GEDCOM_tag *sours_tag = NULL;
+< GEDCOM_tag *repos_tag = NULL;
+< GEDCOM_tag *trlrs_tag = NULL;
+---
+> GEDCOM_tag* DATE_tag = NULL;
+> GEDCOM_tag* NAME_tag = NULL;
+> GEDCOM_tag* INDI_tag = NULL;
+> GEDCOM_tag* SEX_tag = NULL;
+> GEDCOM_tag* CONT_tag = NULL;
+> GEDCOM_tag* FAMC_tag = NULL;
+> GEDCOM_tag* CHIL_tag = NULL;
+> GEDCOM_tag* FAMS_tag = NULL;
+> GEDCOM_tag* BIRT_tag = NULL;
+> GEDCOM_tag* DEAT_tag = NULL;
+> GEDCOM_tag* NOTE_tag = NULL;
+> GEDCOM_tag* FAM_tag = NULL;
+> GEDCOM_tag* HUSB_tag = NULL;
+> GEDCOM_tag* WIFE_tag = NULL;
+> GEDCOM_tag* PLAC_tag = NULL;
+> GEDCOM_tag* SOUR_tag = NULL;
+> GEDCOM_tag* MARR_tag = NULL;
+> GEDCOM_tag* LVG_tag = NULL;
+> GEDCOM_tag* BURI_tag = NULL;
+> GEDCOM_tag* SITE_tag = NULL;
+> GEDCOM_tag* CEME_tag = NULL;
+> GEDCOM_tag* TITL_tag = NULL;
+> GEDCOM_tag* TIME_tag = NULL;
+> GEDCOM_tag* BAPM_tag = NULL;
+> GEDCOM_tag* CHR_tag = NULL;
+> GEDCOM_tag* CREM_tag = NULL;
+> GEDCOM_tag* CAUS_tag = NULL;
+> GEDCOM_tag* PLOT_tag = NULL;
+> GEDCOM_tag* AGE_tag = NULL;
+> GEDCOM_tag* FIDE_tag = NULL;
+> GEDCOM_tag* QUAY_tag = NULL;
+> GEDCOM_tag* ORIG_tag = NULL;
+> GEDCOM_tag* CLAS_tag = NULL;
+> GEDCOM_tag* OCCU_tag = NULL;
+> GEDCOM_tag* EVEN_tag = NULL;
+> GEDCOM_tag* PUBL_tag = NULL;
+> GEDCOM_tag* TEXT_tag = NULL;
+> GEDCOM_tag* PHOTO_tag = NULL;
+> GEDCOM_tag* TYPE_tag = NULL;
+> GEDCOM_tag* PUBR_tag = NULL;
+> GEDCOM_tag* CONC_tag = NULL;
+> GEDCOM_tag* PAGE_tag = NULL;
+> GEDCOM_tag* REPO_tag = NULL;
+> GEDCOM_tag* CNTC_tag = NULL;
+> GEDCOM_tag* ADDR_tag = NULL;
+> GEDCOM_tag* ENGA_tag = NULL;
+> GEDCOM_tag* DIV_tag = NULL;
+> GEDCOM_tag* INFT_tag = NULL;
+> GEDCOM_tag* MARL_tag = NULL;
+> GEDCOM_tag* VERS_tag = NULL;
+> GEDCOM_tag* GEDC_tag = NULL;
+> GEDCOM_tag* HEAD_tag = NULL;
+> GEDCOM_tag* TRLR_tag = NULL;
+> GEDCOM_tag* root_tag = NULL;
+> GEDCOM_tag* heads_tag = NULL;
+> GEDCOM_tag* indis_tag = NULL;
+> GEDCOM_tag* fams_tag = NULL;
+> GEDCOM_tag* sours_tag = NULL;
+> GEDCOM_tag* repos_tag = NULL;
+> GEDCOM_tag* trlrs_tag = NULL;
+100d99
+< #ifdef WIN32
+102,104d100
+< #else
+<   strcpy( tag, newtag );
+< #endif
+300d295
+< #ifdef WIN32
+304,307d298
+< #else
+<   thestring = (char*)malloc( strlen(callers_string)+1);
+<   if (thestring!=NULL) strcpy( thestring, callers_string );
+< #endif
+314d304
+< #ifdef WIN32
+317,319d306
+< #else
+<   thestring = (char*)malloc( strlen(prefix)+l+2);
+< #endif
+321c308
+<     sprintf( thestring, "%s%i", prefix, suffix );
+---
+>     sprintf_s( thestring, buflen, "%s%i", prefix, suffix );
+326d312
+< #ifdef WIN32
+329,331d314
+< #else
+<   thestring = (char*)malloc( strlen(prefix)+strlen(suffix)+1 );
+< #endif
+333d315
+< #ifdef WIN32
+336,339d317
+< #else
+<     strcpy( thestring, prefix );
+<     strcat( thestring, suffix );
+< #endif
+345d322
+< #ifdef WIN32
+352,358d328
+< #else
+<   thestring = (char*)malloc( strlen(prefix)+strlen(meat)+strlen(suffix)+1 );
+<   if (thestring!=NULL) {
+<     strcpy( thestring, prefix );
+<     strcat( thestring, meat );
+<     strcat( thestring, suffix );
+< #endif
+465d434
+< #ifdef WIN32
+467,469d435
+< #else
+<     strncpy( shortval, (const char*)valptr, MAX_GEDCOM_text );
+< #endif
+474c440
+<       strncpy( shortval, (const char*)valptr, MAX_GEDCOM_text );
+---
+>       strncpy_s( shortval, (const char*)valptr, MAX_GEDCOM_text );
+882c848
+<     object[1] = new GEDCOM_object(PLAC_tag, emptystring);
+---
+>     object[1] = new GEDCOM_object(PLAC_tag,emptystring);
+888d853
+<   } else {
+==================================================================================================================================
+trees.cpp
+17,20c17,18
+< // beware that strings.h gets Posix routines which are not available in standard C++ as in, say Visual Studio
+< #ifndef WIN32
+< #include "strings.h"
+< #endif
+---
+> // beware that strings.h gets Posix routines whch are not available in standard C++ as in, say Visual Studio
+> //#include "strings.h"
+294c292
+<     printf("returning NULL pointer for blank line %ld\n", (long)line);
+---
+>       printf("returning NULL pointer for blank line %ld\n", (long)line);
+296c294
+<     return NULL;
+---
+>       return NULL;
+303,304c301,302
+<       fl_alert("Can't decode a level from line %s\n", tmpline);
+<       return NULL;
+---
+>         fl_alert("Can't decode a level from line %s\n", tmpline);
+>         return NULL;
+432c430
+<     strcpy(filename,"");
+---
+>     strcpy_s(filename, MAX_FILENAME,"");
+434c432
+<   strcpy(filename,newfile);
+---
+>   strcpy_s(filename, MAX_FILENAME,newfile);
+438c436
+<   if (( in = fopen(filename, "r")) == NULL) {
+---
+>   if ((fopen_s(&in, filename, "r")) != 0) {
+441d438
+< #ifdef WIN32
+443,445d439
+< #else
+<     strcpy(filename,"");
+< #endif
+799d792
+< #ifdef WIN32
+801,803d793
+< #else
+<   strcpy(filename,newfile);
+< #endif
+814d803
+< #ifdef WIN32
+816,818d804
+< #else
+<   if ((out = fopen( filename, "w" )) == NULL) {
+< #endif
+1110d1095
+< #ifdef WIN32
+1113,1115d1097
+< #else
+<       if ( strncasecmp( nameobj->value(), name, testlen ) == 0 ) return trythis;
+< #endif
+1148,1153c1130,1131
+< #ifdef WIN32
+<         // we're supposed to be doing strcasecamp, but that's posix, not standard C and Windows doesn't have it
+<         if ( strcmp( val+trylen-testlen, name ) == 0 ) return trythis;
+< #else
+<         if ( strcasecmp( val+trylen-testlen, name ) == 0 ) return trythis;
+< #endif
+---
+>           // we're supposed to be doing strcasecamp, but that's posix, not standard C and Windows doesn't have it
+>           if ( strcmp( val+trylen-testlen, name ) == 0 ) return trythis;
+==================================================================================================================================
+gui.cpp
+39,44d38
+< #ifdef WIN32
+< #define CAST
+< #else
+< #define CAST (Fl_Menu_Item)
+< #endif
+< 
+64,83c58,77
+<   menu_data[0] = CAST{"File",           0, 0, 0,  64, 0, 0, 14, 0 };
+<   menu_data[1] = CAST{"Load",           0, 0, 0,   0, 0, 0, 14, 0 };
+<   menu_data[2] = CAST{"Save",           0, (Fl_Callback*)save_cb, (void*)(view),   0, 0, 0, 14, 0 };
+<   menu_data[3] = CAST{"Save as ...",    0, (Fl_Callback*)saveas_cb, (void*)(view),   0, 0, 0, 14, 0 };
+<   menu_data[4] = CAST{"Print",          0, 0, 0, 128, 0, 0, 14, 0 };
+<   menu_data[5] = CAST{"New View",       0, (Fl_Callback*)newview_cb, (void*)(view),   0, 0, 0, 14, 0 };
+<   menu_data[6] = CAST{"Discard",        0, 0, 0,   0, 0, 0, 14, 0 };
+<   menu_data[7] = CAST{"Statistics",     0, (Fl_Callback*)stats_cb, (void*)(view),   0, 0, 0, 14, 0 };
+<   menu_data[8] = CAST{"Quit",           0, (Fl_Callback*)quit_cb, 0,   0, 0, 0, 14, 0 };
+<   menu_data[9] = CAST{ 0 };
+<   menu_data[10] = CAST{"People",        0, 0, 0,  64, 0, 0, 14, 0 };
+<   menu_data[11] = CAST{"New ...",       0, 0, 0,   0, 0, 0, 14, 0 };
+<   menu_data[12] = CAST{"Find ...",      0, (Fl_Callback*)indifind_cb, (void*)(view),   0, 0, 0, 14, 0 };
+<   menu_data[13] = CAST{ 0 };
+<   menu_data[14] = CAST{"Reports",       0, 0, 0,  64, 0, 0, 14, 0 };
+<   menu_data[15] = CAST{"Standard",      0, 0, 0,   0, 0, 0, 14, 0 };
+<   menu_data[16] = CAST{"Family Groups", 0, 0, 0,   0, 0, 0, 14, 0 };
+<   menu_data[17] = CAST{"Web pages ...", 0, 0, 0,   0, 0, 0, 14, 0 };
+<   menu_data[18] = CAST{ 0 };
+<   menu_data[19] = CAST{"Settings",      0, 0, 0,  64, 0, 0, 14, 0 };
+---
+>   menu_data[0] = {"File",           0, 0, 0,  64, 0, 0, 14, 0};
+>   menu_data[1] = {"Load",           0, 0, 0,   0, 0, 0, 14, 0 };
+>   menu_data[2] = {"Save",           0, (Fl_Callback*)save_cb, (void*)(view),   0, 0, 0, 14, 0 };
+>   menu_data[3] = {"Save as ...",    0, (Fl_Callback*)saveas_cb, (void*)(view),   0, 0, 0, 14, 0 };
+>   menu_data[4] = {"Print",          0, 0, 0, 128, 0, 0, 14, 0 };
+>   menu_data[5] = {"New View",       0, (Fl_Callback*)newview_cb, (void*)(view),   0, 0, 0, 14, 0 };
+>   menu_data[6] = {"Discard",        0, 0, 0,   0, 0, 0, 14, 0 };
+>   menu_data[7] = {"Statistics",     0, (Fl_Callback*)stats_cb, (void*)(view),   0, 0, 0, 14, 0 };
+>   menu_data[8] = {"Quit",           0, (Fl_Callback*)quit_cb, 0,   0, 0, 0, 14, 0 };
+>   menu_data[9] = { 0 };
+>   menu_data[10] = {"People",        0, 0, 0,  64, 0, 0, 14, 0 };
+>   menu_data[11] = {"New ...",       0, 0, 0,   0, 0, 0, 14, 0 };
+>   menu_data[12] = {"Find ...",      0, (Fl_Callback*)indifind_cb, (void*)(view),   0, 0, 0, 14, 0 };
+>   menu_data[13] = { 0 };
+>   menu_data[14] = {"Reports",       0, 0, 0,  64, 0, 0, 14, 0 };
+>   menu_data[15] = {"Standard",      0, 0, 0,   0, 0, 0, 14, 0 };
+>   menu_data[16] = {"Family Groups", 0, 0, 0,   0, 0, 0, 14, 0 };
+>   menu_data[17] = {"Web pages ...", 0, 0, 0,   0, 0, 0, 14, 0 };
+>   menu_data[18] = { 0 };
+>   menu_data[19] = {"Settings",      0, 0, 0,  64, 0, 0, 14, 0 };
+85,90c79,84
+< //  menu_data[20] = CAST{"Language",      0, 0, 0,  64, 0, 0, 14, 0 };
+< //  menu_data[20] = CAST{ 0 };
+<   menu_data[20] = CAST{"Choices ...",        0, (Fl_Callback*)choices_cb, 0,   0, 0, 0, 14, 0 };
+<   menu_data[21] = CAST{"Save Choices",       0, 0, 0,   0, 0, 0, 14, 0 };
+<   menu_data[22] = CAST{ 0 };
+<   menu_data[23] = CAST{"Help",               0, 0, 0,  64, 0, 0, 14, 0 };
+---
+> //  menu_data[20] = (Fl_Menu_Item){"Language",      0, 0, 0,  64, 0, 0, 14, 0 };
+> //  menu_data[20] = (Fl_Menu_Item){ 0 };
+>   menu_data[20] = {"Choices ...",        0, (Fl_Callback*)choices_cb, 0,   0, 0, 0, 14, 0 };
+>   menu_data[21] = {"Save Choices",       0, 0, 0,   0, 0, 0, 14, 0 };
+>   menu_data[22] = { 0 };
+>   menu_data[23] = {"Help",               0, 0, 0,  64, 0, 0, 14, 0 };
+92,100c86,94
+<   menu_data[24] = CAST{"Introduction",       0, (Fl_Callback*)help_cb, (void*)("intro.html"),  0, 0, 0, 14, 0 };
+<   menu_data[25] = CAST{"Main window",        0, (Fl_Callback*)help_cb, (void*)("mainUI.html"), 0, 0, 0, 14, 0 };
+<   menu_data[26] = CAST{"Person dbox",        0, (Fl_Callback*)help_cb, (void*)("indiUI.html"), 0, 0, 0, 14, 0 };
+<   menu_data[27] = CAST{"Family events dbox", 0, (Fl_Callback*)help_cb, (void*)("famUI.html"),  0, 0, 0, 14, 0 };
+<   menu_data[28] = CAST{"Choices dbox",       0, (Fl_Callback*)help_cb, (void*)("prefUI.html"), 0, 0, 0, 14, 0 };
+<   menu_data[29] = CAST{"GEDCOM files",       0, (Fl_Callback*)help_cb, (void*)("GEDCOM.html"), 128, 0, 0, 14, 0 };
+<   menu_data[30] = CAST{"About",              0, (Fl_Callback*)info_cb, 0,   0, 0, 0, 14, 0 };
+<   menu_data[31] = CAST{ 0 };
+<   menu_data[32] = CAST{ 0 };
+---
+>   menu_data[24] = {"Introduction",       0, (Fl_Callback*)help_cb, (void*)("intro.html"),  0, 0, 0, 14, 0 };
+>   menu_data[25] = {"Main window",        0, (Fl_Callback*)help_cb, (void*)("mainUI.html"), 0, 0, 0, 14, 0 };
+>   menu_data[26] = {"Person dbox",        0, (Fl_Callback*)help_cb, (void*)("indiUI.html"), 0, 0, 0, 14, 0 };
+>   menu_data[27] = {"Family events dbox", 0, (Fl_Callback*)help_cb, (void*)("famUI.html"),  0, 0, 0, 14, 0 };
+>   menu_data[28] = {"Choices dbox",       0, (Fl_Callback*)help_cb, (void*)("prefUI.html"), 0, 0, 0, 14, 0 };
+>   menu_data[29] = {"GEDCOM files",       0, (Fl_Callback*)help_cb, (void*)("GEDCOM.html"), 128, 0, 0, 14, 0 };
+>   menu_data[30] = {"About",              0, (Fl_Callback*)info_cb, 0,   0, 0, 0, 14, 0 };
+>   menu_data[31] = { 0 };
+>   menu_data[32] = { 0 };
+112,126c106,120
+<   popup_data[imenubase]    = CAST{"Edit",      0, (Fl_Callback*)edit_cb,         (void*)(view), 0,0,0,14,0 };
+<   popup_data[imenunotes]   = CAST{"Notes",     0, (Fl_Callback*)menuopennotes_cb,(void*)(view), 0,0,0,14,0 };
+<   popup_data[imenuyounger] = CAST{"Younger",   0, (Fl_Callback*)menu_younger_cb, (void*)(view), 0, 0, 0, 14, 0 };
+<   popup_data[imenuolder]   = CAST{"Older",     0, (Fl_Callback*)menu_older_cb,   (void*)(view), 0, 0, 0, 14, 0 };
+<   popup_data[imenunewfam]  = CAST{"New family",0, (Fl_Callback*)famnew_cb,       (void*)(view), 0, 0, 0, 14, 0 };
+<   popup_data[imenustructure]=CAST{"Structure", 0, 0, 0, 192, 0, 0, 14, 0 };
+<   popup_data[imenuremove]  = CAST{"Delete",    0, (Fl_Callback*)deleteindi_cb,   (void*)(view), 0, 0, 0, 14, 0 };
+<   popup_data[imenudetach]  = CAST{"Detach",    0, 0, 0,   0, 0, 0, 14, 0 };
+<   popup_data[imenumove]    = CAST{"Move",      0, 0, 0,   0, 0, 0, 14, 0 };
+<   popup_data[imenuattach]  = CAST{"Attach",    0, 0, 0,   0, 0, 0, 14, 0 };
+<   popup_data[imenuendstruct] = CAST{ 0 };
+<   popup_data[imenuindreps] = CAST{"Reports",   0, 0, 0,  64, 0, 0, 14, 0 };
+<   popup_data[imenuancs]    = CAST{"Ancestors", 0, 0, 0,   0, 0, 0, 14, 0 };
+<   popup_data[imenuendreps] = CAST{ 0 };
+<   popup_data[imenuend]     = CAST{ 0 };
+---
+>   popup_data[imenubase]    = {"Edit",      0, (Fl_Callback*)edit_cb,         (void*)(view), 0,0,0,14,0 };
+>   popup_data[imenunotes]   = {"Notes",     0, (Fl_Callback*)menuopennotes_cb,(void*)(view), 0,0,0,14,0 };
+>   popup_data[imenuyounger] = {"Younger",   0, (Fl_Callback*)menu_younger_cb, (void*)(view), 0, 0, 0, 14, 0 };
+>   popup_data[imenuolder]   = {"Older",     0, (Fl_Callback*)menu_older_cb,   (void*)(view), 0, 0, 0, 14, 0 };
+>   popup_data[imenunewfam]  = {"New family",0, (Fl_Callback*)famnew_cb,       (void*)(view), 0, 0, 0, 14, 0 };
+>   popup_data[imenustructure]={"Structure", 0, 0, 0, 192, 0, 0, 14, 0 };
+>   popup_data[imenuremove]  = {"Delete",    0, (Fl_Callback*)deleteindi_cb,   (void*)(view), 0, 0, 0, 14, 0 };
+>   popup_data[imenudetach]  = {"Detach",    0, 0, 0,   0, 0, 0, 14, 0 };
+>   popup_data[imenumove]    = {"Move",      0, 0, 0,   0, 0, 0, 14, 0 };
+>   popup_data[imenuattach]  = {"Attach",    0, 0, 0,   0, 0, 0, 14, 0 };
+>   popup_data[imenuendstruct] = { 0 };
+>   popup_data[imenuindreps] = {"Reports",   0, 0, 0,  64, 0, 0, 14, 0 };
+>   popup_data[imenuancs]    = {"Ancestors", 0, 0, 0,   0, 0, 0, 14, 0 };
+>   popup_data[imenuendreps] = { 0 };
+>   popup_data[imenuend]     = { 0 };
+148,153c142,147
+<   popup_data[fmenubase]    = CAST{"Edit",      0, (Fl_Callback*)famed_cb, (void*)(view),         0,0,0,14,0 };
+<   popup_data[fmenunotes]   = CAST{"Notes",     0, (Fl_Callback*)menuopennotes_cb, (void*)(view), 0,0,0,14,0 };
+<   popup_data[fmenulater]   = CAST{"Later",     0, (Fl_Callback*)menu_later_cb, (void*)(view),    0,0,0,14,0 };
+<   popup_data[fmenuearlier] = CAST{"Earlier",   0, (Fl_Callback*)menu_earlier_cb, (void*)(view),  0,0,0,14,0 };
+<   popup_data[fmenuchild]   = CAST{"New child", 0, (Fl_Callback*)newchild_cb, (void*)(view), 0, 0, 0, 14, 0 };
+<   popup_data[fmenuunmarry] = CAST{"Unmarry",   0, (Fl_Callback*)unmarry_cb, (void*)(view), 128, 0, 0, 14, 0 };
+---
+>   popup_data[fmenubase]    = {"Edit",      0, (Fl_Callback*)famed_cb, (void*)(view),         0,0,0,14,0 };
+>   popup_data[fmenunotes]   = {"Notes",     0, (Fl_Callback*)menuopennotes_cb, (void*)(view), 0,0,0,14,0 };
+>   popup_data[fmenulater]   = {"Later",     0, (Fl_Callback*)menu_later_cb, (void*)(view),    0,0,0,14,0 };
+>   popup_data[fmenuearlier] = {"Earlier",   0, (Fl_Callback*)menu_earlier_cb, (void*)(view),  0,0,0,14,0 };
+>   popup_data[fmenuchild]   = {"New child", 0, (Fl_Callback*)newchild_cb, (void*)(view), 0, 0, 0, 14, 0 };
+>   popup_data[fmenuunmarry] = {"Unmarry",   0, (Fl_Callback*)unmarry_cb, (void*)(view), 128, 0, 0, 14, 0 };
+156c150
+<   popup_data[fmenuend]     = CAST{ 0 };
+---
+>   popup_data[fmenuend]     = { 0 };
+173,174c167,168
+<   popup_data[0] = CAST{"Save window as graphic",  0, (Fl_Callback*)savescr_cb, (void*)(view),   0, 0, 0, 14, 0 };
+<   popup_data[1] = CAST{ 0 };
+---
+>   popup_data[0] = {"Save window as graphic",  0, (Fl_Callback*)savescr_cb, (void*)(view),   0, 0, 0, 14, 0 };
+>   popup_data[1] = { 0 };
+181,186c175,180
+<   menu_data[0] = CAST{"Cancel",             0, (Fl_Callback*)cancelnotes_cb, (void*)notesui, 0, 0, 0, 14, 0 };
+<   menu_data[1] = CAST{"Clear",              0, (Fl_Callback*)clearnotes_cb,  (void*)notesui, 0, 0, 0, 14, 0 };
+<   menu_data[2] = CAST{"Restore",            0, (Fl_Callback*)restorenotes_cb, (void*)notesui, 0, 0, 0, 14, 0 };
+<   menu_data[3] = CAST{"Save back to GEDCOM",0, (Fl_Callback*)savenotes_cb,   (void*)notesui, 0, 0, 0, 14, 0 };
+<   menu_data[4] = CAST{"OK (Save and close)",0, (Fl_Callback*)oknotes_cb,     (void*)notesui, 0, 0, 0, 14, 0 };
+<   menu_data[5] = CAST{ 0 };
+---
+>   menu_data[0] = {"Cancel",             0, (Fl_Callback*)cancelnotes_cb, (void*)notesui, 0, 0, 0, 14, 0 };
+>   menu_data[1] = {"Clear",              0, (Fl_Callback*)clearnotes_cb,  (void*)notesui, 0, 0, 0, 14, 0 };
+>   menu_data[2] = {"Restore",            0, (Fl_Callback*)restorenotes_cb, (void*)notesui, 0, 0, 0, 14, 0 };
+>   menu_data[3] = {"Save back to GEDCOM",0, (Fl_Callback*)savenotes_cb,   (void*)notesui, 0, 0, 0, 14, 0 };
+>   menu_data[4] = {"OK (Save and close)",0, (Fl_Callback*)oknotes_cb,     (void*)notesui, 0, 0, 0, 14, 0 };
+>   menu_data[5] = { 0 };
+1373d1366
+<       // but more difficult (and not fixed yet) is that we should not have a PLOT if CEME exists but is blank
+1531,1535c1524
+< #ifdef WIN32
+<   strncpy_s(buf_indi_title, MAX_indititle, title.c_str(), MAX_indititle);
+< #else
+<   strncpy(buf_indi_title, title.c_str(), MAX_indititle);
+< #endif
+---
+>   strncpy_s(buf_indi_title, 256, title.c_str(), MAX_indititle);
+2231,2235c2220
+< #ifdef WIN32
+<   strncpy_s(buf_fam_title, MAX_famtitle, title.c_str(), MAX_famtitle);
+< #else
+<   strncpy(buf_fam_title, title.c_str(), MAX_famtitle);
+< #endif
+---
+>   strncpy_s(buf_fam_title, 256, title.c_str(), MAX_famtitle);
+2321d2305
+< #ifdef WIN32
+2338,2355d2321
+< #else
+<   sprintf(buf,"%d",which->getindicount());
+<   indicount->value(buf);
+<   sprintf(buf,"%d",which->getfamcount());
+<   famcount->value(buf);
+<   sprintf(buf,"%d",which->getsourcount());
+<   srccount->value(buf);
+<   sprintf(buf,"%d",which->getrepocount());
+<   repocount->value(buf);
+<   sprintf(buf,"%d",which->getmaxindi());
+<   indimax->value(buf);
+<   sprintf(buf,"%d",which->getmaxfam());
+<   fammax->value(buf);
+<   sprintf(buf,"%d",which->getmaxsour());
+<   srcmax->value(buf);
+<   sprintf(buf,"%d",which->getmaxrepo());
+<   repomax->value(buf);
+< #endif
+2675,2676c2641
+<   
+<   GEDCOM_object* subitem;
+---
+>  GEDCOM_object* subitem;
+2710c2675
+<   thing = (GEDCOM_object*) NULL;
+---
+>   thing = (GEDCOM_object*)NULL;
+2747c2712
+<   rawdate=rd; thing = (GEDCOM_object*) NULL;
+---
+>   rawdate=rd; thing = (GEDCOM_object*)NULL;
+3758,3762c3723
+< #ifdef WIN32
+<   strncpy_s(notes_title, MAX_notestitle, title.c_str(), MAX_notestitle);
+< #else
+<   strncpy(notes_title, title.c_str(), MAX_notestitle);
+< #endif
+---
+>   strncpy_s(notes_title, 256, title.c_str(), MAX_notestitle);
+3812,3816c3773
+< #ifdef WIN32
+<   strncpy_s(notes_id, MAX_notestitle, title.c_str(), MAX_notestitle);
+< #else
+<   strncpy(notes_id, title.c_str(), MAX_notestitle);
+< #endif
+---
+>   strncpy_s(notes_id, 256, title.c_str(), MAX_notestitle);
+==================================================================================================================================
+display.cpp
+19,21d18
+< #ifndef WIN32
+< #include "strings.h"
+< #endif
+487d483
+< #ifdef WIN32
+489,491d484
+< #else
+<       sprintf( seq, "%d", sequence );
+< #endif
+==================================================================================================================================
+callback.cpp
+35,37d34
+< #ifndef WIN32
+< #include "write_png.h"
+< #endif
+76a74
+> 
+189d186
+< #ifdef WIN32
+191,193d187
+< #else
+<     sprintf(person_buffer,"Menu");
+< #endif
+207d200
+< #ifdef WIN32
+209,211d201
+< #else
+<       sprintf(person_buffer,"%s",clickedname->value());
+< #endif
+250d239
+< #ifdef WIN32
+252,254d240
+< #else
+<     sprintf(person_buffer,"%s",clicked->getidname());
+< #endif
+307,311c293,295
+< 
+< #ifdef WIN32
+<   fl_alert("The help subsystem is not available in the Windows port, but the documentation can be read just as easily in a browser");
+< #else
+<   if (!help_dialog) help_dialog = new Fl_Help_Dialog();
+---
+>   
+> //  if (!help_dialog) help_dialog = new Fl_Help_View(0,0,600,400,"X!Family Help");
+> //  if (!help_dialog) help_dialog = new Fl_Help_Dialog();
+314,316c298,300
+<   if ((docdir = getenv("XFAM_DOCDIR")) == NULL) {
+<     docdir = "/usr/local/src/xfamily/html015";
+<   }
+---
+>  // if ((docdir = getenv("XFAM_DOCDIR")) == NULL) {
+>  //   docdir = "/usr/local/src/xfamily/html015";
+>  // }
+319c303
+<   snprintf(helpname, sizeof(helpname), "%s/%s", docdir, (char*)urlleaf);  
+---
+> //  snprintf(helpname, sizeof(helpname), "%s/%s", docdir, (char*)urlleaf);  
+321,323c305,307
+<   help_dialog->load(helpname);
+<   help_dialog->show();
+< #endif
+---
+> //  help_dialog->load(helpname);
+> //  help_dialog->show();
+>   fl_alert("The help subsystem is not available in the Windows port, but the documentation can be read just as easily in a browser");
+324a309,310
+>   char file[] = "test.ged";
+>   tree->setfilename(file);
+437c423
+<   test = edited->subobject();           // 2023-03-24 this seems redundant in that we set test again just below (we don't do this line in okedit_cb...)
+---
+>   test = edited->subobject();
+569d554
+< 
+605c590
+<     fam_id = new GEDCOM_id(f,fid);                         // which we use to generate an "F<nnn>" ID string
+---
+>     fam_id = new GEDCOM_id(f,fid);                       // which we use to generate an "F<nnn>" ID string
+1005,1007d989
+< #ifdef WIN32
+<   fl_alert("screen image saving is not implemented in Windows, sorry");
+< #else
+1009a992,993
+>   fl_alert("screen image saving is not implemented in Windows, sorry");
+>   /*
+1021d1004
+< #endif
+1057a1041
+>   */
