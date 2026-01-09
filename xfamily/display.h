@@ -7,6 +7,7 @@
 #include <FL/Fl_Scroll.H>
 
 #include "classes.h"
+#include "fixes.h"
 
 #define SEX_UNKNOWN 0
 #define SEX_MALE    1
@@ -19,12 +20,15 @@
 #define COLOUR_MALE    FL_BLUE
 #define COLOUR_FEMALE  FL_RED
 
-#define V_OFFSET 3
+#define V_OFFSET 2
 #define XF_FONT_SIZE 12
 
 class treedisplay : public Fl_Button {
   mainUI* view;
   Fl_Scroll* scroller;
+#ifdef fix0003
+  indidisplay* currentindi;
+#endif
   int fontface;
   int fontsize;
   void draw();
@@ -54,6 +58,9 @@ public:
                  indidisplay( GEDCOM_object* );
                  ~indidisplay();
 GEDCOM_object   *getperson() const;
+#ifdef fix0002
+indidisplay     *findindi( GEDCOM_object* );
+#endif
 indidisplay     *sibling() const;
 indidisplay     *last() const;
 void             setsibling( indidisplay* );
@@ -98,6 +105,9 @@ public:
 GEDCOM_object *getfamily() const;
 indidisplay   *getspouse() const;
 famdisplay    *nextfam() const;
+#ifdef fix0002
+indidisplay   *findindi( GEDCOM_object* );
+#endif
 void           setnext( famdisplay* );
 int            x() const;
 void           setx( int );
@@ -131,13 +141,16 @@ class displaytree {
 public:
                displaytree( GEDCOM_object* );
                ~displaytree();
+indidisplay   *gettop() const;
+#ifdef fix0002
+indidisplay   *findindi( GEDCOM_object* );
+#endif
 void           buildtree();
 void           addmarriages( indidisplay* );
 void           adddescendants( famdisplay* );
 void           calctree();
 void           calcmarriages( indidisplay*, int, int, int&, int&, int& );
 void           calcdescendants( famdisplay*, int, int, int&, int&, int& );
-indidisplay   *gettop() const;
 void           setfont() const;
 int            getvint() const;
 int            xsize() const;

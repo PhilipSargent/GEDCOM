@@ -1,0 +1,56 @@
+How may we close the indiUI dbox and what callbacks do we get as a result ?
+
+1) Click on Cancel
+  we call canceledit_cb with userdata set to the indiUI we are closing
+2) Click on OK
+  we call okedit_cb with userdata set to the indiUI we are closing
+3) Click on close icon of dbox
+  I believe we don't get a callback at all. This means we won't garbage
+  collect the supposedly ephemeral event objects we created. OK, now
+  added callback set up in the indiUI constructor
+
+
+Although, at the moment, I'm not doing that garbage collection anyway, on
+Cancel, nor saving changed data away on OK. That's next on the agenda :-)
+
+Issues: If we click on OK, with a notesUI open on a NOTE on an event,
+should we save the pre-existing NOTE (if any) or the modified NOTE
+back to the GEDCOM at that point ? I think it should be the pre-existing
+one, because that is more logical and, as it happens, will also be easier
+to implement, because that is what is encapsulated in GEDCOM structures
+at the time.
+
+But now, if we have a note of the BIRT, for example, and in this sequence:
+
+1) open indiUI
+2) open a notesUI for the birth event
+3) add or change some text in the notesUI
+4) change a detail in the birth event (or maybe even anywhere in the inidUI)
+5) close the indiUI with OK
+6) try to save back to GEDCOM from the notesUI.
+
+at (6) we try to use the object with the BIRT tag to add a NOTE subobject to.
+but (5) could have entirely removed that object - it might have been an
+ephemeral event created for the duration of the indiUI, or we could have
+removed the birth event in the dbox.
+
+Equally, (4) could have caused the old event object to be deleted and
+replaced with a new one.
+
+OK, we only destroy an event object if it is empty - so to keep it alive
+we need to create a subobject of it - in this case, a NOTE subobject.
+This should exist whenever the notesUI is open.
+
+Editing in the indiUI will not change the event object - only its DATE
+TIME, PLAC, SITE, SOUR ... subobjects, so we should be OK there. The
+GEDCOM_object methods should ensure that the NOTE object's private
+data structures (like next pointer) are kept in synch - all we have
+to do to be safe is to ensure that it continuously exists whilst the
+notesUI is open.
+
+So now, what if the BIRT event object was only created so that we
+could open a notesUI, but is now saved in the GEDCOM because we closed
+the indiUI. If we now close the notesUI with an empty NOTE, we should
+destroy the NOTE object. So far so good, but we now have an empty BIRT
+event object (which is safe, in that we will never save that to file).
+Should we be taking steps to destroy this object ?

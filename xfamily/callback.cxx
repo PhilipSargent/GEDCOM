@@ -3,6 +3,8 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Menu.H>
 #include <FL/Fl_Button.H>
+#include <FL/Fl_Help_Dialog.H>
+#include <FL/Enumerations.H>
 #include <FL/Fl_Menu_Button.H>
 #include <FL/Fl_Return_Button.H>
 #include <FL/Fl_Menu_Item.H>
@@ -25,12 +27,23 @@
 #include "strings.h"
 #include "tags.h"
 
+static Fl_Help_Dialog *help_dialog = 0;
+
 ///////////////// callback routines for the GUI classes ///////////////
+
+// callback routines to attach to buttons and menus that don't work yet
+
+void deadbutton_cb( Fl_Button*, void *) {
+}
+
+void deadmenu_cb( Fl_Menu_*, void *) {
+}
 
 // callback routines from mainUI menu applying to whole program
 
 void language_cb(Fl_Menu_ *, void *index) {
-  xlate_messages(languages[(int)index]);
+  /* 2006-12-23 hacked to get an int from what we create in language.cxx, which is (void*)(0) etc. */
+  xlate_messages(languages[(int)*(int*)index]);
   int x,y;
   // eventually we will call ->reopen on a linked list class for these UIs
   trees->reopen();
@@ -91,16 +104,16 @@ void newview_cb(Fl_Menu_ *, void *userdata) {
   treeinstance *tree = view->whichtree();
   //printf("View will be on treeinstance %ld\n",(long)tree);
   mainUI *newview  = new mainUI( tree );
-  printf("incarnated new mainUI at %ld\n",(long)newview);
+  //printf("incarnated new mainUI at %ld\n",(long)newview);
   tree->addview(newview);
-  printf("added it to tree\n");
+  //printf("added it to tree\n");
   GEDCOM_object* tempfortest = view->getcurrent();
-  printf("getcurrent for existing view was %ld\n",(long)tempfortest);
+  //printf("getcurrent for existing view was %ld\n",(long)tempfortest);
   newview->setcurrent( tempfortest );
   //newview->setcurrent( view->getcurrent() );
-  printf("Set current\n");
+  //printf("Set current\n");
   newview->show();
-  printf("and now you should see it !\n");
+  //printf("and now you should see it !\n");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -163,7 +176,7 @@ Fl_Menu_Item *picked;
   // given a menu-requesting-click, we need to decide, on the basis of where we were clicked,
   // which menu to open, view->indimenu or view->fammenu
 
-  if (clicked == NULL) { printf("popup_cb - no object\n"); return;} // eventually a generic popup to allow things like newperson, goto ...
+  if (clicked == NULL) { /*printf("popup_cb - no object\n");*/ return;} // eventually a generic popup to allow things like newperson, goto ...
 /*  if (clicked->objtype() == FAM_tag) { printf("popup_cb - FAM object\n"); return; } // not yet implemented
   if (clicked->objtype() != INDI_tag) { printf("popup_cb bad object type clicked\n"); return; } */
 
@@ -199,36 +212,27 @@ Fl_Menu_Item *picked;
 // callback routines from mainUI menu to start help
 
 extern void help_cb(Fl_Menu_ *, void* userdata ) {
-  shell_for_help( userdata );
+  show_help( userdata );
 }
 
-void shell_for_help( void* urlleaf ) {
+void show_help( void* urlleaf ) {
   // urlleaf points to leafname of helpfile (which is const, as it happens)
-  // now need to shell out to a browser ( kdehelp/khelpcenter/gnome-help-browser or $(BROWSER) )
-  // with parameter file:/usr/share/xfamily/help/HTML/<language-code>/+urlleaf
+  const char	*docdir;
+  char		helpname[1024];
+  
+//  if (!help_dialog) help_dialog = new Fl_Help_View(0,0,600,400,"X!Family Help");
+  if (!help_dialog) help_dialog = new Fl_Help_Dialog();
+//  help_dialog->textfont(FL_HELVETICA);
 
-  //char gethelp[]="gnome-help-browser file:/usr/share/xfamily/help/HTML/en/endpiece.html";
-
-  // for proof-of-concept, we will assume we are under KDE2:
-  // if we have kde2, then we can call khelpcenter, but only if we have done a link
-  // ln -s /usr/share/xfamily/help/HTML/en /opt/kde2/share/doc/HTML/en/xfamily
-  // so that we can use a help: url. Otherwise we'd have to use konqueror directly
-  char gethelp[]="khelpcenter help:/xfamily/endpiece.html";
-  unsigned int leafoffset=strlen(gethelp)-13;
-  printf("initial gethelp string is: >%s<\n",gethelp);
-  printf("string to replace >%s< is >%s< of length %d\n",&gethelp[leafoffset],(char*)urlleaf,strlen((char*)urlleaf));
-  strcpy(&gethelp[leafoffset],(char*)urlleaf);
-  printf("the one we will shell with >%s<\n",gethelp);
-  if ( fork() == 0 ) {
-    printf("I am the new process\n");
-    const char* shell="/bin/sh";
-    if (getenv("SHELL")) shell=getenv("SHELL");
-    execl(shell,shell,"-c",(const char*)gethelp,0L);
-    // if that returns, we are shafted:
-    printf("The execl has returned - our new process will exit. Bye !\n");
-    exit(1);
+  if ((docdir = getenv("XFAM_DOCDIR")) == NULL) {
+    docdir = "/usr/local/src/xfamily/html015";
   }
-  printf("I am the original process - still here\n");
+  // we should have an extra /%s and add the language code
+  // and when installed, our dir should be something like /usr/local/share/xfamily/help/html/<lang-code>
+  snprintf(helpname, sizeof(helpname), "%s/%s", docdir, (char*)urlleaf);  
+
+  help_dialog->load(helpname);
+  help_dialog->show();
 }
 
 
@@ -299,20 +303,68 @@ if (edited==NULL) {
   editUIs->close( indibox );
 }
 
+void commitedit_cb(Fl_Button *, void *userdata) {
+// virtually the same as above (which we should therefore hive off into a
+// separate routine), but without the close( indibox );
+}
+
+void restoreedit_cb(Fl_Button *, void *userdata) {
+// basically do the same field-filling as on opening the indiUI.
+// DON'T restore NOTE or SOUR stuff into any extant notesUI boxes ...
+}
+
 void canceledit_cb(Fl_Button *, void *userdata) {
 indiUI* indibox = (indiUI*)userdata;
 GEDCOM_object* edited = indibox->whois();
+GEDCOM_object *event, *eventdata;
 // just bin all the changes
-// but not like this ! that leaves someone with a pointer to a dead
-// thing !!! delete indibox;
+// "changes" in this context includes the creation of dummy events to hang
+// NOTE objects from. We need to garbage collect any dead events (ie. ones
+// with no subobjects). If there are still NOTE objects for any event (eg.
+// if there are active notesUI dboxes open), they will persist.
+  if ( (eventdata = (event=edited->subobject( BIRT_tag ))->subobject()) == NULL ) {
+    // clearly, if it has no subobjects, we can remove it.
+    //printf("BIRT event at %ld empty, deleting it\n", (long)event);
+    edited->delete_subobject( event );
+  }
+  // there may still be a dummy NOTE object keeping the BIRT alive...
+  if ( (eventdata = (event=edited->subobject( CHR_tag ))->subobject()) == NULL ) {
+    // clearly, if it has no subobjects, we can remove it.
+    //printf("CHR event at %ld empty, deleting it\n", (long)event);
+    edited->delete_subobject( event );
+  }
+  if ( (eventdata = (event=edited->subobject( BAPM_tag ))->subobject()) == NULL ) {
+    // clearly, if it has no subobjects, we can remove it.
+    //printf("BAPM event at %ld empty, deleting it\n", (long)event);
+    edited->delete_subobject( event );
+  }
+  if ( (eventdata = (event=edited->subobject( DEAT_tag ))->subobject()) == NULL ) {
+    // clearly, if it has no subobjects, we can remove it.
+    // potentially, we might find a "1 DEAT yes"
+    //printf("DEAT event at %ld empty, deleting it\n", (long)event);
+    edited->delete_subobject( event );
+  }
+  if ( (eventdata = (event=edited->subobject( CREM_tag ))->subobject()) == NULL ) {
+    // clearly, if it has no subobjects, we can remove it.
+    //printf("CREM event at %ld empty, deleting it\n", (long)event);
+    edited->delete_subobject( event );
+  }
+  if ( (eventdata = (event=edited->subobject( BURI_tag ))->subobject()) == NULL ) {
+    // clearly, if it has no subobjects, we can remove it.
+    //printf("BURI event at %ld empty, deleting it\n", (long)event);
+    edited->delete_subobject( event );
+  }
+  //printf("Survived deleting all the empty event objects\n");
+  // can't just delete indibox, must remove it from the linked list:
   editUIs->close( indibox );
+  //printf("Back from editUIs->close() in callback\n");
 }
 
 void helpedit_cb(Fl_Button *, void *userdata) {
 // we need to call our routine to shell out to a help browser
 // with URL file:/usr/share/xfamily/help/HTML/<language-code>/indiUI.html
 
-  shell_for_help( userdata );
+  show_help( userdata );
 }
 
 void searchma_cb(Fl_Button *, void *userdata) {
@@ -360,18 +412,40 @@ if (edited==NULL) {
 
 void cancelfam_cb(Fl_Button *, void *userdata) {
 famUI* fambox = (famUI*)userdata;
+GEDCOM_object* event;
 GEDCOM_object* edited = fambox->whatis();
 // just bin all the changes
-// but not like this ! that leaves someone with a pointer to a dead
-// thing !!! delete indibox;
+  if ( (event = edited->subobject( ENGA_tag )) == NULL ) {
+    // clearly, if it has no subobjects, we can remove it.
+    edited->delete_subobject( event );
+  }
+  if ( (event = edited->subobject( MARR_tag )) == NULL ) {
+    // clearly, if it has no subobjects, we can remove it.
+    edited->delete_subobject( event );
+  }
+  if ( (event = edited->subobject( DIV_tag )) == NULL ) {
+    // clearly, if it has no subobjects, we can remove it.
+    edited->delete_subobject( event );
+  }
+// can't just delete fambox - must remove it from the linked list:
   famUIs->close( fambox );
+}
+
+void commitfam_cb(Fl_Button *, void *userdata) {
+// virtually the same as above (which we should therefore hive off into a
+// separate routine), but without the close( fambox );
+}
+
+void restorefam_cb(Fl_Button *, void *userdata) {
+// basically do the same field-filling as on opening the famUI.
+// DON'T restore NOTE or SOUR stuff into any extant notesUI boxes ...
 }
 
 void helpfam_cb(Fl_Button *, void *userdata) {
 // we need to call our routine to shell out to a help browser
 // with URL file:/usr/share/xfamily/help/HTML/<language-code>/famUI.html
 
-  shell_for_help( userdata );
+  show_help( userdata );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -414,6 +488,9 @@ void okfind_cb(Fl_Return_Button*, void *userdata) {
     completionsbox->finish();
   }
   // else: should raise a warning if we didn't find that person
+  // currently just drop back - if this is because we typed some string that
+  // doesn't match any real INDI, then the findUI window just stays open with
+  // no feedback to say "not found".
 }
 
 void binnedfind_cb(Fl_Window*, void *userdata) {
@@ -422,22 +499,22 @@ void binnedfind_cb(Fl_Window*, void *userdata) {
   gotobox->finish();
 }
 
-void searchfind_cb(Fl_Button*, void *userdata) {
-  mainUI* view = (mainUI*)userdata;
-// that will give us the view on which the completions code will be trying to
-// find matching entries for the partial name in ... what ?
-// the text is in (char *)gotobox->find_input->value()
-// and we need a fuzzy search equivalent of view->whichtree()->Lookup_INDI( char* )
-// then we need to raise a completions window to browse all the possible
-// matches in the current tree ... but ... one step at a time.
+void searchfind_cb(Fl_Button* button, void *userdata) {
+  int strategy=0;
+  findUI* searchfrom = (findUI*)userdata;
   short x,y;
   x = gotobox->findbox->x();
   y = gotobox->findbox->y();
-  completionsbox->open( view->whichtree(),
+  // this is inelegant - we aren't a method of findUI (although, logically, we should be,
+  // but I don't think callbacks can be methods - or am I just igorrant ?? )
+  if (button==searchfrom->find_fromright) strategy = 1;
+  if (button==searchfrom->find_fuzzy)     strategy = 2;
+  if (button==searchfrom->find_fromleft)  strategy = 3;
+  completionsbox->open( searchfrom->getview()->whichtree(),
                         (char*)gotobox->find_input->value(),
-                        0,
+                        strategy,
                         (Fl_Callback*) chosenfind_cb,
-                        (void*) view, x+65, y+55 );
+                        (void*) searchfrom->getview(), x+65, y+55 );
 }
 
 void chosenfind_cb( Fl_Select_Browser* chooser, void *userdata ) {
@@ -445,9 +522,11 @@ void chosenfind_cb( Fl_Select_Browser* chooser, void *userdata ) {
 // is always going to be a mainUI (ie. a particular view).
   mainUI* view = (mainUI*)userdata;
   int chosen = chooser->value();
-  printf("completions selected item %d\n", chosen);
+//  printf("completions selected item %d\n", chosen);
   GEDCOM_object* newperson = completionsbox->chosen_indi( chosen );
   completionsbox->finish();
+  // anyone chosen in the completionsbox ought to be a real INDI, so we
+  // should never get NULL here, but test anyway:-)
   if (newperson != NULL) {
     view->setcurrent(newperson);
     gotobox->findbox->hide();
@@ -455,7 +534,7 @@ void chosenfind_cb( Fl_Select_Browser* chooser, void *userdata ) {
 }
 
 void completionbinned_cb( Fl_Window*, void *userdata ) {
-  printf("completions window closed with no choice made\n");
+//  printf("completions window closed with no choice made\n");
   completionsbox->finish();
 }
 
@@ -463,7 +542,7 @@ void helpfind_cb(Fl_Button *, void *userdata) {
 // we need to call our routine to shell out to a help browser
 // with URL file:/usr/share/xfamily/help/HTML/<language-code>/findUI.html
 
-  shell_for_help( userdata );
+  show_help( userdata );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -491,7 +570,7 @@ void helpchoices_cb(Fl_Button *, void *userdata) {
 // we need to call our routine to shell out to a help browser
 // with URL file:/usr/share/xfamily/help/HTML/<language-code>/prefUI.html
 
-  shell_for_help( userdata );
+  show_help( userdata );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -501,16 +580,28 @@ void helpchoices_cb(Fl_Button *, void *userdata) {
 // we call opennotes from one of the popup menus in a mainUI window
 // eventually, the userdata is going to be a particular GEDCOM_object*
 // as determined by the mainUI code based on the click position.
-
-// this is slightly bad news - we can't get from a GEDCOM_object to the
-// treeinstance it is part of, but we will need to know the treeinstance
+//
+// are you sure ? The userdata is set up by the constructor of the menu,
+// which is called by the constructor of the mainUI. So these menus can
+// never know the GEDCOM_object on which they were raised. Unless you
+// redefine the userdata for popup_data[1] each time we are popped up.
+// It seems that setting the event object is actually cleaner :-(
+//
+// that was good news - because we couldn't get from a GEDCOM_object to the
+// treeinstance it is part of, but we need to know the treeinstance
 // in order to reflect the tree filename in the window title, and to mark
 // the tree as modified if we eventually save changed notes back to a tree.
 
-// this probably means that we need to keep a pointer in each tree to the
-// last GEDCOM_object on which we processed an event. The plot is thickening ...
+// this means that we need to keep a pointer in each tree to the
+// last GEDCOM_object on which we processed an event. OK, that works.
 
-void opennotes_cb(Fl_Menu_ *menu, void *userdata) {
+// but we are going to start getting other callbacks from buttons in
+// indiUI and famUI dboxes where the thing we pass is going to have
+// to be a GEDCOM_object, so its lucky that we have now built code to
+// enable us to get back to the treeinstance from there :-)
+
+void menuopennotes_cb(Fl_Menu_ *menu, void *userdata) {
+// opens a notesUI window for an object which gets a popup menu, ie. INDI or FAM
 notesUI* newui;
   treeinstance* tree = (treeinstance*)userdata;
   // the code which popped up the menu should have called setevent for
@@ -519,8 +610,41 @@ notesUI* newui;
 // noteUI->open() should do this:  newui->window->show();
 }
 
+void buttonopennotes_cb(Fl_Button *menu, void *userdata) {
+// opens a notesUI window for any object for which we provide a "Notes" button
+// in its editing dbox. This includes INDI and FAM, but also events, facts,
+// sources and almost anything else you can edit.
+notesUI* newui;
+  // the dbox owning the button should set the userdata to void*(pointertoobject)
+  // but the notes button on a indiUI for a <new person> will be NULL until saved
+  if (userdata==NULL) return;
+  // you might want to raise an Fl_Alert before doing that....
+  // actually, we'd rather create a relevant GEDCOM_object to raise the
+  // NOTE on, but at this point we are going to struggle, since without
+  // an existing object, we can't tie back to the INDI or FAM on which to
+  // create the event, nor know which event to create. So this problem needs
+  // solving back in indiUI and famUI ...
+  //printf("buttonopennotes_cb for %d\n",(int)userdata);
+  treeinstance* tree = ((GEDCOM_object*)userdata)->root();
+  //printf("notesUI to be raised on treeinstance %d\n",(int)tree);
+  // the object we pass to the notes open is the INDI/FAM/event/etc. object
+  newui = noteUIs->open(tree, (GEDCOM_object*)userdata, NOTE_tag);
+// noteUI->open() should do this:  newui->window->show();
+}
+
+void buttonopentext_cb(Fl_Button *menu, void *userdata) {
+// opens a notesUI window for a TEXT object for which we provide a "Text" button
+// in its editing dbox. This mostly means SOUR, CENS, WILL, PROB and the like
+notesUI* newui;
+  if (userdata==NULL) return;
+  treeinstance* tree = ((GEDCOM_object*)userdata)->root();
+  newui = noteUIs->open(tree, (GEDCOM_object*)userdata, TEXT_tag);
+// noteUI->open() should do this:  newui->window->show();
+}
+
 // for each callback, we have to work back to find the notesUI. That was
 // why we set the menu item userdata to ((void*)(this)) in the constructor :-)
+// all these methods apply equally to NOTE objects' and TEXT objects' notesUIs
 
 void changenotes_cb(Fl_Multiline_Input*, void*userdata) {
 notesUI *ui;
@@ -532,12 +656,14 @@ void cancelnotes_cb(Fl_Menu_*, void*userdata) {
 notesUI *ui;
   ui = (notesUI*)userdata;
   // if (ui->changed()) are you sure ?
+  //printf("cancelnotes_cb for notesUI at %ld\n",(long)userdata);
   noteUIs->close(ui);
 }
 
 void quitnotes_cb(Fl_Window*, void*userdata) {
 notesUI *ui;
   ui = (notesUI*)userdata;
+  //printf("quitnotes_cb for notesUI at %ld\n",(long)userdata);
   // if (ui->changed()) are you sure ?
   noteUIs->close(ui);
 }
@@ -552,20 +678,40 @@ notesUI *ui;
 void restorenotes_cb(Fl_Menu_*, void*userdata) {
 notesUI *ui;
   ui = (notesUI*)userdata;
+  //printf("restorenotes_cb for notesUI at %ld\n",(long)userdata);
   ui->restore();
 }
 
 void savenotes_cb(Fl_Menu_*, void*userdata) {
 notesUI *ui;
   ui = (notesUI*)userdata;
+  //printf("savenotes_cb for notesUI at %ld\n",(long)userdata);
   ui->update();
+  //printf("Done update from notesUI to GEDCOM\n");
 }
 
 void oknotes_cb(Fl_Menu_*, void*userdata) {
 notesUI *ui;
   ui = (notesUI*)userdata;
+  //printf("oknotes_cb for notesUI at %ld\n",(long)userdata);
   ui->update();
+  //printf("Done update from notesUI to GEDCOM\n");
   noteUIs->close(ui);
 }
 
 
+////////////////////////////////////////////////////////////////////////////////
+//
+// callback routines to drive sourceUI
+
+// none of which is built yet, but we need dummy routines while we test the
+// button layouts
+
+void buttonopensourceui_cb( Fl_Button*, void*userdata) {
+GEDCOM_object* caller;
+  // printf("Arrived ok in buttonopensourceui_cb\n");
+  caller = (GEDCOM_object*)userdata;
+  // printf("Cast userdata to GEDCOM_object* OK\n");
+  treeinstance* tree = ((caller = (GEDCOM_object*)userdata)->root());
+  // then you'd need to open a sourceUI window ...
+}

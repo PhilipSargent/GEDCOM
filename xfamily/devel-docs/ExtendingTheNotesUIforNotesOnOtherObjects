@@ -1,0 +1,101 @@
+Extending the NOTE and TEXT interface.
+
+notesUI is specifically set up to edit free text in either a NOTE or a TEXT
+object. NOTE objects can be added to almost anything - currently we deal with
+them on INDI, FAM, BIRT, CHR, BAPM, DEAT, BURI, CREM, MARR, ENGA, DIV.
+
+both NOTE and TEXT will be used in SOURces, including WILL and PROBate records.
+
+SOUR is dealt with in notes elsewhere (and is potentially pathologically complex).
+What do we want to put in WILL and PROBate objects, apart from one or both of
+NOTE and TEXT ? In examples I have, TEXT is a subobject of DATA (which is a
+subobject of SOUR - that seems a cock-eyed way round). In at least one case,
+a will has two DATA+TEXT objects, each a subobject of a separate SOUR object
+
+DATE both
+PLAC possibly only on probate - although US examples I have quote place, too.
+SOUR needed if researcher not working from original document - which begs the
+     question, if we are transcribing, do we still need a SOUR anyway, 'cos
+     we ought to have a
+REPO either here or in the referred to SOUR. If we have SOUR, and it is from
+     a ledger of wills in a probate registry, or on microfilm/fiche we need
+PAGE of the applicable source.
+
+in most cases of genealogical research, only the will that was in force at
+the time of death is going to be available, so most INDIs will only have
+one WILL object (all INDIs should only have one PROB objcet). But for those
+with private papers to peruse, there may be a whole raft of wills and codicils
+to detail. How should we approach that ?
+
+Anyway, looks as if we want a dbox with an Fl_Output for the testator's name
+(and GEDCOM id). An Fl_Input for the date (and the usual calendar group)
+and one for the place. You could then have a button to reach NOTE or TEXT,
+and one for Sources. Or you could incorporate text editor code and a scroll
+box into the dbox for the will, which makes for less dboxes, and is
+probably acceptable when there are only a few fields to edit, as in this
+case.
+
+========================================================================
+
+done all this:
+
+We should be able to add a NOTE to any object. Currently we can only do so to a
+top level INDI or FAM object. notesUI has been written to deal with TEXT objects too,
+but is not yet called upon to do so anywhere.
+
+We find the object to which we are attaching notes by virtue of being passed a pointer
+to the treeinstance in which the object is defined, and then relying on the menu
+pop-up having called a setevent for the relevant object. This is a rather roundabout
+way of getting to the object - it would seem more sensible to passs the opennotes_cb
+callback a pointer to the GEDCOM_object whose NOTE subobject we wish to edit. The
+reason we didn't do this is that we want to be able to label the edit window title
+bar with the name of the tree in which the object lies, and we don't have a way
+back to this from the GEDCOM_object.
+
+In order to generalise this UI, it is going to be a lot more sensible to provide a
+way to get back to that information.     I think.... Because we are going to have
+a variety of ways to open a notesUI which don't rely on a menu pop-up event, and,
+in particular, we may be raised by something which doesn't know the treeinstance,
+or from whose treeinstance it may be very hard to find the GEDCOM_object we are
+being raised for. It is much more general and cleaner if we always have a way from
+a GEDCOM_object back up the structure to any enclosing object, including, ultimately,
+the treeinstance.
+
+TO do that we need to add to the GEDCOM_object class - we don't currently have a
+pointer to the parent object - eventually we are going to need one for freeing
+objects, I'm sure, so the sooner we add one the less headache... Following such
+parent pointers up, you will eventually reach an object with the tag root_tag.
+Its parent pointer cannot point to the treeinstance if it is a GEDCOM_object*,
+because you'd need a treeinstance*. Not sure of a clean way to do that, but
+it looks as though you need to add a GEDCOM_object constructor which takes a
+treeinstance* as parameter, which would only be used for creating the root object,
+and which would cast the treeinstance* to a GEDCOM_object* and save it in the
+parent pointer. The GEDCOM_object::parent() method would then check that it was
+being called on a non-root object before returning its GEDCOM_object*. For the
+root object it would return NULL. There would then be another method to get
+the tree of a GEDCOM_object. If called on a root object, it would cast the parent
+back to treeinstance* and return it. For any other object it would repeatedly
+call parent() until it got a null, then check that the last object it had reached
+was the root object, then do the cast and return. Getting to the treeinstance
+would always be pretty quick, since the typical tag nesting depths we see only
+go up to about 5.
+
+It looks as if the method to return the treeinstance must be public, but the
+parent() method can be private
+
+Whilst we are on this topic we need to be sure that we cannot raise a second edit
+notes UI on the same object. This seems to be OK, at the moment, but we need to watch
+that we don't provide a loophole into this trap. It is not the constructor which checks...
+Ah, this is quite well written, in fact, we have a noteslist class which is just a
+linked list of notesUI instances, so when we call NotesUIs->open(...) we check through
+the list to see if such a notes window is already open. Great so we won't get the loophole.
+But there is a BUG ! We can raise a notesUI on an object with either a NOTE tag or a
+TEXT tag. noteslist->open() takes the tag as a parameter, but doesn't check it, so
+if we try to open a window to edit a TEXT item on an object for which we are already
+editing a NOTE object, we won't get the new window we expected, but the NOTE editor will
+be raised and get the focus. OOPS !  OK, seem to have fixed that fairly easily, 2003-12-22
+
+
+OK, you might care to note that notesUI has been written to edit not just NOTE
+objects, but TEXT ones too, so the constructor takes a treeinstance, a GEDCOM_object
+and a GEDCOM_tag

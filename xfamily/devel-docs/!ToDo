@@ -1,0 +1,362 @@
+XFamily has now been built with several versions of FLTK and on several
+platforms. There are known porting issues and some significant bugs:
+
+Its a major hack to the Makefile and makeinclude to compile on a new distro.
+This should be automatically configured in some way - learn how ./configure
+scripts work !! Actually, as long as you do make clean and makedepend, it
+seems to be OK - worked on kent/Intrepid, and on wharfe/natty. However,
+you do need to do a check for the various -dev libraries.
+
+We should also add the bits and twiddles to automate building RPMs and DEBs,
+and port also to Solaris (fltk 1.1.3 ships with Solaris 10), and maybe even
+to Windows and MacOSX (ask David)
+
+On FLTK 1.1.x, we don't seem to have a maximise button on the main window.
+This has suddenly re-appeared without code change after I restarted X on
+wharfe, which is particularly wierd... now seems to come and go at a whim.
+
+Aaargh - "make" doesn't have a target to make the messages, so if you don't
+copy the messages nor explicitly run the python scripts everything's blank
+in the menus etc. :-( DOH ! Same will probably go for the tags. You need to
+make those relevant .cxx files depend on MessageSrc and KnownTags. And
+remember to update the path to the messages inside xlate.cxx, that really
+is poor !
+
+When we change current person, the window gets resized by closing it and opening
+it. The Window manager chooses where to open the new window, which is often
+somewhere other than where the one we clicked in was. This close/reopen also
+causes a big flash and is time-consuming. There must be a cleaner way to do
+this.
+
+If changing current person shrinks the window, we don't change something to
+ensure that the canvas is inside the window. It could be argued that fltk
+ought to do this automatically, but since it doesn't we need to do it. We
+should really be setting the extent, and scrolling to put the new current
+person somewhere in the middle of the Window. If the window is already the
+full height of the current display, we should make the window taller if
+necessary to maintain that status, up to the maximum size that will fit in
+the desktop. MOSTLY FIXED
+
+We need to read some coding standards and add a LOT more comments saying
+what each routine is for - it's hard to pick up after a year or two's
+gap...
+
+===========================================================================
+
+ToDo::
+
+Check over code for notes on FAM events to check for similar problems to those
+debugged in INDI event code. (As I read this, I note that it is so long ago,
+that I have no idea what problems those were... wish I was using CVS for this):
+
+Fix destructors to delete everything the constructors did new for.
+
+Write code for indiUI and famUI to save data back into GEDCOM. There are some
+minor revisions to the UI for this (added Restore and Apply butons), but there's
+a document giving a lot more thoughts on UI revision here.
+
+Write code for adding, deleting, marrying, unmarrying and moving people in
+the tree (INDImenu=>older is all very well in !Family, but a drag'n'drop idiom
+would be nicer. XFamily hasn't even got a FAMmenu=>earlier implementation yet).
+
+Implement file choosers for both load and save.
+
+Implement a generic class of "Are you sure?" UIs.
+
+Remove the LVG tag and all associated code (it will remain preserved in any
+existing GEDCOM - 'cos that's how we work).
+
+========== do a public release ============================
+
+Add a search facility - we have one to search for INDI names, we want something
+to search for things in notes and sources.
+
+Add UIs for WILL and PROBate - these need to be read/write straight away.
+
+Fix problem loading empty tree. Or indeed starting up with no tree (as you
+would to start from scratch). Can we load a GEDCOM with no INDIs ?
+
+File=>New View works, but if you close one view, the whole program stops.
+
+We don't load (or save) any choices/preferences. We don't have any code that
+takes any notice of the preferences either, so we always show all dates, as GEDCOM
+format, we always show all names, including surnames, we always show titles, we
+have no control over behaviour with Xref errors on loading, and we can't change
+the datestamp format on reports (what reports?).
+
+None of the report-generating code is written.
+
+We don't implement the !Family print stuff. OK, so we don't want drawfiles, but
+postscript would be very useful, and a bitmap of the entire canvas ought to be
+straightforward... Are there libraries to generate PDFs ? Can we generate stuff
+in OO.o formats ?
+
+The Goto box has a "help" button which tries to open up a help page concerned
+with the completions window. This is not yet written, nor added to the Help
+menu on the main window. There's no help for the edit notes dbox.
+
+A problem arises in that FLTK doesn't
+seem to provide a way for the user to unset a radio button (ie. to
+leave every radio button in a group unset). So if you say that a date
+is explicitly gregorian or julian and then realise that you don't actually
+know, you can't just unset both buttons. You would need an explicit "unspecified"
+button. If you add the full range of date escape specifiers, you would then need
+six (Gregorian, Julian, FrenchR, Roman, Hebrew and unspecified). This might be
+better implemented as a drop-down list...
+
+Minor: Make 0 NOTE Person <name> become
+            0 NOTE Person @indi-id@ <name>
+on output, and modify code to deal with both old and new forms on input.
+
+You probably need to reread and understand ../Display4
+Then try to figure out what of that we have already done - presumably none
+Well, that's out of date - we seem to have done almost all of it. The only
+area not dealt with is that of multiple trees in memory and a master window
+with a list of active (though possibly closed) views.
+
+Missing dboxes:
+
+  Marry (this is pointless until we can actually edit the tree !)
+
+Dboxes requiring a rework:
+
+  Possibly famUI - we might want to add tabs for
+    Banns
+    Marriage Licence
+    Annulment           though these are uncommon
+
+We also need to replace the current minimal "Sources" field in the person and
+marriage dboxes with a "Sources" button. This will bring up a chooser-type dbox
+showing a list of sources associated with the place we clicked the button in,
+ie. the marriage, engagement or divorce events for the marriage dbox, or any of
+the six tabs on the person dbox, but also, in this case, we want a Sources button
+to apply sources to the whole INDI object. Well, v0.14 at least has the buttons :-)
+
+While you are there, a "notes" button on the whole event should be an alternate way into
+the existing notes editor for NOTE on the whole INDI or FAM, but you could also add a button
+to each tab to add NOTE for each event. In theory, you could do this for almost everything,
+because NOTE is the most general sort of free form text you can add to any object, and
+is always available as an alternative to more structured GEDCOM ways of adding info. OK,
+this is all done - you can open a NOTE window for an INDI or a FAM, or any *existing*
+BIRT, BAPM, CHR, DEAT, CREM, BURI, MARR, ENGA or DIV event. By existing, we mean that
+the event must have been given a date or place (or some subsidiary) and saved back to
+the tree. Ideally, we'd like to be able to add a note to any of these events, not just
+ones which already have a date or place. For example a note giving unreliable dates or
+places which we don't think should go in a proper GEDCOM field without confirmation,
+or a note saying that we have hearsay that the event is documented but don't yet have
+the date or place because we haven't seen to source ...
+
+
+We have defined a way we intend to structure things like a 1 CENS record for an individual,
+and things like PROB and WILL should work the same way. So we need to provide a way to get
+a dbox for editing this sort of stuff. There are two choices - one is a menu entry for
+each type of fact in the pop-up (which could be done with a sub-menu, like the reports one),
+or could be done with buttons on the person dbox. In many ways the latter would be cleaner,
+but it soon becomes unreasonable, the more types of fact you want to handle, whereas a
+sub-menu off the main pop-up is cleanly extensible, so probably the preferred option.
+
+
+
+When we click on maximise, window is maximised. But if we then move up the tree to make the
+canvas bigger, the icon stays the same and the window behaves as if it was still maximised,
+even if it could go bigger within the current desktop. So if you try to make it bigger by
+clicking the maximise icon, we shrink it back to its previous size. Maximise then works as
+expected, but the first shrink is disconcerting and shouldn't happen. So we need a way to
+do several things:
+1) If our window is "maximised" and the canvas gets bigger, then the window should get
+bigger - that's what "maximised" means. And if the canvas is bigger than the desktop,
+then a maximised window should get bigger if the taskbar is hidden. KDE's window
+manager does this automatically for Qt-based windows - what message does it send when
+the desktop real estate changes, and does fltk trap it ?
+2) First, we have to find out what happened to the maximise button ... is it likely
+that fltk wants a call-back for us to handle a "maximise" event, and since we ain't
+got one, the button is no longer available ?
+
+---------------
+
+We do not have the great screed of code needed to:
+
+remove a single object and any tags which cross reference to it
+ (code now written to remove a single subobject from an object. Note
+  that the object still exists, it is merely no longer a subobject, so is
+  "out of the structure". Cross references to it should still work.)
+insert an object, which, for an INDI, means finding the right point
+ alphabetically
+massacre the tree
+
+We possibly have a problem with:
+
+managing a display with no people at all in it (try loading an
+ empty GEDCOM and see how spectacularly X!Family crashes :-)
+
+---------------
+
+Further completions window work:
+
+add code for complete-to-left
+             fuzzy-search
+
+add code to incorporate INDI-ids, titles and dates in suitable columns
+add code to size window appropriately (width determined by code which
+ formats columns, height minimised to size of short lists)
+add code to shortcut when only one INDI is found - copy the name into
+ the goto box, rather than doing a goto straightaway
+
+further away - add soundex button for much more fuzzy searches.
+
+---------------
+
+Alpha !Family on RISC OS at least shows Source references for events in Edit
+person dbox - these are also needed in X!Family
+
+!Family does completions by hotkey (F1, F2) on many input fields - searches
+would also be useful on Mother/Father fields in Edit person dbox. Usefulness
+is doubtful on the Name field, but might be some use when edit person has
+been opened in response to a "child" menu item. I would prefer that existing
+persons be connected as parent/child by doing edit person on the child and
+adding the parents (which you could do with a search, as above).
+
+Beware of overloading the neat dboxes for edit person and marriage !!
+
+---------------
+
+So many sources are quoting the IGI that it would be nice to build some
+stuff in to support this. For example, a FHL film number like 0952217
+(the Source Call Number) should be able to generate a URL like
+http://www.familysearch.org/Eng/library/fhlcatalog/filmhitlistframe.asp?display=filmhitlist&filmno=0952217&first=undefined&last=undefined
+and allow the user to call up a browser to show that. Or alternatively, it
+would be good to provide a way that an SCN visible in a SOUR ref. could
+point to a GEDCOM record containing the info that that URL obtains.
+I'm not sure how GEDCOM would properly support this, and it might turn
+out to be an IP violation in some way...
+
+There is an official way to cite one of these references, which we
+should use in our SOUR structure (in fact, you probably get exactly
+what we want if you download GEDCOM from one of these URLs). OK, what
+you get is like:
+
+0 HEAD
+1 SOUR IGI
+2 VERS 5.0
+2 NAME International Genealogical Index (R)
+2 CORP The Church of Jesus Christ of Latter-day Saints
+3 ADDR 50 East North Temple Street
+4 CONT Salt Lake City, Utah 84150
+2 DATA International Genealogical Index
+3 DATE 26 January 2006
+3 COPR Copyright (c) 1980, 2002
+1 DEST PAF
+1 DATE 26 January 2006
+2 TIME 01:16:02
+1 FILE POOLE
+1 GEDC
+2 VERS 5.5
+2 FORM LINEAGE-LINKED
+1 CHAR ANSEL
+1 SUBM @SUB01@
+1 SUBN @N01@
+0 @SUB01@ SUBM
+1 NAME Created by FamilySearch (TM) Internet Genealogy Service
+1 ADDR 50 East North Temple Street
+2 CONT Salt Lake City, Utah 84150
+0 @N01@ SUBN
+1 DESC 1
+1 ORDI N
+
+which is all a standard header (except the 1 FILE POOLE line) which tells you
+about the source of the information in the whole file - in this case it is an
+abstract from the IGI, so IGI is the source, and some small-scale GEDCOM-handling
+agent is the destination (which LDS conventionally represent by saying that the
+destination is "Personal Ancestral File" Compare this with our current header
+given (some way) below
+
+0 @I500151413865@ INDI
+1 NAME JOHN /POOLE/
+1 SEX M
+1 FAMS @F152050406@
+1 SOUR @S01@
+2 PAGE Batch #: M062961, Sheet #: 00, Source Call #: 0952217, Printout Call #: NONE, Dates: 1741 - 1837
+0 @S01@ SOUR
+1 AUTH The Church of Jesus Christ of Latter-day Saints
+1 TITL International Genealogical Index (R)
+1 PUBL Copyright (c) 1980, 2002, data as of January 26, 2006
+1 REPO @R01@
+0 @R01@ REPO
+1 NAME Family History Library
+1 ADDR 35 N West Temple Street
+2 CONT Salt Lake City, Utah 84150  USA
+0 TRLR
+
+Doesn't actually contain the info that the Source Call would get you, and it attaches
+the SOUR reference to the INDI, when, in fact, the record this was derived from was
+a marriage entry, and the SOUR ref. should be within the 0 FAM/1 MARR object, as far
+as I can see. After all, the fact that we are deriving from this reference is the
+information about the marriage, not about the whole FAM object (which includes
+all the children, engagement, marriage, divorce, annulment etc. etc.). Similarly,
+a record telling us about a christening in a parish register should attach to the
+0 INDI/1 CHR object.
+
+Looking at our GEDCOM, we have a "data as of ..." line, but it is for years ago.
+We are adding to the GEDCOM from current searches - it is immediately clear that
+what is required is a "date retrieved" line of some sort for each source reference,
+not for the source itself - we didn't download the entire contents of the LDS site
+and then never revisit, which is what that PUBL line would imply.
+
+Although the SOURce is the IGI, the IGI gets its information from the original
+documents that were microfilmed under that FHL film number, and whilst we want
+to make clear that the information has come from the IGI, not the original, we
+most certainly require a pointer to the original source in case it is necessary
+to go and check. The Batch and SCN may be enough to relocate the info in IGI,
+but don't give any clue as to the reliability of the original source, which is
+particularly important, given that IGI contains not only transcripts of
+contemporary documents like parish registers, but copies of copies and
+undocumented submissions from members of LDS church which are sometimes
+difficult to believe, let alone rely on.
+
+0 HEAD
+1 SOUR !Family_for_RISC_OS
+2 VERS 2.26 2002.11.08
+1 GEDC
+2 VERS 5.3
+2 FORM LINEAGE-LINKED
+2 LANG English
+1 LANG English
+1 SUBM @SUB1@
+
+much later on we have the referent of that SUBM:
+
+0 @SUB1@ SUBM
+1 NAME Andrew Waddington
+1 ADDR Postal Address at time of submission is Copyright  A.E.R.Waddington 1991
+2 CONT It may have changed by the time you read this. Use of post is deprecated
+2 CONT and address will only be supplied on email request citing valid need-to-know
+2 CONT and undertaking to respect specific and restricted conditions of use.
+1 _EMAIL family@absolutely-no-spam.pennine.demon.co.uk
+
+5.5.1 adds an EMAIL tag, so that underline should go. It is part of an address
+structure, at the same level as ADDR, so 1 is OK, I think.
+
+We are also increasingly quoting stuff from FreeBMD, from the LDS 1881 census
+records, the government 1901 census site and soon from FreeCEN and the 1911
+census site. At the moment it's all done by NOTEs and we never record the retrieval
+date. The retrieval date doesn't matter inasmuch as no-one can go back to that
+date and retrieve it again, but it does matter for evolving resources like
+FreeBMD if the retrieval date was when the resource was far less complete
+and should be checked again. Come to that, what SOUR and REPO should be
+quoted for data from these online sources ? LDS do at least give you a well
+defined way of doing that ...
+
+Getting away from the immediate aims of defining a UI for this stuff, we note that
+data from the IGI uses a number of structures and fields that we don't bother with.
+They use a 1 COPR to define copyright, which we don't. Even if we publish under
+a Creative Commons licence, that is only enforceable on material in which we can
+legitimately claim copyright. And the software should probably not enforce a CC
+licence on GEDCOMs created with it. That leads to a small UI in which the user
+can set up a copyright string and choose a licence.
+
+We don't add a
+1 DATE
+2 TIME
+
+to our file, which we should (and it should be in UT - does GEDCOM allow us
+to specify a time zone at all ?)

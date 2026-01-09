@@ -1,0 +1,102 @@
+We must display *something* and must define a window title.
+
+We could have static structures for an empty window title and an
+indidisplay with the name (empty tree) or similar. Is this not the way we
+store our tree anyway, with a virtual level -1 object ?
+
+OK, review basic structure. Each tree has a starting point at a
+GEDCOM_object with root_tag, and all the level 0 objects are subobjects
+of this.
+
+You can obtain a pointer to this root object with GEDCOM_object::root()
+called on absolutely ANY object within your tree. From there you can
+get the first INDI in the structure with root->subobject( INDI_tag )
+and if this is NULL, you have an empty tree.
+
+maybe the way to proceed is to always have, internally
+
+0 @NULL@ INDI
+1 NAME (empty tree)
+
+so that we can create an indidisplay for that. When you add a person to
+the tree (which is what the program is for:) we should always check
+whether the current person is the null person, and if so, make the
+new person current (which will neatly redraw the tree).
+
+If you delete the last person from a tree (not likely, but an obvious
+test case:) or, more probable, if you delete the current person,
+then code will need to set a new current person, and must be able to
+spot the case when there is no person left, and use this NULL indi.
+
+In point of fact, do we have *any* code that creates a new tree from
+scratch ? We do have code that creates an empty structure and loads
+an external GEDCOM into it, but that's not quite the same thing. If
+we run the program with no GEDCOM file, or we choose "new tree" from
+a hypothetical menu that we don't yet have, then we do need code to
+make an empty tree. Given that adding a person to such a tree should
+end up equivalent to having loaded a one-person GEDCOM, the structure
+we end up with by these two routes must be the same.
+
+Related to this - if we start with an empty tree and add one person,
+it seems pretty obvious that we make that new person current, so he
+or she gets displayed (and especially so that we don't continue with
+a display saying "(empty tree)" !). Equally, if you add a person who
+will become visible on your tree (such as a new child, or a new
+parent for the current person), we should NOT make that person
+current (it would be a pain if you were adding children near the
+bottom of a big tree to have the display suddenly shrink to that
+one family). More difficult is the case where you add a person
+who will not be shown on the current tree. There are several
+things to watch out for:
+
+1) with multiple views, the new person may become visible in
+one or more views, which was not necessarily the one that the user
+had clicked in to start the "add new person" process.
+
+2) with one or multiple views, it is possible that the new person
+will not become visible at all.
+
+In each case, we might offer a dbox telling the user that the new
+person is not shown on the current view (but is shown on other view(s)).
+If the new person is not visible at all, we could offer to open a
+new view in which the person is current (this is a likely desirable
+thing to do if the user creates a person who is not attached to
+the rest of the tree).
+
+We also need to consider deletions and restructurings. If we find
+that a child is attached to the wrong parents, we will want a way
+to move that child to the correct parents (in !Family, you just
+go into edit for that child and change the parents' names - this
+will be a little more difficult when names are not required to be
+globally unique). If the correct parents are not visible, the
+child will vanish. Again, we could offer to open a view in which
+the moved child is current.
+
+Ideally that sort of thing would want a drag-n-drop sort of idiom,
+but you might want to drag from one view to another. If you have
+multiple trees in memory as well as multiple views, it is possible
+that the user might drag an INDI from one tree to another and have
+a reasonable expectation that this would make sense.
+
+Of course, there's a can of worms here - you could drag one person,
+at the head of a huge screed of descendants, into another position,
+possibly in another tree. To do that is logically straightforward,
+but internally, you may have to change all the INDI and FAM ids,
+which is a big job ...
+
+--------------------------------------------------------------------
+
+OK how to move to editing functionality:
+
+1) implement the code needed to cope with an empty tree
+2) implement the code needed to add a new person
+3) implement the code needed to delete a person
+
+avoid doing anything to deal with changing the fields in a person
+via the edit dbox.
+
+If we change the structure, what happens to any edit or NOTE dboxes
+we have open ? In !Family, you can only have one edit dbox, and
+when it is open, menu over the tree doesn't work, so you can't change
+the structure. In XFamily, we can have loads of dboxes open and may
+need to update things to reflect changes elsewhere.

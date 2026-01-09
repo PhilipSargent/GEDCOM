@@ -8,20 +8,24 @@ libdir		=$(exec_prefix)/lib
 srcdir		=.
 XHOME		=/usr/X11R6
 # <string> etc. now seem to live here:
-gppinclude	=/usr/include/g++
+# cppinclude	=/usr/include/c++/3.4.3
+# I don't seem to need to specify that at all on Linux-Debian-sparc
 
 # compiler names
 
 CXX		=c++
 CC		=gcc
 MAKEDEPEND	=$(CXX) -M
+LD              =ld
 
 # flags for C++ compiler:
 CFLAGS		= -O2 -Wall -I$(XHOME)/include
-CXXFLAGS	= -O2 -Wall -Wno-return-type -I$(XHOME)/include -I$(gppinclude)
+CXXFLAGS	= -O2 -Wall -Wno-return-type -I$(XHOME)/include
+# if we don't define cppinclude, we don't want this -I$(cppinclude)
 
 # libraries to link with
-LDLIBS		= -L$(XHOME)/lib -lX11 -lXext -lm
-GLDLIBS		= -L$(XHOME)/lib -lX11 -lXext -lm
-
+LDLIBS		= -L$(XHOME)/lib64 -lX11 -lXext -lm
+GLDLIBS		= -L$(XHOME)/lib64 -lX11 -lXext -lm
+LINKFLTKIMG     = -L/usr/local/lib -L/usr/lib64 -lfltk_images -lfltk $(IMAGELIBS)
+IMAGELIBS       = -lpng -ljpeg -lz
 

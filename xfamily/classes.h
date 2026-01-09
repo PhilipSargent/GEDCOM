@@ -36,7 +36,7 @@ class notesmenu;
 
 // component classes
 
-//   display structures - one treedisplay per view or print job (trees.h/cxx)
+//   display structures - one treedisplay per view or print job (display.h/cxx)
 
 class treedisplay; // an Fl_Button subclass used by mainUI
 class displaytree; // display info for a particular displayed tree

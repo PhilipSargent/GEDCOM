@@ -184,29 +184,53 @@ GEDCOM_object::GEDCOM_object():
   id (NULL),
   ref (NULL),
   sub (NULL),
-  next (NULL)
+  next (NULL),
+  myparent(NULL)
 //
 // never called directly. *Every* GEDCOM object needs a tag.
-// Is this actually used ?
+// Is this actually used ? Since it is private, I imagine not...
 { }
 
-GEDCOM_object::GEDCOM_object(GEDCOM_tag *newtag):
+GEDCOM_object* GEDCOM_object::parent() const {
+  // printf("About to return parent %d of %s object at %d\n",(int)myparent,this->tag->GEDCOM_namefromtag(),(int)this);
+  return myparent;
+}
+
+void GEDCOM_object::setparent( GEDCOM_object* descendedfrom ) {
+  myparent = descendedfrom;
+}
+
+GEDCOM_object::GEDCOM_object(treeinstance* whichtree):
+  tag ( root_tag ),
+  val (NULL),
+  id (NULL),
+  ref (NULL),
+  sub (NULL),
+  next (NULL),
+  myparent ((GEDCOM_object*)whichtree) // something of a kludge.
+  // but is that kludge needed ? myparent((GEDCOM_object*)NULL) better ?
+// called for the root object in any treeinstance
+{ }
+
+GEDCOM_object::GEDCOM_object(GEDCOM_tag *newtag ):
   tag (newtag),
   val (NULL),
   id (NULL),
   ref (NULL),
   sub (NULL),
-  next (NULL)
+  next (NULL),
+  myparent(NULL) // gets set by add_subobject
 //
 // called for tags with no value like       0 HEAD
 { }
 
-GEDCOM_object::GEDCOM_object(GEDCOM_tag *newtag, char *value):
+GEDCOM_object::GEDCOM_object(GEDCOM_tag *newtag, char *value ):
   tag (newtag),
   id (NULL),
   ref (NULL),
   sub (NULL),
-  next (NULL) {
+  next (NULL),
+  myparent(NULL) {
 //
 // called for tags with a string value like         1 NAME Fred
 // note that it is also used for things like TEXT, NOTE, TITL which in some
@@ -237,7 +261,8 @@ GEDCOM_object::GEDCOM_object(GEDCOM_tag *newtag, GEDCOM_id *objref ):
   id (NULL),
   ref (objref),
   sub (NULL),
-  next (NULL)
+  next (NULL),
+  myparent(NULL)
 //
 // called for tags with a cross reference like            1 CHIL @xref@
 { }
@@ -248,7 +273,8 @@ GEDCOM_object::GEDCOM_object(GEDCOM_id *objid, GEDCOM_tag *newtag ):
   id (objid),
   ref (NULL),
   sub (NULL),
-  next (NULL)
+  next (NULL),
+  myparent(NULL)
 //
 // called for tags with an identifier like                0 @id@ INDI
 { }
@@ -258,50 +284,99 @@ void GEDCOM_object::add_subobject( GEDCOM_object *newobj ) {
 // adds newobj as the last subobject of this
 
   GEDCOM_object *subchain=sub;
-//  printf("pointer to subobject of object on which add_subobject operates is %d\n",(int)sub);
+  //printf("pointer to subobject of object on which add_subobject operates is %ld\n",(long)sub);
   if (subchain!=NULL) {
     while ((subchain->next)!=NULL) {
       subchain = subchain->next;
+      //printf("Next in subobject chain %ld\n",(long)subchain);
     }
     subchain->next = newobj;
-  } else sub = newobj;
+  } else {
+    sub = newobj;
+    //printf("What we are adding is first subobject\n");
+  }
+  newobj->setparent(this);
 }
 
-bool GEDCOM_object::remove_subobject( GEDCOM_object *oldobj ) {
-// find the object and remove it from the chain of subobjects of this. That's
-// *all* we do, just detach it. What to do with the object then is up to the caller.
-// return true if we found and removed the subobject, false if we didn't
+bool GEDCOM_object::delete_subobject( GEDCOM_object *oldobj ) {
+// find the object and remove it from the chain of subobjects of this. Then
+// destroy it utterly, including all subobjects
 
   GEDCOM_object *subchain=sub;
   GEDCOM_object *sublast=NULL;
+  GEDCOM_object *cull;
+  // current thought is that there is no occasion when we remove a subobject without wanting
+  // to remove all *its* subobjects, too, so call recursively - ah but this then leaves them
+  // inaccessible to deletion, so we should rename this code
+  while ((cull=(oldobj->subobject()))!=NULL) {
+    //printf("Subobject to cull - delete_subobject should tell you what\n");
+    oldobj->delete_subobject(cull);
+    // no, no, you daft bugger, don't "delete cull;" 'cos the delete_subobject call does "delete oldobj;" already
+  }
+  if (oldobj->subobject()!=NULL) printf("Removing an object (tag %s) which still has subobjects (first with tag %s), even though we have just supposedly remove them\n",oldobj->tagname(),oldobj->subobject()->tagname());
   // printf("Trying to remove a subobject of %ld\n", (long)this);
-  if (subchain==NULL) return false; // no subobjects to remove !!
+  // industrial strength code could check that (oldobj->parent() == this, and probably
+  // ought to set oldobj's parent to NULL)
+  if ((oldobj->myparent)!=this) printf("Bad remove %ld (tag %s) parent not this %ld (tag %s)\n",(long)oldobj,oldobj->tagname(),(long)this, this->tagname());
+  if (subchain==NULL) {
+    printf("Bad remove: this %ld (tag %s) has no subobjects\n",(long)this, this->tagname());
+    return false; // no subobjects to remove !! which is a bug
+  }
   while (subchain!=NULL) {
     if (subchain==oldobj) {
-      if (sublast==NULL) sub = oldobj->next; else sublast->next = oldobj->next;
+      // sublast will be null if this is the first object in the list:
+      //printf("Apparently valid remove subobject %ld of %ld\n",(long)oldobj,(long)this);
+      if (sublast==NULL) {
+        // this implies we haven't set sublast, so oldobj is first in the chain
+        sub = oldobj->next;
+      } else {
+        sublast->next = oldobj->next;
+      }
       oldobj->next = NULL;
+      oldobj->myparent =  NULL; // these stop the destructor from complaining
+      delete oldobj;
       return true;
     }
     sublast = subchain;
     subchain = subchain->next;
   }
-  return false;
+  // if subchain ever becomes NULL and the loop ends, this means we reached the end of
+  // the linked list without having found oldobj
+  printf("Bad remove: this %ld (tag %s) has no subobjects which match %ld (tag %s)\n",(long)this,this->tagname(),(long)oldobj, oldobj->tagname());
+  return false; // also means we were called in error
 }
-      
+
 
 void GEDCOM_object::chain_object( GEDCOM_object *newobj ) {
 
 // adds newobj as the next subobject of this's parent
 // ie. inserts in chain after this (and before this->next if there is one)
 
-  if (next!=NULL) {
+  // if (next!=NULL) {
     newobj->next = next;
-  }
+  // } nah, we should add it even if it is NULL, cos its harmless and quicker
   next = newobj;
+  // we should be checking newobj->parent() == this->parent() [myparent]
+  // or are we confident that it has not been set ? So set it:
+  newobj->setparent( myparent );
 }
 
 GEDCOM_object::~GEDCOM_object() {
-  if (val!=NULL) delete val;
+  //printf("Destroying GEDCOM_object at %ld\n",(long)this);
+  if (val!=NULL) {
+#ifdef debugging
+   printf("Destroying value '%s' at %ld\n",val->string(),(long)val);
+#endif
+   delete val;
+  }
+  // AERW 2003-12-24 what about subobjects ? if we evaporate whilst subobjects
+  // exist, we have a memory leak. We shouldn't rely on the caller always to
+  // have checked before destroying us - at least send a message to stderror so
+  // that the developer spots trouble ahead !!
+  if (myparent!=NULL) printf("Drat! GEDCOM_object %ld (tag %s) being killed still has link to parent at %ld (tag %s)\n",(long)this,this->tagname(),(long)myparent,myparent->tagname());
+  if (sub!=NULL) printf("Help, GEDCOM_object %ld (tag %s) being killed with extant subobjects!!\n",(long)this,this->tagname());
+  // we should also have been removed from a chain, so we should have no next (but does remove subobject do that ?)
+  if (next!=NULL) printf("GEDCOM_object %ld (tag %s) being killed with extant next pointer!!\n",(long)this,this->tagname());
 }
 
 // for changing objects: note that changing the id of an object is a *dangerous*
@@ -348,6 +423,25 @@ GEDCOM_object* nextsub;
   return nextsub;
 }
 
+treeinstance* GEDCOM_object::root() {
+  GEDCOM_object* ancestor;
+  GEDCOM_object* object;
+  if (this==NULL) {
+    printf("About to return NULL from root() - expect to bomb shortly\n");
+    return NULL; // which will ensure that object isn't used uninitialised
+  }
+  // even if we have an extremely broken tree or bugs elsewhere in the code.
+  ancestor = this;
+  while (ancestor->objtype() != root_tag) {
+    object = ancestor;
+    ancestor = object->parent();
+  }
+#ifdef debugging
+  printf("Ascended until ancestor is root, now about to cast object as treeinstance*\n");
+#endif
+  return (treeinstance*) ancestor->parent();
+}
+
 char* GEDCOM_object::value() const {
   if (val==NULL) return NULL;
   return val->string();
@@ -369,7 +463,19 @@ GEDCOM_object *then;
 // first subobject of an object, so you don't get the actual object line
 // (and if you did, then you get the rest of the file...)
 
-  if (level>=0) this->outline( out, level );
+// if we have an object wth no value, reference or subobjects, we should not
+// output it at all - in all probability it is an ephmeral object which only
+// exists whilst we have an indiUI or famUI open, or it is an error in the
+// GEDCOM. This is certainly true for the events, should never happen for
+// level 0 things except TRLR, of which we make a special case.
+  if (level>=0) {
+    if ((sub==NULL)&&(val==NULL)&&(id==NULL)&&(ref==NULL)) {
+      if ( tag == TRLR_tag) this->outline( out, level );
+	// there may be other tags which are allowed to be empty
+        // otherwise do NOT output a line
+    }
+    else this->outline( out, level );
+  }
   if ((then=sub)!=NULL) then->output( out, level+1 );
   if ((then=next)!=NULL) then->output( out, level );
 }
@@ -496,39 +602,4 @@ GEDCOM_object* GEDCOM_object::own_family( GEDCOM_object* fams ) const {
   return fams; // which may also be NULL if GEDCOM is broken
 }
 
-/////////////////////////////////////////////////////////////////////////////
-// this class is for holding items on a list of names (and related info) used
-// by the name-completion code
-
-completion_item::completion_item( GEDCOM_object* found_indi ):
-  indiptr (found_indi)
-{
-  if (indiptr == NULL) {
-    printf("Bombing out with null pointer passed to completion_item()\n");
-    exit(0);
-  }
-//  printf("Trying to set up new completion_item for %s\n", indiptr->subobject( NAME_tag )->value());
-  displayptr = new GEDCOM_string( indiptr->subobject( NAME_tag )->value() );
-  nextptr = (completion_item*) NULL;
-}
-
-completion_item::~completion_item() {
-  delete displayptr;
-}
-
-GEDCOM_object* completion_item::indi() const {
-  return indiptr;
-}
-
-completion_item* completion_item::next() const {
-  return nextptr;
-}
-
-void completion_item::setnext( completion_item* newitem ) {
-  nextptr = newitem;
-}
-
-char* completion_item::display() const {
-  return displayptr->string();
-}
 

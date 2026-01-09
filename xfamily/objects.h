@@ -49,7 +49,7 @@ void        GEDCOM_base_taglist();
 
 class GEDCOM_id {
 //  static GEDCOM_id *first_id;
-  char id[8];                        // this is an arbitrary limit which worries me
+  char id[16];                        // this is an arbitrary limit which worries me
   GEDCOM_object *object;
   GEDCOM_id     *next;
   GEDCOM_id     *previous;
@@ -95,6 +95,7 @@ class GEDCOM_object {
   GEDCOM_id *ref;       // @xref@ string
   GEDCOM_object *sub;   // -> object representing first subobject of this object
   GEDCOM_object *next;  // -> next subobject of our parent object
+  GEDCOM_object *myparent;
 
 // to make that clearer:
 //   the @ref@ in         1 CHIL @I960@  refers to a 0 @I960@ INDI
@@ -107,14 +108,18 @@ class GEDCOM_object {
 // Confused ? You will be ....
 
   GEDCOM_object();
+  // we need parent for internal maintenance, but prefer it
+  void setparent(GEDCOM_object*);        // not to be available to the public
 public:
+  GEDCOM_object* parent() const;  // inevitably we end up needing to reveal it ...
   // for creating objects:
+  GEDCOM_object(treeinstance*); // ONLY for creating the root object
   GEDCOM_object(GEDCOM_tag*);
   GEDCOM_object(GEDCOM_tag*, char* );
-  GEDCOM_object(GEDCOM_id*, GEDCOM_tag*); // for level @id@ tag
-  GEDCOM_object(GEDCOM_tag*, GEDCOM_id*); // for level tag @xref@
+  GEDCOM_object(GEDCOM_id*, GEDCOM_tag* ); // for level @id@ tag
+  GEDCOM_object(GEDCOM_tag*, GEDCOM_id* ); // for level tag @xref@
   void add_subobject( GEDCOM_object* );
-  bool remove_subobject( GEDCOM_object* );
+  bool delete_subobject( GEDCOM_object* );
   void chain_object( GEDCOM_object* );
 
 // for destroying objects
@@ -128,6 +133,7 @@ public:
   GEDCOM_object* next_object( GEDCOM_tag* ) const; // next with this tag
   GEDCOM_object* subobject() const;       // the first subobject
   GEDCOM_object* subobject( GEDCOM_tag* ) const; // first with given tag
+  treeinstance* root();                   // treeinstance containing this object
 
   char* value() const;                    // the text value of this object
   GEDCOM_tag* objtype() const;            // the tag
@@ -167,21 +173,4 @@ public:
 // the list to find the alphabetically correct place to insert (all INDI
 // objects are subobjects of the indi subobject of root in a very long list :-)
 };
-
-////////////////////////////////////////////////////////////////////////////////
-
-class completion_item {
-GEDCOM_object*    indiptr;
-completion_item*  nextptr;
-GEDCOM_string*    displayptr;
-
-public:
-  completion_item( GEDCOM_object* );
-  ~completion_item();
-  GEDCOM_object* indi() const;
-  completion_item* next() const;
-  void setnext( completion_item* );
-  char* display() const;
-};
-
 #endif

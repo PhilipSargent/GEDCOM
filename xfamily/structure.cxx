@@ -116,8 +116,10 @@ indiUI* newedit;
 void editlist::close( indiUI* oldindi ) {
   indiUI* tryindi;
 
+  //printf("Want to close indiUI at %ld\n",(long)oldindi);
   tryindi = first_edit;
   while (tryindi != NULL) {
+    //printf("checking if that was %ld\n",(long)tryindi);
     if (tryindi == oldindi) {
       if ((oldindi->getnext()) == NULL) {
         if ((oldindi->getprevious()) == NULL) {
@@ -136,10 +138,11 @@ void editlist::close( indiUI* oldindi ) {
         }
       }
       delete oldindi;
+      //printf("back from destructor\n");
       return;
-    }
+    } // end matching indiUI found
     tryindi = tryindi->getnext();
-  }
+  } // endwhile
   // an error to get here
   printf("an error to get here !\n");
 }
@@ -280,12 +283,16 @@ noteslist::noteslist() {
 notesUI* noteslist::open( treeinstance* whichtree, GEDCOM_object* newobject, GEDCOM_tag* edittag ) {
 notesUI* newui;
 
+// newobject is the object to which the NOTE or TEXT object belongs, ie. typically
+// an INDI, FAM or event
+
 // first check through the list to see if there is already
 // a notes window for this GEDCOM_object and tag
 
   newui = first_notes;
   while (newui!=NULL) {
-    if (newui->object() == newobject ) {
+    //printf("searching list of NOTEs windows from %d\n",(int)newui);
+    if ((newui->object() == newobject) && (newui->tag() == edittag) ) {
       newui->hide();
       newui->show();
       return newui;
@@ -294,9 +301,11 @@ notesUI* newui;
   }
 
 // OK, we're not reading these notes, so open a new editor box:
+  //printf("Sure that we need a new notesUI on tree %d, for object %d\n",(int)whichtree,(int)newobject);
 
   newui = new notesUI( whichtree, newobject, edittag );
 
+  //printf("back in noteslist::open with new notesUI %d\n",(int)newui);
 // now add it in at the head of our linked list:
 
   newui->setnext( first_notes );
@@ -329,6 +338,7 @@ void noteslist::close( notesUI* ui ) {
     }
   }
   ui->window->hide();
+  //printf("noteslist::close about to call destructor on ui %d\n",(int)ui);
   delete ui;
 }
 

@@ -5,9 +5,13 @@
 
 PROGRAM = XFamily
 
-# if you have an older/newer version of FLTK, you will need to change
-# this line. X!Family is known to work with 1.0.6 and 1.0.9
-FLTKHOME = /usr/src/fltk-1.0.9
+# if you have an older/newer version of FLTK, or have installed it in a
+# non-standard place, you will need to change this line.
+# X!Family is known to work with 1.0.6, 1.0.9 and 1.1.4, but loses its window's
+# "maximise" icon under at least 1.1.5 and 1.1.6, and all the menus are empty
+# in 1.1.6 on Debian-sparc :-( Time to read the 1.1.x docs, I think !
+FLTKHOME = /usr/include/FL
+FLTKLIB  = /
 
 CPPFILES = \
 	main.cxx \
@@ -24,11 +28,10 @@ OBJECTS = $(CPPFILES:.cxx=.o)
 
 # we want to find the leafname dynamically PWLEAF = $(PWD##*/)
 # but have had no success as yet
-PWLEAF = v013
+PWLEAF = v016
 
 include makeinclude
 
-# OK, *I* know the plural of suffix is suffices, but tell that to GNUmake ...
 .SUFFIXES : .cxx .c .o
 
 .cxx.o :
@@ -36,10 +39,11 @@ include makeinclude
 .c.o :
 	$(CC) -I$(FLTKHOME) $(CFLAGS) -c $<
 .cxx :
-	$(CXX) -I$(FLTKHOME) $(CXXFLAGS) -o $@ $< -L$(FLTKHOME)/lib -lfltk $(LDLIBS)
+	$(CXX) -I$(FLTKHOME) $(CXXFLAGS) -o $@ $< -L$(FLTKHOME)/lib64 $(LINKFLTKIMG) $(LDLIBS)
 
-$(PROGRAM) : $(OBJECTS) $(FLTKHOME)/lib/$(LIBNAME)
-	$(CXX) $(LDFLAGS) -o $(PROGRAM) $(OBJECTS) -L$(FLTKHOME)/lib -lfltk $(LDLIBS)
+$(PROGRAM) : $(OBJECTS)
+# $(FLTKHOME)/lib/$(LIBNAME)
+	$(CXX) $(LDFLAGS) -o $(PROGRAM) $(OBJECTS) -L$(FLTKHOME)/lib64 $(LINKFLTKIMG) $(LDLIBS)
 
 depend:
 	$(MAKEDEPEND) -I$(FLTKHOME) $(CXXFLAGS) $(CPPFILES) $(CFILES) > makedepend
@@ -58,6 +62,8 @@ uninstall:
 clean:
 	-@ rm -f ./*.o
 	-@ rm -f ./XFamily
+	-@ rm -f ./makedepend
+	-@ touch ./makedepend
 
 tidy:
 	-@ rm -f ./*~
@@ -67,7 +73,7 @@ tidy:
 zip:
 # we're using zip for the sources, 'cos its easier on RISC OS
 	@echo "Making xfamily-$(PWLEAF).zip"
-	@(cd .. ;rm -f xfamily-$(PWLEAF).zip; zip "xfamily-$(PWLEAF).zip" -o -9 -r $(PWLEAF) -x \*.o \*~ \*.zip \*.tgz \*.rpm \*XFamily \*core; cd $(PWLEAF))
+	@(cd .. ;rm -f xfamily-$(PWLEAF).zip; zip "xfamily-$(PWLEAF).zip" -o -9 -r $(PWLEAF) -x \*.o \*~ \*.zip \*.tgz \*.rpm \*XFamily \*core\* \*Developer\*; cd $(PWLEAF))
 
 tgz:
 # we're using tgz for the binary, 'cos its what Linuxeers expect :-)

@@ -4,6 +4,8 @@
 #include "classes.h"
 // get global #definitions and static storage declarations
 #include "family.h"
+// get conditional compilation flags
+#include "fixes.h"
 
 #include "structure.h"
 #include "trees.h"
@@ -11,7 +13,8 @@
 #include "objects.h"
 #include "xlate.h"
 
-int main(int argc, char* **argv ) {
+int main(int argc, char** argv ) {
+// that used to be char* **argv but now that's a no no it seems
 
   // here we should load our choices file to decide (among other
   // things) which language to use
@@ -36,12 +39,38 @@ int main(int argc, char* **argv ) {
 
   // create one instanciation:
 
-  treeinstance *first = trees->newinstance( "/usr/local/src/xfamily/test/test2.ged" );
+  // if we were called with command line args, that should tell us the file to load here
+  // if not, then we should create an empty tree here, and let the user either add to it
+  // or use the file load dialogue to get a tree. As neither of those are implemented, we
+  // load a tree from a default place at the moment:
+
+  char* initialtree;
+  {
+     char it[] = "/usr/local/src/xfamily/test/test2.ged";
+     initialtree = it;
+     // this is always being reported as (null). char* initialtree = "..."; always used to work, how to do it now ??
+  }
+  if (argc>0) {
+     initialtree = argv[1];
+  }
+#ifdef debugging
+  printf("about to create a treeinstance on initialtree at %s\n",initialtree);
+#endif
+  treeinstance *first = trees->newinstance( initialtree );
+#ifdef debugging
+  printf("created first treeinstance at %ld, next determine view of tree\n",(long)first);
+#endif
 
   // now find the view of that tree
 
   mainUI *view = first->mainui();
+#ifdef debugging
+  printf("initial mainUI view at %ld, about to set current person\n",(long)view);
+#endif
   view->setcurrent( first->noted_current() );
+#ifdef debugging
+  printf("current person and view title now set, about to show the view and enter the fltk event loop\n");
+#endif
   // view->settitle(); done by setcurrent anyway
   view->show();
 

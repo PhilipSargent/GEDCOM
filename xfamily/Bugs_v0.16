@@ -1,0 +1,423 @@
+Compiles fine in Precise (on wharfe/kent), but segfaults almost immediately:
+ C++ has got very picky about assigning static strings to char* - we are getting a null
+ pointer whatever method we try. If we put an actual gedcom filename as argv[1], then
+ the program runs OK
+
+See http://www.fltk.org/doc-1.3/migration_1_3.html - the changes needed for this should
+all be conditionally compiled by setting #define fltk13 in fixes.h
+
+
+--------------------------------------------------------------------------------------
+
+Aarrgh. Segfaults if you change language - how long has it been doing that ?
+(Still doing it in natty, though that's using a binary compiled in hardy, I think)
+There is a "proper" way of internationalising messages, so maybe we should try
+to do that - the current method is ad hoc and ugly...
+
+Build process bugs:
+
+make thinks things are up to date if you changed fixes.h - this might just be that
+you need explicitly to run make clean; makedepend ?
+
+make says things are up to date if you change the messages files. This is incorrect,
+since you should run StringFactory.py to generate strings.cxx. You shouldn't edit
+the messages files directly (which I'd forgotten) but should edit MessageSrc, then
+run StringFactory.py - once you have done that, then doing "make" will indeed
+compile strings.cxx and link. Clearly the Makefile needs a target to make the
+messages files, those should be part of the dependencies and in turn should
+depend on MessageSrc. Aaarrggh, but it still doesn't seem to get updated strings.
+
+OK, better bug - the location of the messages file is hard-coded into xlate.cxx
+and that path includes a version number, so v016 is looking in v015/messages. DOH!
+
+The makefile also has hard-coded things: PWLEAF should be set dynamically
+(and PWLEAF = $(PWD##*/) ought to do it, but doesn't), but since that fails,
+we say PWLEAF = v016 (and did say = v015, even in v016, until 2011-06-29)
+This meant that "make zip" and "make tgz" would have been failing.
+
+"make clean" fails as a normal user if you have copied all this stuff to a new
+distro as root, because the top-level directory is not world-writable (fixed
+on natty on wharfe)
+
+make is failing on natty with:
+
+  /usr/bin/ld: cannot find -lpng
+  /usr/bin/ld: cannot find -ljpeg
+  /usr/bin/ld: cannot find -lz
+
+man ld tells us that -l<thing> looks for lib<thing>.a in the usual search places,
+so we are failing to find libpng.a, libjpeg.a and libz.a which, on hardy, used to
+be in /usr/lib/libjpeg.a (etc.) Does this mean that we are missing some packages on
+natty ? They belong to libjpeg62-dev, libpng12-dev and zlib1g-dev, and
+dpkg -l | grep -- "-dev"
+suggest that we don't have them on natty so try installing something like those...
+ah, we seem to have a choice of libjpeg62 and libjpeg8 (but the libjpeg62 runtime
+is installed, so choose that), and of libpng12 or libpng3, but the latter has no
+-dev version, so there's no choice there, either:
+apt-get install libjpeg62-dev libpng12-dev zlib1g-dev
+Yes, that was sufficient to allow the build.
+
+Bugs known for ages, apparently not written down 2006-01-04:
+
+fix0001 is OK for when the program resizes a window on change of current person (what about
+when a person is added or removed ?), however it doesn't cover when the user resizes the window.
+It is possible to widen the window such that the right hand side extends beyond the canvas.
+Do we ever get passed an event when this happens ? This may be beyond our ability to solve...
+
+When we make a new person current, we don't scroll so that the new person is within the display.
+Indeed, it seems to be the case that we often end up at the top left of the canvas in a
+completely white area ...
+
+When we open a menu on the main window, the entire window seems to redraw - this is probably
+an error and is quite distracting.
+
+Closing any mainUI window exits the program. This should not occur if there is another mainUI
+window open anywhere, and probably shouldn't occur without asking if the data have been
+modified in any way.
+
+When we make a new person current, we seem to be closing and reopening the main window. This gives
+the window manager the opportunity to choose where to open the window and it is typically a
+long way from where it was before, which is irritating. At the very least we should note where
+the window is and reopen it explicitly at the same place. To do this, call position(x,y) on
+the window before calling show(). A proper fix is not to close and reopen
+it at all - there is undoubtedly a "correct" way to get the window redrawn...
+
+In recent builds there has been no "maximise" window furniture. An FLTK thing ? Maybe a flag missed ?
+Ah, this is only the case on the main window, not on other resizeable windows such as the notes
+editor windows. What have we done differently on the mainUI ? This is a strange bug. On one run,
+shortly after restarting X on wharfe, the maximise button reappeared without having changed the
+program or the fltk version. Next time, it was absent again. With fltk 1.1.7, on Solaris, the
+maximise button is (consistently?) present. This looks to be something at the level of the
+interaction between fltk and the window manager, possibly not unconnected with the fact that
+we run with the window manager configured for non-standard button positions ? With fltk 1.1.7 from
+packages on Ubuntu Dapper (on wharfe), button is missing.
+Currently, on Precise with fltk 1.3, we have a maximise button.
+
+The "About" dbox doesn't have a minimise icon. Fine. The "Find Person" dbox does - it probably
+shouldn't. How have we arranged that these dboxes have this difference ? "Find person" should
+probably be modal, in fact.
+
+The "About" window could usefully tell you not just the version of xfamily, but also the version
+of fltk it was built with. And maybe the glibc and gcc versions ? You have to draw the line
+somewhere... Of course, the OS may make a difference too. We have an apparent redraw bug on
+Solaris 10 (KDE 3.1, gcc 3.4.2, fltk 1.1.7 ...) which isn't seen anywhere else at present.
+But these would be useful details for bug reports. It would make the "About" dbox bigger, which is
+not that bad a thing when you look at how small the font for GPL stuff is...
+
+We manually hack the Makefile and makeinclude for every new environment. We should learn automake
+                       so we can simply do
+[make clean]
+./configure
+make depend
+make
+[sudo] make install
+                       like everyone else does.
+Actually, nowadays it just runs OK on new distros, so the system is finding things OK.
+We don't check for missing dependencies, which would make the inevitable error messages
+a bit easier to understand. We need "apt-get install libjpeg62-dev libpng12-dev zlib1g-dev"
+so we should probably check for those packages with a "dpkg -l | grep libjpeg62-dev" etc.
+
+Although you might care to note that the
+./configure process fails for fltk itself on Solaris 10, where the C stuff is in various
+not-very-obvious places (and there seems to be two versions of gcc installed, on different
+paths, with different includes, but perhaps only one set of libraries - ugh !)
+
+The message source for the copyright dbox ends with
+"family-maint@pennine.demon.co.uk" and this is how it appears in both messages
+files, but this appears as "family-maint" in the dbox. Why is this message being truncated ?
+Do we need to escape the "@" in some way ?
+
+Looking at the message source in Kedit shows a mismatch between kedit's Unicode settings
+and that used in the messages. However, the French copyright message seems to be OK when
+displayed in its dbox. That means we need to reconfigure an editor for use with these
+messages, or we need to UTF-8-ise the whole shebang. Does FLTK provide the relevant
+support ? FLTK 2 will have unicode support - FLTK 1.1.x doesn't. On wharfe, kwrite is
+configured not to use UTF (so is Kate, I think) for at least one user ... and presumably
+one distro (no doubt not the current one).
+OK: fltk 1.3 does unicode. But we still *edit* the gedcom on rpcemu, which doesn't...
+But at least the riscos version will preserve whatever text it finds (even though UTF
+probably breaks the GEDCOM standard), so it is probably OK, as long as we don't add
+new accented characters when editing (ah... difficult)
+
+Active bugs:
+
+Noted 2011-12-08: our GEDCOM has lots of references to SOUR @54@, but no 0 @S54@ SOUR
+record. Seems to be an error in the GEDCOM, but loading the file is not reporting it
+as such. How is our error handling set up ? "Silently ignore" ? This was shown up
+when trying to fix the tree merge code in !Family 2.27 (which reports the error
+and then does a tree reset).
+
+Noted 2011-06-29 on natty, using FLTK 1.1.10 (but it was there in the hardy binary
+too, so it's not new). Right hand side of canvas is not quite big enough - the last
+character of the rightmost birth date loses a pixel or so. Left margin has several
+pixels of spare white space, so we need to allow a bit on the right, too. But in
+fltk 1.3, all seems fine, so possibly this was an old fltk problem.
+
+In our current tree, if we make any of the children of I2890 (John /Welch/ (1753))
+current, the display disappears, with a grey canvas, a minimum window width of the
+usual size, and a max of just over the screen size - this is true for the code on
+kent or wharfe which have slight font differences so that windows for the same tree
+are not normally the same width. There is no problem at all on !Family working on
+the same dataset. Ah, enough instrumentation suggests that this occurs when the window
+(or canvas) is set over 32768 pixels wide. Reducing the font size eliminates the issue
+on our current tree, but 32768 is an unacceptably small limit on width for our
+purposes and is presumably a hard-coded limitation in FLTK - in fact FLTK reckons
+that this limit depends on the underlying Window system so it is probably a limitation
+of your X server. How will we get round this one ? Easy - wait for fltk 1.3, which copes
+with bigger bitmap displays - on Precise this bug no longer shows up with our tree
+(tested by going to the top of Welch, Lane and Peel ancestors). BUT - did we put a
+kludge in to limit the tree size ? Doesn't appear so - we come right down to current
+kids. There's a built-in limit on number of generations (35, I think), which we
+are not hitting.
+
+Building on wharfe, Ubuntu Dapper, gcc 4.0.3, a number of things that worked OK
+before are flagged as errors (basically casting to int from a pointer type). These
+are fixed in the source. OK, you can cast to long and only get a warning, but in
+fact, actual numerical pointers are not that useful when we mostly have methods
+to translate those pointers into the printable contents of the class, such as
+a GEDCOM tag, line or value (unless, of course, we are trying to debug precisely
+because these are broken...)
+
+Loading the file tedmarr.ged, after waiting ages to process the file, we eventually
+exit with a segmentation fault, producing a 38 Mb core dump. Obviously something
+breaks the code in this file (which indicates inadequate error handling), but also
+why is the dump so big ? That's a 7 Mb file, surely we shouldn't need five times
+as much memory to hold it in memory ? OK, we now have a tiny extract of that gedcom
+which also exhibits the segfault, with a more amenable 670k dump. Possible causes
+at this stage are a 0 @ref@ NOTE object, and multiple <n> SOUR @ref@ objects within
+single objects. Otherwise it looks quite innocuous. The 0 @ref@ NOTE object may be
+tripping up the code expecting a 0 NOTE person <current person>. Or it may be the
+lines which way exceed the GEDCOM spec. length of 256 chars. However, the fault can
+be shown to occur with any 0 @ref@ NOTE object in the file. Note that if we fix this,
+it will _not_ interfere with a proposed change to the 0 NOTE person object, because
+that was intended to be implemented as 0 NOTE person @ref@ <current person name>
+[ 2007-09-16 that intention is now changed. We intend to continue to save a current
+ person by name, from the first view (or from the view on which 'save' was chosen)
+ but _in addition_ we will save lines indicating the current person on each open
+ view as in:
+ 0 NOTE Person Joe /Bloggs/
+ 0 NOTE View @I1242@
+ 0 NOTE View @I8621@
+ 0 NOTE View @I3172@
+ This will enable old versions of !Family to open the file and display with the
+ same current person as was on the open display from which the file was saved (as
+ long as the name is unique), but means XFamily will be enabled to open _every_
+ view which was on display at the time the file was saved.]
+
+When we save, we don't change the current person in the TRLR NOTE from when the file
+was loaded. We are intending to change the spec here, so fix the bug and implement
+the new scheme at the same time. Note that this line of GEDCOM throws an exception
+when you import it anywhere else, so but we have nowhere else logical to store this
+bit of state...
+
+If the file we are saving to already exists, we seem to fail to save, with no warning.
+Since proper file saving dialogue isn't implemented yet, address this then. Currently,
+we try to open the file for output in
+void treeinstance::save() at line 269 in trees.cxx
+if that fails, we printf what we would like to fl_alert - so it won't be visible
+unless you have the calling terminal up. Clearly we need to make fl_alert work !
+and then we need to make opening the file for write work even if the file exists.
+
+If a NOTE object is very long, so that it doesn't all fit in a noteUI window, there is
+no scroll bar or any indication that the text overflows the window, other than the fact
+that the window opens with the end of the text in view, not the beginning. Scrolling
+by moving the cursor works, except that the cursor suddenly wraps round from the top of
+the notes to the bottom, which it really shouldn't ...
+
+If we close a NOTE editor window via its "close" icon when the text is modified, we don't
+ask "are you sure?". That's OK for an explicit "Quit", but most users would expect to be
+asked on a close-window (indeed, many would expect to be asked, even for "Quit"). This is
+an easy fix, because we do indeed maintain a "modified" flag.
+
+Similarly, we never ask "are you sure" on an indiUI or famUI either, but this is more
+difficult, because there are umptyone fields that are changed (or not) under FLTK's
+aegis, so it is much harder to tell if anything has been changed unless we wade through
+everything comparing strings. This may prove to be the way to go anyway, as we ought to
+do those tests to avoid memory fragmentation.
+
+For both the above, we need a generic binstuffUI which says something like "closing this
+window will discard data, are you sure ?" With "OK", "Cancel" and "Save" buttons. The
+callback for the latter is going to need to open a "SaveAs" dialogue in a few cases (ie.
+when we are closing the last mainUI and we don't have a known filename to save to).
+
+Opening an edit window on an individual, the name is selected in an irritating manner.
+We don't want this. Having the cursor and input focus here is acceptable. This seems
+not to be happening currently - don't think we've done an explicit fix, so it has
+probably gone with a newer version of FLTK.
+
+If you open a "Find person" dbox, then minimise it and forget, then try to open it again
+via the menu, you get the original dbox restored and raised (good) but without the
+input focus (bad). Making the dbox modal (see above) or not have a minimise icon would
+make this bug go away.
+
+If you open a dbox (lets use the "statistics" one this time), move it, and minimise it,
+you have two ways to get it back. If you click on its icon in the taskbar, it reopens
+where you moved it to. If you open it from the menu again, it reopens where the window
+manager first put it (or where it now chooses). This is somewhat distracting, as this
+sort of dbox can quite reasonably be opened obscuring our mainUI window. If we get a
+callback to open this, we should be able to restore state (do we get a callback when
+the window is minimised ?)
+
+Help system: We don't yet implement any callbacks, so that links to external URLs don't work
+ (we'd want to shell out to a real browser...).
+
+ FLTK limits the sizes of fonts that you can use in these help pages. The biggest font is only
+ just legible on my 1920x1440 display. We may need to copy some fltk code to provide our own
+ help browser without this limitation, or maybe we can just subclass it ? I'd prefer a sans-serif
+ font, too, as this would be more legible at a small point size. Fortunately, even the middle
+ sized font reads fine on the 2560x1600 display, but this bug really needs to be fixed for
+ people trying to get the maximum real estate out of a smaller monitor (or a higher pixel density
+ such as a retina display or a 3840x2160 screen)
+
+When loading a file, we occasionally emit fl_message error messages (as printf's, in fact,
+which is in itself a bug). These do not give a line number in the GEDCOM, which would be a
+very useful feature, as it would mean you could go and check to see if there is indeed a bug
+in the GEDCOM (and perhaps fix it) or if its a bug in the program (ditto). In fact, the case
+which elicited this comment was both: I was reading a GEDCOM file with arbitrarily long lines
+(when GEDCOM specifies a limit of 256) which is a bug in the GEDCOM, but not spotting that
+this was the case and throwing away the rest of the line or inserting virtual CONC tags
+(which is therefore a bug in the program). MAX_GEDCOM_LINE is set in family_h - defensive
+coding is needed to prevent buffer overruns and random data being interpreted as tags.
+
+display.cxx: fams->followxref() dereferenced to NULL
+a potentially useful error message (especially since it is followed by a coredump) which
+would be a lot more useful if it stated the text form of the xref being followed (it's
+almost certainly a bug in the gedcom, not the code). The fix should be to remove the
+xref from the structure, rather than just passing the NULL back to the calling code ?
+Possibly by the time this bug is trapped, the code has already made enough bad assumptions
+to cause a fatal error - in which case we need better validation code when loading the
+file. In no case should a bug in the gedcom be allowed to cause a segfault !
+OK, (1) This error message now says what it is trying to dereference (just before it
+segfaults )-: (2) In this case, the problem was caused by an arbitrary limit on the
+size of a cross reference id of 8 characters. Marked as "an arbitrary limit which
+worries me". The fix has been to increase it to 16 characters, but this is still
+just as arbitrary, and could be exceeded. We need to make these ids arbitrary
+strings (ie. pointers to arbitrary strings) to prevent buffer overruns like this.
+And even then, we need to ensure that we don't load a structure with hanging xrefs ...
+
+If you have a big enough tree, operations will take [considerable] time. There is no
+feedback (like an hourglass when the pointer is in the relevant window(s)), which
+can be disconcerting. For example, open a "find person" window on a big (27,000
+person) tree, and click on the fuzzy-search button. The application appears to hang.
+We don't open a completions window until we have a complete list. Ideal behaviour would
+be to open the completions window at once, and add people as they are found.
+
+Ah, wrong bug error - in fact, even with a big tree, the completions window opens
+quickly, if there are people to fill in. The problem applies when in fact there
+are no matches at all - no window opens and there is no "can't find anyone"
+message to tell the user that he should stop waiting and try something else.
+
+==================================================================================================
+
+Important feature requests:
+
+Display font size is currently compiled in (#define XF_FONT_SIZE in display.h). Needs to be run-time changeable.
+
+Possibly the dbox and menu font sizes (and overall sizes) need to be changeable too - not everything
+is within our control - the title bar text size is a function of the desktop config, for example.
+This stuff would be best in an additional tab on the Choices dbox.
+
+Editing functionality for the tree ! This needs more GUI changes - see !ToDo
+We can subdivide this as:
+ Ability to edit an existing event
+ Ability to add or remove events
+ Ability to add events which aren't currently in the indi or fam uis either
+  additional events with their own tags, or generic EVEN events which supply
+  data like census appearances, employment, academic qualifications, medical
+  conditions and so on. In theory, GEDCOM would support an individual's entire
+  life history, diary-style - how would we limit this ?
+ Ability to add, remove, or make older existing INDIs
+ Ability to add, remove or change order of existing FAMs (!Family failed on this one)
+
+
+Editing functionality for sources.
+
+Working choices dbox (and therefore choice of date display formats, whether to show various
+dates at all, and so on, all of which ought to be fairly easy). We can start by taking some
+notice of choices saved to file (whcih ought to be in a compile-time-fixed location, such
+as /usr/local/src/xfamily/v015/xfamilyrc for our test version, or ~/.xfamily/xfamilyrc for
+saves and first try at loads in an installed versions, with second attempt to load from
+/usr/[local/]share/apps/xfamily/xfamilyrc ?
+
+Working load/save file dialogues. OK progress now includes being able to specify
+the file to load initially on the command line rahter than being hard-coded
+(although currently, the hard-coded filename is still the default if you don't
+specify a file to load, since without a load/save dialogue or edit functionality,
+startging with an empty tree is a bit pointless...)
+
+Working reports systems.
+
+Working print system.
+
+There are header fields that we preserve from loaded file to saved file - in particular we
+preserve the software product that produced the GEDCOM as !Family_for_RISCOS, which in a sense
+is true, as we don't throw away any info that !Family generates, but it should really say
+X!Family and have the right version number. Then it should also get various info to fill in
+the SUBM fields, and the DATA/COPR and contact stuff, and should (technically) add a filename
+in a FILE tag, although this strikes me as redundant and potentially misleading.
+
+We cope with any GEDCOM version, and currently really understand 5.3 with maybe odd extra
+features from 5.5. If we load a differnt version, and add new stuff, we will still save
+with whatever version number the original GEDCOM file said, even if we have added 5.3
+type fields. This is going to confuse any subsequent program that loads the file...
+This is really a problem with the way the GEDCOM spec has made changes which aren't
+backwards-compatible, like deciding to do away with the CEME, SITE, PLOT tags without
+providing a way for 5.5-compliant programs finding those on input to restructure
+them on output.
+
+====================================================================================================
+
+These observed bugs seem to have been an artefact of a particular version of FLTK: They are not
+being seen with fltk 1.1.6 from RPM on wharfe (AMD64)
+
+2003-12-22 More observed problems
+
+           There's quite bad flicker when we close a person or family menu - possibly we are doing a
+           redraw on the entire window contents ? Its much more noticeable on big display structures.
+           We couldn't be recalculating the entire display just to do a redraw, could we ? Check !
+           This is no longer apparent on 2006-01-04, if there is any flicker at all it is when we
+           open the menu, but it is not noticeable.
+
+2003-11-25 Observed bugs with fltk 1.1.4 in use:
+
+           Notes window keeps having its text vanish. Reappears if you move the window. This is based
+            on the example editor code from the fltk 1.0.4 manual - and it didn't do this with the same
+            code when compiled with fltk 1.0.4 - perhaps we need to look at the equivalent example code
+            in the fltk 1.1.4 source tree.
+            This seems to have vanished when looked at 2006-01-04 - an FLTK problem ?
+           The help system works, although I can't get it into a sans-serif font, and the first
+            graphic on each page loaded after the first seems to be slightly corrupt.
+            This seems to have disappeared on 2006-01-04
+
+====================================================================================================
+
+Coding inelegancies with future trouble potential:
+
+Currently implemented creation of dummy event GEDCOM_objects when editing an INDI, and a
+dummy NOTE object if user opens a notesUI dbox. We (will) destroy empty events on exit
+from the indiUI, but not if a dummy NOTE object is still extant. If we then exit the
+notesUI with an empty note, the NOTE object gets killed, but the owning event still
+exists (though it is never saved in a GEDCOM file). This is all rather inelegant, but
+is the result of allowing the user the freedom to keep open notesUI boxes for notes
+raised on events, after the indiUI was closed (the indiUI has to be open to open such
+notes windows, as this is the only mechanism to do so). We propbably need a bit more
+aggressive garbage collection, spotting empty events when we lose a NOTE, for example.
+
+====================================================================================================
+
+Implementation notes
+
+Don't use FLTK 1.1.4 - several bugs appear with this version which are not seen with other
+versions, either in the 1.0.x series or the 1.1.x series.
+
+=====================================================================================================
+
+Bugs believed fixed:
+
+When we resize the canvas on changing current person, we may downsize the window, but we don't scroll
+so that the canvas is within the window. The place to fix this seems to be about line 254 in gui.cxx.
+Need to read up about how to scroll the canvas to a specific point (normally, fltk handles this when
+we click the scroll bars, so I don't know how to scroll from within the code. That's needed for next
+bug too). Fix for this is conditional on fix0001 in fixes.h
+
+OK, so "next bug" was defined by context, and I've moved this paragraph. That's really unhelpful :-(

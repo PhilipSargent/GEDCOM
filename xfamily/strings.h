@@ -20,6 +20,8 @@ extern char msg_clear[];
 #define MAX_clear 8
 extern char msg_restore[];
 #define MAX_restore 20
+extern char msg_revert[];
+#define MAX_revert 10
 extern char msg_saveto[];
 #define MAX_saveto 20
 extern char msg_oksave[];
@@ -164,6 +166,8 @@ extern char msg_event_cause[];
 #define MAX_event_cause 6
 extern char msg_event_src[];
 #define MAX_event_src 8
+extern char msg_event_ident[];
+#define MAX_event_ident 12
 extern char msg_birth[];
 #define MAX_birth 10
 extern char msg_chr[];
@@ -200,6 +204,14 @@ extern char msg_marry[];
 #define MAX_marry 9
 extern char msg_divorce[];
 #define MAX_divorce 8
+extern char msg_notes[];
+#define MAX_notes 10
+extern char msg_sources[];
+#define MAX_sources 8
+extern char msg_will[];
+#define MAX_will 10
+extern char msg_probate[];
+#define MAX_probate 13
 extern char msg_newfamily[];
 #define MAX_newfamily 19
 extern char msg_find_title[];

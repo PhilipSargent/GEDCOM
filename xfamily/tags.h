@@ -57,3 +57,4 @@ extern GEDCOM_tag *fams_tag;
 extern GEDCOM_tag *sours_tag;
 extern GEDCOM_tag *repos_tag;
 extern GEDCOM_tag *trlrs_tag;
+

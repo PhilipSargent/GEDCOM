@@ -1,0 +1,2702 @@
+initial mainUI at 6486688 is raised on tree 6486064
+set new window title OK
+set new current person OK
+newdisplay - destroying old at 0
+destroyed that OK. Now start new tree from 8642512
+created new displaytree at 6493040
+displaytree::buildtree trying to addmarriages from treetop=6492880
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F1065@ FAM
+1 HUSB @I3304@
+1 WIFE @I3305@
+1 CHIL @I3290@
+1 MARR
+2 DATE 27 JUN 1660
+2 PLAC Annonay, Ardêche, France
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I3305
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F1061@ FAM
+1 HUSB @I3289@
+1 WIFE @I3290@
+1 CHIL @I1720@
+1 MARR
+2 DATE ABT 1682
+1 CHIL @I3293@
+1 CHIL @I3294@
+1 CHIL @I3295@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I3289
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F633@ FAM
+1 HUSB @I1720@
+1 WIFE @I3119@
+1 CHIL @I1722@
+1 CHIL @I1729@
+1 CHIL @I1723@
+1 CHIL @I3288@
+1 CHIL @I1726@
+1 CHIL @I1727@
+1 CHIL @I1721@
+1 CHIL @I1725@
+1 MARR
+2 DATE 1757
+1 CHIL @I1724@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I3119
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F121@ FAM
+1 HUSB @I1579@
+1 WIFE @I1727@
+1 CHIL @I1481@
+1 CHIL @I1528@
+1 CHIL @I1549@
+1 SOUR @S35@
+2 PAGE 4
+1 MARR
+2 DATE 2 AUG 1753
+2 PLAC Westminster, London
+3 SITE Saint Anne Soho
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1579
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F119@ FAM
+1 HUSB @I1481@
+1 WIFE @I2003@
+1 CHIL @I1482@
+1 CHIL @I1550@
+1 CHIL @I1509@
+1 CHIL @I1495@
+1 CHIL @I1480@
+1 CHIL @I1533@
+1 MARR
+2 DATE 1790
+1 SOUR @S35@
+2 PAGE 4
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2003
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F122@ FAM
+1 HUSB @I1974@
+1 WIFE @I1550@
+1 MARR
+2 DATE 19 OCT 1827
+2 PLAC Tottenham, London (TQ 33 90)
+1 CHIL @I3182@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1974
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F123@ FAM
+1 HUSB @I2617@
+1 WIFE @I1495@
+1 MARR
+2 DATE 18 NOV 1824
+2 PLAC Saint Pancras, London
+3 SITE Old Church
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2617
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F111@ FAM
+1 HUSB @I1480@
+1 WIFE @I2504@
+1 MARR
+2 DATE 1 JAN 1829
+2 PLAC Templemore, Ireland
+2 SOUR @S53@
+1 CHIL @I1504@
+1 CHIL @I1513@
+1 CHIL @I1532@
+1 CHIL @I1469@
+1 CHIL @I1477@
+1 CHIL @I1599@
+1 CHIL @I1510@
+1 CHIL @I1503@
+1 CHIL @I1484@
+1 CHIL @I1474@
+1 CHIL @I1489@
+1 SOUR @S35@
+2 PAGE 4,5,6
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2504
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F109@ FAM
+1 HUSB @I1513@
+1 WIFE @I2005@
+1 MARR
+2 DATE 18 FEB 1865
+2 PLAC Rugby
+3 SITE Parish Church
+2 SOUR @S53@
+1 CHIL @I1502@
+1 CHIL @I1507@
+1 CHIL @I1512@
+1 SOUR @S35@
+2 PAGE 5
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2005
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F112@ FAM
+1 HUSB @I782@
+1 WIFE @I1502@
+1 MARR
+2 DATE 28 APR 1891
+2 PLAC Leeds
+3 SITE Armley Hall P C
+2 SOUR @S53@
+1 CHIL @I781@
+1 CHIL @I786@
+1 CHIL @I783@
+1 SOUR @S35@
+2 PAGE 5
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I782
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F113@ FAM
+1 HUSB @I1330@
+1 WIFE @I783@
+1 MARR
+2 DATE 1925
+1 CHIL @I1331@
+1 SOUR @S35@
+2 PAGE 5
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1330
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F462@ FAM
+1 HUSB @I580@
+1 WIFE @I1331@
+1 CHIL @I579@
+1 CHIL @I577@
+1 CHIL @I581@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I580
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F106@ FAM
+1 HUSB @I1512@
+1 WIFE @I2111@
+1 MARR
+2 DATE 24 NOV 1903
+2 PLAC New Ferry, Lower Bebington, Cheshire (SJ 34 85)
+3 SITE St. Mark's church
+2 SOUR @S53@
+1 CHIL @I1541@
+1 CHIL @I1563@
+1 CHIL @I1567@
+1 CHIL @I1526@
+1 CHIL @I1488@
+1 CHIL @I1555@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2111
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F62@ FAM
+1 HUSB @I2893@
+1 WIFE @I1541@
+1 ENGA
+2 DATE 24 FEB 1925
+1 MARR
+2 DATE 16 SEP 1925
+2 PLAC Ellel, Lancashire
+3 SITE St. John's Church (SD 486 558)
+2 SOUR @S53@
+1 CHIL @I2903@
+1 CHIL @I2888@
+1 SOUR @S35@
+2 PAGE 6
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2893
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F8@ FAM
+1 HUSB @I2888@
+1 WIFE @I3057@
+1 MARR
+2 DATE 17 SEP 1957
+2 PLAC Aberdeen (NJ 93 05)
+3 SITE Holborn Central Parish Church
+1 CHIL @I2855@
+1 CHIL @I2806@
+1 CHIL @I2799@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I3057
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F107@ FAM
+1 HUSB @I1244@
+1 WIFE @I2855@
+1 MARR
+2 DATE 26 OCT 1985
+2 PLAC Easby, Richmond, North Yorkshire (NZ 57 08)
+3 SITE St. Agatha's Church
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1244
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object to deal with (null)
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F6@ FAM
+1 HUSB @I2704@
+1 WIFE @I2855@
+1 MARR
+2 DATE 16 JAN 1993
+2 PLAC Barnard Castle, Co. Durham
+3 SITE Register Office (NZ 051 163)
+1 CHIL @I2715@
+1 CHIL @I2714@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2704
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F10@ FAM
+1 HUSB @I966@
+1 WIFE @I2806@
+1 MARR
+2 DATE 27 AUG 1988
+3 TIME 14:30
+2 PLAC Hudswell, Yorkshire (NZ 14 00)
+3 SITE St. Michael's and All Angels Church
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I966
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F9@ FAM
+1 HUSB @I1230@
+1 WIFE @I2799@
+1 MARR
+2 DATE 14 MAY 1988
+2 PLAC Easby, Richmond, North Yorkshire (NZ 57 08)
+3 SITE St. Agatha's Church
+1 CHIL @I1228@
+1 CHIL @I1229@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1230
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F220@ FAM
+1 HUSB @I456@
+1 WIFE @I1567@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I456
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F217@ FAM
+1 HUSB @I738@
+1 WIFE @I1488@
+1 MARR
+2 DATE 1 AUG 1939
+3 TIME 14:30
+2 PLAC Ellel, Lancashire
+3 SITE St. John's Church (SD 486 558)
+1 CHIL @I735@
+1 CHIL @I737@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I738
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F218@ FAM
+1 HUSB @I104@
+1 WIFE @I735@
+1 MARR
+2 DATE 29 NOV 1965
+1 CHIL @I103@
+1 CHIL @I102@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I104
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F219@ FAM
+1 HUSB @I737@
+1 WIFE @I1098@
+1 CHIL @I734@
+1 CHIL @I739@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1098
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F1053@ FAM
+1 HUSB @I3269@
+1 WIFE @I739@
+1 MARR
+2 DATE 1 JUN 2007
+3 TIME 12:00
+2 PLAC Fulford, York
+3 SITE St. Oswald's Church
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I3269
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F242@ FAM
+1 HUSB @I2955@
+1 WIFE @I1555@
+1 MARR
+2 DATE 26 AUG 1940
+2 PLAC Ellel, Lancashire
+3 SITE St. John's Church (SD 486 558)
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2955
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object to deal with (null)
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F243@ FAM
+1 HUSB @I2450@
+1 WIFE @I1555@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2450
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F114@ FAM
+1 HUSB @I55@
+1 WIFE @I1510@
+1 MARR
+2 DATE 5 AUG 1867
+2 PLAC Manchester, Lancashire
+3 SITE Cathedral
+2 SOUR @S53@
+1 CHIL @I51@
+1 CHIL @I52@
+1 CHIL @I54@
+1 CHIL @I57@
+1 CHIL @I49@
+1 SOUR @S35@
+2 PAGE 6
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I55
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F115@ FAM
+1 HUSB @I1484@
+1 WIFE @I3011@
+1 MARR
+2 DATE 28 NOV 1882
+2 PLAC USA
+2 SOUR @S53@
+1 CHIL @I1556@
+1 CHIL @I1466@
+1 SOUR @S35@
+2 PAGE 6
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I3011
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object to deal with (null)
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F228@ FAM
+1 HUSB @I1484@
+1 WIFE @I45@
+1 SOUR @S35@
+2 PAGE 6
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I45
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F117@ FAM
+1 HUSB @I1474@
+1 WIFE @I544@
+1 MARR
+2 DATE 26 JUL 1882
+2 PLAC Retford, Nottinghamshire (SK 70 81)
+2 SOUR @S53@
+1 CHIL @I1561@
+1 CHIL @I1475@
+1 CHIL @I1479@
+1 CHIL @I1553@
+1 CHIL @I1511@
+1 SOUR @S35@
+2 PAGE 6
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I544
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F124@ FAM
+1 HUSB @I1533@
+1 WIFE @I330@
+1 CHIL @I1506@
+1 CHIL @I1524@
+1 CHIL @I1478@
+1 SOUR @S35@
+2 PAGE 11
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I330
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F125@ FAM
+1 HUSB @I1129@
+1 WIFE @I1524@
+1 CHIL @I1131@
+1 SOUR @S35@
+2 PAGE 11
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1129
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F126@ FAM
+1 HUSB @I1131@
+1 WIFE @I2324@
+1 MARR
+2 DATE 1876
+1 CHIL @I1132@
+1 CHIL @I1135@
+1 SOUR @S35@
+2 PAGE 11
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2324
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F127@ FAM
+1 HUSB @I1041@
+1 WIFE @I1132@
+1 CHIL @I1134@
+1 CHIL @I1133@
+1 SOUR @S35@
+2 PAGE 11
+1 MARR
+2 DATE 1898
+2 PLAC St. Thomas District, Devon
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1041
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F225@ FAM
+1 HUSB @I1528@
+1 WIFE @I754@
+1 MARR
+2 DATE 10 SEP 1785
+2 PLAC London
+3 SITE St. Benet Pauls Wharf
+1 SOUR @S35@
+2 PAGE 4
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I754
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object to deal with (null)
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F226@ FAM
+1 HUSB @I1528@
+1 WIFE @I1279@
+1 MARR
+2 DATE 9 AUG 1792
+2 PLAC Enfield, London (TQ 35 97)
+3 SITE St. Andrew
+1 SOUR @S35@
+2 PAGE 4, 13
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1279
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F227@ FAM
+1 HUSB @I2360@
+1 WIFE @I1549@
+1 CHIL @I2359@
+1 MARR
+2 DATE 1784
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2360
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F1054@ FAM
+1 HUSB @I2359@
+1 WIFE @I3270@
+1 MARR
+2 PLAC Corfu
+1 CHIL @I3271@
+1 CHIL @I3272@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I3270
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F1055@ FAM
+1 HUSB @I3273@
+1 WIFE @I3271@
+1 MARR
+2 DATE 1851
+2 PLAC Corfu
+1 CHIL @I3274@
+1 CHIL @I3275@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I3273
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F634@ FAM
+1 HUSB @I1721@
+1 WIFE @I2951@
+1 MARR
+2 DATE 30 JUL 1757
+2 PLAC London
+3 SITE St. Helen Bishopsgate
+1 CHIL @I1728@
+1 CHIL @I1730@
+1 CHIL @I1731@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2951
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F1070@ FAM
+1 HUSB @I3293@
+1 WIFE @I3310@
+1 MARR
+2 DATE 1721
+1 CHIL @I3313@
+1 CHIL @I3315@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I3310
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F1073@ FAM
+1 HUSB @I3314@
+1 WIFE @I3313@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I3314
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F1074@ FAM
+1 HUSB @I3315@
+1 WIFE @I3316@
+1 MARR
+2 DATE 1757
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I3316
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F1071@ FAM
+1 HUSB @I3294@
+1 WIFE @I3311@
+1 MARR
+2 DATE 1747
+1 CHIL @I3317@
+1 CHIL @I3318@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I3311
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F1072@ FAM
+1 HUSB @I3312@
+1 WIFE @I3295@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I3312
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+built the tree structure
+calculated where to put everything
+displaytree::gettop() looking for Marie Anne /Marcha/
+Starting to check with André /Marcha/
+Starting to check with Marie Anne /Marcha/
+Found Marie Anne /Marcha/ at 11342272, offset into canvas is 5430
+canvassize called with 7674, 1336
+scrolling to 5130, 0
+created new display structure OK
+set new window title OK
+set new current person OK
+newdisplay - destroying old at 6493040
+destroyed that OK. Now start new tree from 10106144
+created new displaytree at 6493040
+displaytree::buildtree trying to addmarriages from treetop=6492880
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F69@ FAM
+1 HUSB @I2890@
+1 WIFE @I3044@
+1 MARR
+2 DATE 26 JAN 1777
+2 PLAC Kendal, Westmorland (SD 51 92)
+1 CHIL @I2931@
+1 CHIL @I2891@
+1 CHIL @I2926@
+1 CHIL @I2884@
+1 CHIL @I2901@
+1 CHIL @I2805@
+1 CHIL @I2918@
+1 CHIL @I2860@
+1 CHIL @I2908@
+1 CHIL @I2798@
+1 CHIL @I2871@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I3044
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F84@ FAM
+1 HUSB @I2931@
+1 WIFE @I1627@
+1 CHIL @I2851@
+1 CHIL @I2900@
+1 CHIL @I2882@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1627
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object to deal with (null)
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F85@ FAM
+1 HUSB @I2931@
+1 WIFE @I351@
+1 CHIL @I2791@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I351
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F86@ FAM
+1 HUSB @I2647@
+1 WIFE @I2791@
+1 CHIL @I2650@
+1 MARR
+2 DATE 3 MAR 1834
+2 PLAC Warton, Lancashire (SD 49 72)
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2647
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F970@ FAM
+1 HUSB @I2650@
+1 WIFE @I2646@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2646
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F67@ FAM
+1 HUSB @I2891@
+1 WIFE @I2741@
+1 MARR
+2 DATE 18 OCT 1802
+2 PLAC Lancaster
+3 SITE High Street Chapel (says "Lancaster Church" in family bible) (SD 475 614)
+1 CHIL @I2892@
+1 CHIL @I2849@
+1 CHIL @I2838@
+1 CHIL @I2909@
+1 CHIL @I2867@
+1 CHIL @I2899@
+1 CHIL @I2845@
+1 CHIL @I2937@
+1 CHIL @I2879@
+1 CHIL @I2933@
+1 CHIL @I2807@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2741
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F95@ FAM
+1 HUSB @I2892@
+1 WIFE @I2516@
+1 MARR
+2 DATE 2 NOV 1844
+2 PLAC Brighton, Sussex
+3 SITE Old Church
+1 CHIL @I2820@
+1 CHIL @I2812@
+1 CHIL @I2802@
+1 CHIL @I2828@
+1 CHIL @I2916@
+1 CHIL @I2825@
+1 CHIL @I2796@
+1 CHIL @I2803@
+1 CHIL @I2835@
+1 CHIL @I2790@
+1 CHIL @I2795@
+1 CHIL @I2815@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2516
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F871@ FAM
+1 HUSB @I2820@
+1 WIFE @I2480@
+1 MARR
+2 DATE 6 APR 1870
+2 SOUR @S54@
+1 CHIL @I2801@
+1 CHIL @I2816@
+1 CHIL @I2834@
+1 CHIL @I2831@
+1 CHIL @I2830@
+1 SOUR @S43@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2480
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F309@ FAM
+1 HUSB @I2802@
+1 WIFE @I1750@
+1 MARR
+2 DATE 27 MAR 1883
+2 SOUR @S54@
+2 PLAC Hendon registration district
+1 CHIL @I2885@
+1 CHIL @I2887@
+1 CHIL @I2817@
+1 SOUR @S43@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1750
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F311@ FAM
+1 HUSB @I2887@
+1 WIFE @I2773@
+1 CHIL @I2914@
+1 CHIL @I2886@
+1 CHIL @I2818@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2773
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F492@ FAM
+1 HUSB @I1882@
+1 WIFE @I2914@
+1 MARR
+2 DATE 1 JUN 1946
+2 PLAC Foxearth, Sudbury, Suffolk (TL 83 44)
+1 CHIL @I1884@
+1 CHIL @I1883@
+1 CHIL @I1881@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1882
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F310@ FAM
+1 HUSB @I2916@
+1 WIFE @I546@
+1 MARR
+2 DATE 22 DEC 1888
+2 SOUR @S54@
+2 PLAC Portsea registration district, Hampshire
+1 CHIL @I2934@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I546
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F872@ FAM
+1 HUSB @I2835@
+1 WIFE @I1809@
+1 SOUR @S43@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1809
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F96@ FAM
+1 HUSB @I559@
+1 WIFE @I2838@
+1 MARR
+2 DATE 18 OCT 1826
+2 PLAC Everton, Liverpool, Lancashire (SJ 35 92)
+3 SITE Church
+1 CHIL @I569@
+1 CHIL @I564@
+1 CHIL @I548@
+1 CHIL @I550@
+1 CHIL @I571@
+1 CHIL @I561@
+1 CHIL @I562@
+1 CHIL @I568@
+1 CHIL @I563@
+1 CHIL @I560@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I559
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F281@ FAM
+1 HUSB @I571@
+1 WIFE @I1081@
+1 MARR
+2 DATE 14 APR 1869
+1 CHIL @I565@
+1 CHIL @I566@
+1 CHIL @I549@
+1 CHIL @I551@
+1 CHIL @I572@
+1 CHIL @I553@
+1 CHIL @I557@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1081
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F284@ FAM
+1 HUSB @I285@
+1 WIFE @I565@
+1 MARR
+2 DATE 1 MAY 1894
+1 CHIL @I287@
+1 CHIL @I289@
+1 CHIL @I281@
+1 CHIL @I286@
+1 CHIL @I284@
+1 CHIL @I282@
+1 CHIL @I283@
+1 CHIL @I288@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I285
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F285@ FAM
+1 HUSB @I566@
+1 WIFE @I2543@
+1 MARR
+2 DATE 15 APR 1897
+1 CHIL @I558@
+1 CHIL @I552@
+1 CHIL @I554@
+1 CHIL @I567@
+1 CHIL @I556@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2543
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F283@ FAM
+1 HUSB @I211@
+1 WIFE @I553@
+1 MARR
+2 DATE 28 NOV 1908
+1 CHIL @I212@
+1 CHIL @I213@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I211
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object to deal with (null)
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F282@ FAM
+1 HUSB @I571@
+1 WIFE @I2313@
+1 MARR
+2 DATE 8 AUG 1884
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2313
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F97@ FAM
+1 HUSB @I1440@
+1 WIFE @I2909@
+1 MARR
+2 DATE 26 SEP 1833
+2 PLAC Liverpool, Lancashire (SJ 37 87)
+3 SITE St. Philip's Church
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1440
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object to deal with (null)
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F98@ FAM
+1 HUSB @I1082@
+1 WIFE @I2909@
+1 MARR
+2 DATE 3 NOV 1852
+2 PLAC West Derby, Lancashire
+3 SITE Pembroke Chapel
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1082
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F99@ FAM
+1 HUSB @I2867@
+1 WIFE @I583@
+1 MARR
+2 DATE 23 MAY 1838
+2 PLAC Quebec, Canada
+2 SOUR @S54@
+1 CHIL @I2868@
+1 CHIL @I2938@
+1 CHIL @I2895@
+1 CHIL @I2912@
+1 CHIL @I2863@
+1 CHIL @I2896@
+1 CHIL @I2843@
+1 CHIL @I2898@
+1 CHIL @I2809@
+1 CHIL @I2853@
+1 CHIL @I2921@
+1 CHIL @I2794@
+1 SOUR @S43@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I583
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F269@ FAM
+1 HUSB @I2868@
+1 WIFE @I629@
+1 MARR
+2 DATE 11 NOV 1865
+2 SOUR @S54@
+1 CHIL @I2869@
+1 CHIL @I2804@
+1 CHIL @I2823@
+1 CHIL @I2837@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I629
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F271@ FAM
+1 HUSB @I2869@
+1 WIFE @I1126@
+1 CHIL @I2870@
+1 CHIL @I2913@
+1 CHIL @I2862@
+1 CHIL @I2810@
+1 CHIL @I2824@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1126
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F275@ FAM
+1 HUSB @I2870@
+1 WIFE @I2423@
+1 CHIL @I2904@
+1 CHIL @I2866@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2423
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F274@ FAM
+1 HUSB @I2591@
+1 WIFE @I2913@
+1 CHIL @I2592@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2591
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F272@ FAM
+1 HUSB @I2497@
+1 WIFE @I2862@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2497
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F273@ FAM
+1 HUSB @I2824@
+1 WIFE @I2416@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2416
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object to deal with (null)
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F270@ FAM
+1 HUSB @I2868@
+1 WIFE @I1844@
+1 MARR
+2 DATE 1 JUN 1898
+2 PLAC Ontario, Canada
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1844
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F265@ FAM
+1 HUSB @I2938@
+1 WIFE @I1258@
+1 MARR
+2 DATE 30 NOV 1871
+2 SOUR @S54@
+1 CHIL @I2819@
+1 CHIL @I2864@
+1 CHIL @I2800@
+1 CHIL @I2813@
+1 CHIL @I2829@
+1 CHIL @I2859@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1258
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F266@ FAM
+1 HUSB @I1649@
+1 WIFE @I2864@
+1 CHIL @I1651@
+1 CHIL @I1652@
+1 CHIL @I1650@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1649
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F267@ FAM
+1 HUSB @I291@
+1 WIFE @I2800@
+1 CHIL @I290@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I291
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F268@ FAM
+1 HUSB @I685@
+1 WIFE @I2859@
+1 CHIL @I686@
+1 CHIL @I684@
+1 CHIL @I687@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I685
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F257@ FAM
+1 HUSB @I2895@
+1 WIFE @I798@
+1 MARR
+2 DATE 21 MAY 1872
+2 SOUR @S54@
+1 CHIL @I2827@
+1 CHIL @I2854@
+1 CHIL @I2856@
+1 CHIL @I2874@
+1 CHIL @I2865@
+1 CHIL @I2792@
+1 CHIL @I2875@
+1 CHIL @I2844@
+1 CHIL @I2822@
+1 CHIL @I2902@
+1 SOUR @S43@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I798
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F279@ FAM
+1 HUSB @I2874@
+1 WIFE @I1141@
+1 MARR
+2 DATE 19 APR 1921
+2 PLAC Alberta, Canada
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1141
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F258@ FAM
+1 HUSB @I2657@
+1 WIFE @I2844@
+1 CHIL @I2659@
+1 CHIL @I2660@
+1 CHIL @I2658@
+1 CHIL @I2661@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2657
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F276@ FAM
+1 HUSB @I415@
+1 WIFE @I2658@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I415
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F251@ FAM
+1 HUSB @I2576@
+1 WIFE @I2912@
+1 MARR
+2 DATE 20 SEP 1871
+2 SOUR @S54@
+1 CHIL @I2574@
+1 CHIL @I2578@
+1 CHIL @I2575@
+1 CHIL @I2573@
+1 CHIL @I2569@
+1 CHIL @I2570@
+1 CHIL @I2579@
+1 SOUR @S43@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2576
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F259@ FAM
+1 HUSB @I2575@
+1 WIFE @I2594@
+1 MARR
+2 DATE 10 JAN 1920
+2 PLAC Quebec, Canada
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2594
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F261@ FAM
+1 HUSB @I2569@
+1 WIFE @I1390@
+1 MARR
+2 DATE 7 FEB 1918
+2 PLAC Quebec, Canada
+3 SITE Cathedral of the Holy Trinity
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1390
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F262@ FAM
+1 HUSB @I2570@
+1 WIFE @I1046@
+1 MARR
+2 DATE 4 JAN 1911
+2 SOUR @S54@
+1 CHIL @I2577@
+1 CHIL @I2571@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1046
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F263@ FAM
+1 HUSB @I2577@
+1 WIFE @I3002@
+1 CHIL @I2572@
+1 MARR
+2 DATE 5 JUN 1946
+3 TIME 15:00
+2 PLAC
+3 SITE St. Thomas' Church, St. John's
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I3002
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F484@ FAM
+1 HUSB @I2508@
+1 WIFE @I2572@
+1 CHIL @I2507@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2508
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F264@ FAM
+1 HUSB @I1976@
+1 WIFE @I2571@
+1 CHIL @I1975@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1976
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F252@ FAM
+1 HUSB @I3014@
+1 WIFE @I2863@
+1 MARR
+2 PLAC Lancaster (SD 47 61)
+3 SITE St. Thomas' Church
+2 DATE 13 APR 1887
+3 SOUR @S54@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I3014
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F255@ FAM
+1 HUSB @I2896@
+1 WIFE @I763@
+1 MARR
+2 DATE 19 DEC 1882
+2 SOUR @S54@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I763
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F253@ FAM
+1 HUSB @I2330@
+1 WIFE @I2898@
+1 MARR
+2 DATE 7 SEP 1875
+2 SOUR @S54@
+1 CHIL @I2331@
+1 CHIL @I2332@
+1 SOUR @S43@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2330
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F256@ FAM
+1 HUSB @I2331@
+1 WIFE @I2983@
+1 CHIL @I2328@
+1 CHIL @I2329@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2983
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F254@ FAM
+1 HUSB @I2417@
+1 WIFE @I2853@
+1 MARR
+2 DATE 17 SEP 1891
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2417
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F64@ FAM
+1 HUSB @I2937@
+1 WIFE @I912@
+1 MARR
+2 DATE 28 JUL 1846
+2 PLAC Steynton, Pembroke (SM 91 07)
+3 SITE Parish Church
+1 CHIL @I2847@
+1 CHIL @I2936@
+1 CHIL @I2852@
+1 CHIL @I2906@
+1 CHIL @I2839@
+1 CHIL @I2793@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I912
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F63@ FAM
+1 HUSB @I2936@
+1 WIFE @I1341@
+1 MARL
+2 DATE 29 JUL 1880
+1 MARR
+2 DATE 4 AUG 1880
+2 PLAC Ellel, Lancashire
+3 SITE Parish Church (St. John's) (SD 486 558)
+1 CHIL @I2897@
+1 CHIL @I2911@
+1 CHIL @I2893@
+1 CHIL @I2814@
+1 CHIL @I2880@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1341
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F62@ FAM
+1 HUSB @I2893@
+1 WIFE @I1541@
+1 ENGA
+2 DATE 24 FEB 1925
+1 MARR
+2 DATE 16 SEP 1925
+2 PLAC Ellel, Lancashire
+3 SITE St. John's Church (SD 486 558)
+2 SOUR @S53@
+1 CHIL @I2903@
+1 CHIL @I2888@
+1 SOUR @S35@
+2 PAGE 6
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1541
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F8@ FAM
+1 HUSB @I2888@
+1 WIFE @I3057@
+1 MARR
+2 DATE 17 SEP 1957
+2 PLAC Aberdeen (NJ 93 05)
+3 SITE Holborn Central Parish Church
+1 CHIL @I2855@
+1 CHIL @I2806@
+1 CHIL @I2799@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I3057
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F107@ FAM
+1 HUSB @I1244@
+1 WIFE @I2855@
+1 MARR
+2 DATE 26 OCT 1985
+2 PLAC Easby, Richmond, North Yorkshire (NZ 57 08)
+3 SITE St. Agatha's Church
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1244
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object to deal with (null)
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F6@ FAM
+1 HUSB @I2704@
+1 WIFE @I2855@
+1 MARR
+2 DATE 16 JAN 1993
+2 PLAC Barnard Castle, Co. Durham
+3 SITE Register Office (NZ 051 163)
+1 CHIL @I2715@
+1 CHIL @I2714@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2704
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F10@ FAM
+1 HUSB @I966@
+1 WIFE @I2806@
+1 MARR
+2 DATE 27 AUG 1988
+3 TIME 14:30
+2 PLAC Hudswell, Yorkshire (NZ 14 00)
+3 SITE St. Michael's and All Angels Church
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I966
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F9@ FAM
+1 HUSB @I1230@
+1 WIFE @I2799@
+1 MARR
+2 DATE 14 MAY 1988
+2 PLAC Easby, Richmond, North Yorkshire (NZ 57 08)
+3 SITE St. Agatha's Church
+1 CHIL @I1228@
+1 CHIL @I1229@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1230
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F65@ FAM
+1 HUSB @I2880@
+1 WIFE @I2459@
+1 MARR
+2 DATE 21 NOV 1920
+2 PLAC Cambridge
+3 SITE St. Mark's Church, Barton Road
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2459
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F102@ FAM
+1 HUSB @I278@
+1 WIFE @I2852@
+1 MARR
+2 DATE 5 APR 1876
+2 PLAC Lancaster
+3 SITE High Street Chapel (SD 475 614)
+1 CHIL @I275@
+1 CHIL @I267@
+1 CHIL @I268@
+1 CHIL @I273@
+1 CHIL @I265@
+1 CHIL @I279@
+1 CHIL @I270@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I278
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F357@ FAM
+1 HUSB @I1854@
+1 WIFE @I267@
+1 MARR
+2 DATE 30 MAR 1910
+2 PLAC Liverpool, Lancashire (SJ 37 87)
+3 SITE Sefton Park Presbyterian Church
+1 CHIL @I1858@
+1 CHIL @I1852@
+1 CHIL @I1859@
+1 CHIL @I1855@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1854
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F489@ FAM
+1 HUSB @I628@
+1 WIFE @I1858@
+1 MARR
+2 DATE 22 JUN 1940
+3 TIME 14:30
+2 PLAC London NW3
+3 SITE Lyndhurst Road Congregational Church
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I628
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F442@ FAM
+1 HUSB @I1770@
+1 WIFE @I1852@
+1 MARR
+2 DATE 5 JUN 1936
+2 PLAC Halifax, Yorkshire (SE 09 25)
+3 SITE Park Church (Congregational)
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1770
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F426@ FAM
+1 HUSB @I1859@
+1 WIFE @I3136@
+1 CHIL @I1857@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I3136
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F490@ FAM
+1 HUSB @I1855@
+1 WIFE @I2950@
+1 MARR
+2 DATE 11 JUL 1946
+3 TIME 12:30
+2 PLAC Halifax, Yorkshire (SE 09 25)
+3 SITE St. Paul's Church, Queen's Road
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2950
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F359@ FAM
+1 HUSB @I268@
+1 WIFE @I753@
+1 CHIL @I266@
+1 CHIL @I269@
+1 CHIL @I271@
+1 MARR
+2 DATE 20 MAY 1914
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I753
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F752@ FAM
+1 HUSB @I759@
+1 WIFE @I273@
+1 MARR
+2 DATE 11 MAR 1914
+2 PLAC Southport, Lancashire (SD 33 17)
+3 SITE St. George's Presbyterian Church
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I759
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F360@ FAM
+1 HUSB @I265@
+1 CHIL @I262@
+1 CHIL @I260@
+1 WIFE @I50@
+1 CHIL @I264@
+1 MARR
+2 DATE 8 JAN 1914
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I50
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F358@ FAM
+1 HUSB @I270@
+1 WIFE @I1266@
+1 MARR
+2 DATE 29 MAR 1921
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1266
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F105@ FAM
+1 HUSB @I890@
+1 WIFE @I2906@
+1 MARR
+2 DATE 26 APR 1882
+2 SOUR @S43@
+2 PLAC Lancaster
+3 SITE Friends' Meeting House, Meeting House Lane
+1 CHIL @I915@
+1 CHIL @I937@
+1 CHIL @I893@
+1 CHIL @I864@
+1 CHIL @I935@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I890
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F337@ FAM
+1 HUSB @I864@
+1 WIFE @I2767@
+1 MARR
+2 DATE 8 AUG 1917
+2 SOUR @S43@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2767
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F336@ FAM
+1 HUSB @I935@
+1 WIFE @I1641@
+1 MARR
+2 DATE 26 SEP 1928
+3 TIME 14:15
+2 PLAC Letchworth, Hertfordshire (TL 22 32)
+3 SITE Howgills (Friends' Meeting House)
+1 CHIL @I850@
+1 CHIL @I923@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1641
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F338@ FAM
+1 HUSB @I658@
+1 WIFE @I850@
+1 MARR
+2 DATE 28 SEP 1953
+2 SOUR @S44@
+1 CHIL @I657@
+1 CHIL @I656@
+1 CHIL @I655@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I658
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F340@ FAM
+1 HUSB @I1891@
+1 WIFE @I657@
+1 MARR
+2 DATE 31 MAY 1974
+2 SOUR @S44@
+1 CHIL @I1890@
+1 CHIL @I1888@
+1 CHIL @I1892@
+1 CHIL @I1889@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1891
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F339@ FAM
+1 HUSB @I923@
+1 WIFE @I1089@
+1 MARR
+2 DATE 4 JUL 1959
+2 SOUR @S44@
+1 CHIL @I944@
+1 CHIL @I879@
+1 CHIL @I928@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1089
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F341@ FAM
+1 HUSB @I2009@
+1 WIFE @I944@
+1 MARR
+2 DATE 31 MAR 1979
+2 SOUR @S44@
+1 DIV
+2 DATE 9 NOV 1984
+2 SOUR @S44@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2009
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object to deal with (null)
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F342@ FAM
+1 HUSB @I755@
+1 WIFE @I944@
+1 CHIL @I757@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I755
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F343@ FAM
+1 HUSB @I2788@
+1 WIFE @I879@
+1 MARR
+2 DATE 18 AUG 1984
+2 SOUR @S44@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2788
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F344@ FAM
+1 HUSB @I765@
+1 WIFE @I928@
+1 DIV
+2 DATE 16 FEB 1989
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I765
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object to deal with (null)
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F345@ FAM
+1 HUSB @I748@
+1 WIFE @I928@
+1 CHIL @I747@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I748
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F68@ FAM
+1 HUSB @I2793@
+1 WIFE @I1106@
+1 MARR
+2 DATE 25 APR 1894
+2 PLAC Bolton-le-Sands, Lancashire (SD 483 677)
+3 SITE Parish Church
+1 CHIL @I2922@
+1 CHIL @I2857@
+1 CHIL @I2840@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1106
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F244@ FAM
+1 HUSB @I2922@
+1 WIFE @I2602@
+1 MARR
+2 DATE 14 OCT 1931
+1 CHIL @I2905@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2602
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F249@ FAM
+1 HUSB @I1794@
+1 WIFE @I2905@
+1 MARR
+2 DATE 6 OCT 1962
+2 PLAC Lancaster
+3 SITE Priory Church of St. Mary (SD 473 619)
+1 CHIL @I1796@
+1 CHIL @I1793@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1794
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F245@ FAM
+1 HUSB @I2840@
+1 WIFE @I1239@
+1 ENGA
+2 DATE APR 1935
+1 MARR
+2 DATE 1 AUG 1935
+2 PLAC Jedburgh (NT 64 20)
+3 SITE Old Parish Church
+1 CHIL @I2846@
+1 CHIL @I2797@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1239
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F246@ FAM
+1 HUSB @I2413@
+1 WIFE @I2846@
+1 MARR
+2 DATE 18 SEP 1965
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2413
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object to deal with (null)
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F247@ FAM
+1 HUSB @I2545@
+1 WIFE @I2846@
+1 MARR
+2 DATE 10 FEB 1973
+1 CHIL @I2546@
+1 CHIL @I2547@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2545
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F248@ FAM
+1 HUSB @I2356@
+1 WIFE @I2797@
+1 CHIL @I2354@
+1 CHIL @I2355@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2356
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object to deal with (null)
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F100@ FAM
+1 HUSB @I2937@
+1 WIFE @I259@
+1 MARR
+2 DATE 4 JUN 1867
+2 PLAC Brixton, Surrey
+3 SITE Trinity Chapel
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I259
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F88@ FAM
+1 HUSB @I2926@
+1 WIFE @I720@
+1 MARR
+2 DATE 24 SEP 1811
+2 PLAC Overton, Lancashire (SD 43 58)
+1 CHIL @I2889@
+1 CHIL @I2872@
+1 CHIL @I2927@
+1 CHIL @I2858@
+1 CHIL @I2935@
+1 CHIL @I2881@
+1 CHIL @I2932@
+1 CHIL @I2841@
+1 CHIL @I2848@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I720
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F448@ FAM
+1 HUSB @I2872@
+1 WIFE @I328@
+1 MARR
+2 DATE 14 SEP 1851
+2 PLAC Ulverston, Lancashire (SD 28 78)
+3 SITE Parish Church
+1 CHIL @I2928@
+1 CHIL @I2873@
+1 CHIL @I2811@
+1 CHIL @I2907@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I328
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F443@ FAM
+1 HUSB @I2935@
+1 WIFE @I1292@
+1 CHIL @I2929@
+1 CHIL @I2923@
+1 CHIL @I2915@
+1 CHIL @I2836@
+1 CHIL @I2850@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1292
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F453@ FAM
+1 HUSB @I2929@
+1 WIFE @I1183@
+1 MARR
+2 DATE AFT MAR 1881
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1183
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F447@ FAM
+1 HUSB @I2841@
+1 WIFE @I2397@
+1 CHIL @I2894@
+1 MARR
+2 DATE BEF 1870
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2397
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F452@ FAM
+1 HUSB @I2365@
+1 WIFE @I2848@
+1 CHIL @I2364@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2365
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F89@ FAM
+1 HUSB @I321@
+1 WIFE @I2884@
+1 MARR
+2 DATE 11 NOV 1807
+2 PLAC Lancaster
+3 SITE St. Mary (SD 473 619)
+1 CHIL @I323@
+1 CHIL @I326@
+1 CHIL @I324@
+1 CHIL @I322@
+1 CHIL @I325@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I321
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F90@ FAM
+1 HUSB @I2479@
+1 WIFE @I2805@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2479
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F92@ FAM
+1 HUSB @I2918@
+1 WIFE @I1633@
+1 MARR
+2 DATE 14 APR 1807
+2 PLAC Lancaster
+3 SITE St. Mary (SD 473 619)
+1 CHIL @I2808@
+1 CHIL @I2789@
+1 CHIL @I2842@
+1 CHIL @I2861@
+1 CHIL @I2910@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1633
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F363@ FAM
+1 HUSB @I2789@
+1 CHIL @I2920@
+1 WIFE @I2603@
+1 MARR
+2 DATE 31 DEC 1850
+2 PLAC Cockerham, Lancashire (SD 46 51)
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2603
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F364@ FAM
+1 HUSB @I2920@
+1 CHIL @I2876@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages no spouse
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F365@ FAM
+1 HUSB @I2876@
+1 CHIL @I2877@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages no spouse
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F366@ FAM
+1 HUSB @I2877@
+1 CHIL @I2919@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages no spouse
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F367@ FAM
+1 HUSB @I2919@
+1 CHIL @I2878@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages no spouse
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F93@ FAM
+1 HUSB @I2635@
+1 WIFE @I2860@
+1 MARR
+2 DATE 2 JUL 1811
+2 PLAC Cockerham, Lancashire (SD 46 51)
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2635
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F94@ FAM
+1 HUSB @I1345@
+1 WIFE @I2908@
+1 MARR
+2 DATE 11 JUN 1812
+1 CHIL @I1362@
+1 CHIL @I1370@
+1 CHIL @I1346@
+1 CHIL @I1386@
+1 CHIL @I1358@
+1 CHIL @I1385@
+1 CHIL @I1355@
+1 CHIL @I1340@
+1 CHIL @I1380@
+1 CHIL @I1378@
+1 CHIL @I1337@
+1 CHIL @I1365@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1345
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F101@ FAM
+1 HUSB @I1362@
+1 WIFE @I1219@
+1 MARR
+2 DATE 3 DEC 1840
+1 CHIL @I1379@
+1 CHIL @I1376@
+1 CHIL @I1356@
+1 CHIL @I1372@
+1 CHIL @I1336@
+1 CHIL @I1366@
+1 CHIL @I1338@
+1 CHIL @I1351@
+1 CHIL @I1377@
+1 CHIL @I1341@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1219
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F307@ FAM
+1 HUSB @I245@
+1 WIFE @I1356@
+1 MARR
+2 DATE 9 OCT 1875
+2 PLAC Ellel, Lancashire
+3 SITE St. John's Church (SD 486 558)
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I245
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F317@ FAM
+1 HUSB @I1372@
+1 WIFE @I2361@
+1 MARR
+2 DATE 27 SEP 1869
+1 CHIL @I1349@
+1 CHIL @I1367@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2361
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F318@ FAM
+1 HUSB @I1349@
+1 WIFE @I1848@
+1 MARR
+2 DATE 23 NOV 1899
+2 PLAC Madras, India
+3 SITE Cathedral
+1 CHIL @I1347@
+1 CHIL @I1374@
+1 CHIL @I1375@
+1 CHIL @I1359@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1848
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F319@ FAM
+1 HUSB @I2006@
+1 WIFE @I1374@
+1 MARR
+2 DATE 18 SEP 1928
+3 TIME 14:00
+2 PLAC Ellel, Lancashire (SD 486 558)
+3 SITE St. John's Church
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2006
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F320@ FAM
+1 HUSB @I1166@
+1 WIFE @I1375@
+1 MARR
+2 DATE 27 APR 1932
+2 PLAC Ellel, Lancashire (SD 486 558)
+3 SITE St. John's Church
+1 CHIL @I1152@
+1 CHIL @I1159@
+1 CHIL @I1164@
+1 CHIL @I1167@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1166
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F431@ FAM
+1 HUSB @I1152@
+1 WIFE @I1308@
+1 MARR
+2 DATE 11 DEC 1958
+2 PLAC Gosforth, Newcastle (NZ 23 68)
+3 SITE All Saints' Church
+1 CHIL @I1160@
+1 CHIL @I1165@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1308
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F432@ FAM
+1 HUSB @I1159@
+1 WIFE @I1792@
+1 MARR
+2 DATE 10 AUG 1963
+2 PLAC Eaton, Norfolk (TG 20 06)
+3 SITE Christ Church
+1 CHIL @I1153@
+1 CHIL @I1150@
+1 CHIL @I1168@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1792
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F703@ FAM
+1 HUSB @I1168@
+1 CHIL @I1162@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages no spouse
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F433@ FAM
+1 HUSB @I1322@
+1 WIFE @I1164@
+1 MARR
+2 DATE 5 SEP 1964
+2 PLAC Hellington, Norfolk
+3 SITE Parish Church of St. John the Baptist
+1 CHIL @I1320@
+1 CHIL @I1321@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1322
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F704@ FAM
+1 HUSB @I1167@
+1 CHIL @I1169@
+1 WIFE @I2695@
+1 CHIL @I1157@
+1 CHIL @I1158@
+1 CHIL @I1151@
+1 CHIL @I1163@
+1 CHIL @I1155@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2695
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F705@ FAM
+1 HUSB @I1169@
+1 CHIL @I1161@
+1 CHIL @I1154@
+1 WIFE @I2693@
+1 MARR
+2 DATE ABT 1997
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2693
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F937@ FAM
+1 HUSB @I1157@
+1 WIFE @I2694@
+1 MARR
+2 DATE ABT JUN 2000
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2694
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F321@ FAM
+1 HUSB @I1359@
+1 WIFE @I2691@
+1 MARR
+2 DATE 26 APR 1936
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2691
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F385@ FAM
+1 HUSB @I2940@
+1 WIFE @I1367@
+1 MARR
+2 DATE 12 AUG 1901
+2 PLAC Fulham registration district
+1 CHIL @I2943@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2940
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F500@ FAM
+1 HUSB @I2943@
+1 WIFE @I2381@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2381
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F66@ FAM
+1 HUSB @I2468@
+1 WIFE @I1377@
+1 MARR
+2 DATE 2 SEP 1875
+1 CHIL @I2466@
+1 CHIL @I2458@
+1 CHIL @I2454@
+1 CHIL @I2469@
+1 CHIL @I2471@
+1 CHIL @I2459@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2468
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F286@ FAM
+1 HUSB @I2466@
+1 WIFE @I3006@
+1 MARR
+2 DATE 1 JUN 1901
+1 CHIL @I2453@
+1 CHIL @I2467@
+1 CHIL @I2464@
+1 CHIL @I2462@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I3006
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F291@ FAM
+1 HUSB @I1303@
+1 WIFE @I2453@
+1 MARR
+2 DATE 22 DEC 1933
+2 PLAC Royston, Baldock, Hitchin, Hertfordshire (TL 35 40)
+3 SITE St. John Baptist Church
+1 CHIL @I1302@
+1 CHIL @I1301@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1303
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F296@ FAM
+1 HUSB @I1302@
+1 WIFE @I680@
+1 CHIL @I1300@
+1 CHIL @I1299@
+1 CHIL @I1305@
+1 CHIL @I1304@
+1 MARR
+2 DATE 2 JUN 1961
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I680
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F297@ FAM
+1 HUSB @I2353@
+1 WIFE @I1301@
+1 CHIL @I2351@
+1 CHIL @I2352@
+1 MARR
+2 DATE 2 JUN 1969
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2353
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F290@ FAM
+1 HUSB @I2467@
+1 WIFE @I1233@
+1 MARR
+2 DATE 29 JUL 1940
+2 PLAC Toorak (nr. Welwyn Garden City ?)
+3 SITE St. John's Church
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1233
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F292@ FAM
+1 HUSB @I1326@
+1 WIFE @I2464@
+1 MARR
+2 DATE 11 FEB 1937
+3 TIME 13:30
+2 PLAC Royston, Baldock, Hitchin, Hertfordshire (TL 35 40)
+3 SITE St. John Baptist Church
+1 CHIL @I1329@
+1 CHIL @I1327@
+1 CHIL @I1328@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1326
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F1013@ FAM
+1 HUSB @I1329@
+1 WIFE @I3167@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I3167
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F294@ FAM
+1 HUSB @I573@
+1 WIFE @I1327@
+1 MARR
+2 DATE 28 FEB 1968
+1 CHIL @I3165@
+1 CHIL @I3166@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I573
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F295@ FAM
+1 HUSB @I1223@
+1 WIFE @I1328@
+1 MARR
+2 DATE 6 SEP 1969
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1223
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F293@ FAM
+1 HUSB @I2462@
+1 WIFE @I1051@
+1 MARR
+2 DATE 2 DEC 1947
+2 PLAC Killara
+3 SITE St. Martin's Church
+1 CHIL @I2463@
+1 CHIL @I2461@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1051
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F938@ FAM
+1 HUSB @I2463@
+1 CHIL @I2470@
+1 CHIL @I2451@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages no spouse
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F749@ FAM
+1 HUSB @I2461@
+1 WIFE @I47@
+1 CHIL @I2455@
+1 CHIL @I2457@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I47
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F288@ FAM
+1 HUSB @I2469@
+1 WIFE @I423@
+1 MARR
+2 DATE 30 JUL 1914
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I423
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object to deal with (null)
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F289@ FAM
+1 HUSB @I2469@
+1 WIFE @I2944@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2944
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F287@ FAM
+1 HUSB @I2471@
+1 WIFE @I78@
+1 MARR
+2 DATE 23 JUL 1920
+2 PLAC Walthamstow, London (TQ 36 89)
+3 SITE St. Stephen's Church
+1 CHIL @I2452@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I78
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F65@ FAM
+1 HUSB @I2880@
+1 WIFE @I2459@
+1 MARR
+2 DATE 21 NOV 1920
+2 PLAC Cambridge
+3 SITE St. Mark's Church, Barton Road
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2880
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F63@ FAM
+1 HUSB @I2936@
+1 WIFE @I1341@
+1 MARL
+2 DATE 29 JUL 1880
+1 MARR
+2 DATE 4 AUG 1880
+2 PLAC Ellel, Lancashire
+3 SITE Parish Church (St. John's) (SD 486 558)
+1 CHIL @I2897@
+1 CHIL @I2911@
+1 CHIL @I2893@
+1 CHIL @I2814@
+1 CHIL @I2880@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2936
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F299@ FAM
+1 HUSB @I1453@
+1 WIFE @I1365@
+1 MARR
+2 DATE 27 DEC 1854
+2 PLAC Lancaster
+1 CHIL @I1460@
+1 CHIL @I1456@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I1453
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F436@ FAM
+1 HUSB @I59@
+1 WIFE @I1460@
+1 CHIL @I60@
+1 CHIL @I61@
+1 MARR
+2 DATE 31 JAN 1883
+1 CHIL @I62@
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I59
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F876@ FAM
+1 HUSB @I2392@
+1 WIFE @I61@
+1 MARR
+2 DATE 18 SEP 1951
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2392
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F300@ FAM
+1 HUSB @I1456@
+1 WIFE @I2995@
+1 CHIL @I1452@
+1 CHIL @I1459@
+1 CHIL @I1450@
+1 MARR
+2 DATE 27 AUG 1889
+2 PLAC Sunderland
+3 SITE Bishopwearmouth Church
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2995
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F302@ FAM
+1 HUSB @I2643@
+1 WIFE @I1452@
+1 MARR
+2 DATE 19 APR 1922
+2 PLAC Lancaster
+3 SITE Parish Church (SD 473 619)
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2643
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages dereferenced to this FAM object:
+0 @F301@ FAM
+1 HUSB @I2993@
+1 WIFE @I1459@
+1 MARR
+2 DATE 24 JUN 1924
+2 PLAC Lancaster
+3 SITE Parish Church (SD 473 619)
+trying to find a spouse (which may or may not exist)
+displaytree::addmarriages the spouse is I2993
+displaytree::addmarriages added newfam pointer to chain, now to add descendants:
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+displaytree::addmarriages added descendants OK
+displaytree::addmarriages next FAMS object NULL
+built the tree structure
+calculated where to put everything
+displaytree::gettop() looking for John /Welch/ (1778)
+Starting to check with John /Welch/ (1753)
+Starting to check with Timothy /Welch/ (1777)
+Checking John /Welch/ (1778)
+Starting to check with John /Welch/ (1778)
+obj = indicheck->findindi( person ) is John /Welch/ (1778)
+Found John /Welch/ (1778) at 11382656, offset into canvas is 11802
+canvassize called with 34690, 994
+scrolling to 11502, 0
+created new display structure OK

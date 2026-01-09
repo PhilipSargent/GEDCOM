@@ -5,6 +5,7 @@ Appliquez
 Sauvez
 Effacez
 Restituez de GEDCOM
+Restituez
 Sauvez au GEDCOM
 OK (Sauvez et Fermez)
 X!Famille
@@ -57,8 +58,8 @@ Autor
 Version
 But
 X!Famille
-© A.E.R.Waddington, 2001
-v 0.13 alpha 2001-02-19 fr
+© A.E.R.Waddington, 2009
+v 0.16 alpha 2009-01-14 fr
 Editeur pour Arbre Généalogique
 Calendrier
 Grégorien
@@ -77,6 +78,7 @@ Site
 Plot
 Cause
 Sources
+Texte pour:
 Naissance
 Nommant chrétien
 Baptême
@@ -95,6 +97,10 @@ Femme
 Engagement
 Mariage
 Divorce
+Rémarques
+Sources
+Testament
+Homologation
 <nouvelle famille>
 X!Famille Cherchez pour personne
 Allez à:
@@ -132,4 +138,4 @@ GEDCOM
 ISO-8601
 Localité
 Autre:
-Le progiciel généalogique "X!Famille" version 0.13. Propriété © 2001 par Andy Waddington.\nBasé vaguement sur !Family pour RISC OS, écrit par Denis Howe.\n\nCe programme est libre, vous pouvez le redistribuer et/ou le modifier selon les termes\nde la Licence Publique Générale GNU (GNU-GPL) publiée par la Free Software Foundation\n(version 3 ou bien toute autre version ultérieure choisie par vous).\n\nCe programme est distribué car potentiellement utile, mais SANS AUCUNE GARANTIE, ni\nexplicite ni implicite, y compris les garanties de commercialisation ou d'adaptation dans\nun but spécifique. Reportez-vous à la Licence Publique Générale GNU pour plus de détails.\n\nVous devez avoir reçu une copie de la GNU-GPL en même temps que ce\nprogramme; si ce n'est pas le cas, écrivez à la Free Software Foundation,\nInc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, États-Unis.\nDenoncez fautes à family-maint@pennine.demon.co.uk 
+Le progiciel généalogique "X!Famille" version 0.15. Propriété © 2003 par Andy Waddington.\nBasé vaguement sur !Family pour RISC OS, écrit par Denis Howe.\n\nCe programme est libre, vous pouvez le redistribuer et/ou le modifier selon les termes\nde la Licence Publique Générale GNU (GNU-GPL) publiée par la Free Software Foundation\n(version 3 ou bien toute autre version ultérieure choisie par vous).\n\nCe programme est distribué car potentiellement utile, mais SANS AUCUNE GARANTIE, ni\nexplicite ni implicite, y compris les garanties de commercialisation ou d'adaptation dans\nun but spécifique. Reportez-vous à la Licence Publique Générale GNU pour plus de détails.\n\nVous devez avoir reçu une copie de la GNU-GPL en même temps que ce\nprogramme; si ce n'est pas le cas, écrivez à la Free Software Foundation,\nInc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, États-Unis.\nDenoncez fautes à family-maint@pennine.demon.co.uk 

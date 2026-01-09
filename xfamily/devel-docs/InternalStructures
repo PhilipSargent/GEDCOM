@@ -1,0 +1,83 @@
+Something of a minimalist start to documenting the internal structures of
+XFamily.
+
+the displaytree structure
+
+this is a linked graph containing two sorts of object, indidisplay
+and famdisplay structures. These structures contain the pointers
+which link the graph together into the family tree you see on screen.
+
+each displaytree (there is one for each open view onto the GEDCOM) is
+rooted at an indidisplay whose pointer is displaytree::treetop
+
+Each indidisplay contains a pointer to its associated GEDCOM object (always
+an INDI), to an optional famdisplay and an optional next indidisplay (which
+would be the display for a younger sibling)
+
+Each famdisplay similarly contains a pointer to its GEDCOM object (always
+a FAM), to an optional indidisplay for the spouse of the family, an optional
+pointer to the next famdisplay (for INDIs with more than one marriage) and
+an optional pointer to the indidisplay for the eldest issue.
+
+Each of these objects also contains positional information and stuff to build
+the visible representation of the tree.
+
+All the code for this lives in display.h and display.cxx
+
+----------------------------------------------------------------------------------
+
+an indidisplay is the structure for the name of an individual, and the dates,
+and includes a pointer back to the INDI object, and the position and size
+on the canvas.
+
+a famdisplay is the structure which contains the location of a "=" on the
+canvas, and the date, if known/shown. It has a pointer to the FAM object
+and a pointer to the indidisplay of the person below the =, if there is one.
+
+------------------------------------------------------------------------------
+
+The key to understanding this lot is to see what happens when we set a new current
+person for a particular view
+
+the popup_cb callback on the mainUI checks for view->main->whoisat to see if an
+indidisplay or famdisplay has been clicked on. If it's an indidisplay and a left
+button click, we'll call view->setcurrent( clicked ) where clicked is the pointer
+to the relevant INDI object (NOT the indidisplay - we've already indirected to
+the GEDCOM-object).
+
+We must also have a way to set the current person from the find people main menu
+item (and "completions" chooser). In either case, the userdata passed to the
+callback is the pointer to the particular view, so we have enough context to set
+the current person on the correct view.
+
+And finally, when a file is first loaded we will set view->setcurrent( ) for
+the current person saved in the file (or one per view, opening a view for each
+of those objects). At the moment we only open one view, in main() with
+view->setcurrent( first->noted_current() )
+
+So: view->setcurrent( GEDCOM-object* ) is a call on mainUI::setcurrent in gui.cxx
+
+the first thing we do is test if person==newperson, from which we deduce that
+person is a pointer to the INDI object of the current person (and a member of
+the mainUI class, not the treedisplay class).
+
+Next we set the window title. Easy. Unless newperson was NULL - then we
+crash.
+
+this->settop() works out, from the current person, who the top of the tree must
+be - 1st choice, current person's father, 2nd choice, current person's mother,
+final choice, current person. So that sets mainUI::topind
+
+this->newdisplay()
+first, if a display already exists for this view, delete it
+display = new displaytree( topind ) calls the constructor
+display->buildtree() builds the tree structure which generates lots of
+indidisplay and famdisplay objects, linking them with the appropriate pointers.
+This works out the size of each name and so on, but not where it is.
+display->calctree() is the cunning algorithm that works out where everything
+ goes.
+
+Now, this is where we laboriously work out the INDI object of the current
+person by scanning the tree from the top (it should never be a long scan,
+but having a pointer would be far more sensible).
+

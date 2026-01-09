@@ -168,6 +168,10 @@ public:
   Fl_Button *pa_fuzzy;
   Fl_Button *pa_fromleft;
   Fl_Check_Button *indi_living;
+  Fl_Button *indi_notes;
+  Fl_Button *indi_sources;
+  Fl_Button *indi_will;
+  Fl_Button *indi_probate;
   Fl_Tabs   *indi_events;
   Fl_Tile   *indi_birth;
   Fl_Input  *indi_birthdate;
@@ -177,7 +181,9 @@ public:
   Fl_Light_Button *indi_birthdef;
   Fl_Input  *indi_birthplace;
   Fl_Input  *indi_birthsite;
-  Fl_Output *indi_birthsrc;
+//  Fl_Output *indi_birthsrc;
+  Fl_Button *indi_birthnotes;
+  Fl_Button *indi_birthsources;
   Fl_Tile   *indi_chr;
   Fl_Input  *indi_chrdate;
   Fl_Input  *indi_chrtime;
@@ -186,7 +192,9 @@ public:
   Fl_Light_Button *indi_chrdef;
   Fl_Input  *indi_chrplace;
   Fl_Input  *indi_chrsite;
-  Fl_Output *indi_chrsrc;
+//  Fl_Output *indi_chrsrc;
+  Fl_Button *indi_chrnotes;
+  Fl_Button *indi_chrsources;
   Fl_Tile   *indi_bapm;
   Fl_Input  *indi_bapmdate;
   Fl_Input  *indi_bapmtime;
@@ -195,7 +203,9 @@ public:
   Fl_Light_Button *indi_bapmdef;
   Fl_Input  *indi_bapmplace;
   Fl_Input  *indi_bapmsite;
-  Fl_Output *indi_bapmsrc;
+//  Fl_Output *indi_bapmsrc;
+  Fl_Button *indi_bapmnotes;
+  Fl_Button *indi_bapmsources;
   Fl_Tile   *indi_death;
   Fl_Input  *indi_deathdate;
   Fl_Input  *indi_deathtime;
@@ -205,7 +215,9 @@ public:
   Fl_Input  *indi_deathplace;
   Fl_Input  *indi_deathsite;
   Fl_Input  *indi_deathcause;
-  Fl_Output *indi_deathsrc;
+//  Fl_Output *indi_deathsrc;
+  Fl_Button *indi_deathnotes;
+  Fl_Button *indi_deathsources;
   Fl_Tile   *indi_crem;
   Fl_Input  *indi_cremdate;
   Fl_Input  *indi_cremtime;
@@ -214,7 +226,9 @@ public:
   Fl_Light_Button *indi_cremdef;
   Fl_Input  *indi_cremplace;
   Fl_Input  *indi_cremsite;
-  Fl_Output *indi_cremsrc;
+//  Fl_Output *indi_cremsrc;
+  Fl_Button *indi_cremnotes;
+  Fl_Button *indi_cremsources;
   Fl_Tile   *indi_buri;
   Fl_Input  *indi_buridate;
   Fl_Input  *indi_buritime;
@@ -224,10 +238,14 @@ public:
   Fl_Input  *indi_buriplace;
   Fl_Input  *indi_burisite;
   Fl_Input  *indi_buriplot;
-  Fl_Output *indi_burisrc;
+//  Fl_Output *indi_burisrc;
+  Fl_Button *indi_burinotes;
+  Fl_Button *indi_burisources;
   Fl_Button *indi_cancel;
   Fl_Return_Button *indi_ok;
   Fl_Button *indi_help;
+  Fl_Button *indi_restore;
+  Fl_Button *indi_commit;
 
   indiUI( treeinstance*, GEDCOM_object* = 0 );
   ~indiUI();
@@ -240,6 +258,7 @@ public:
   void clear_details();
   void insert_details(GEDCOM_object*);
   void setdatefields(GEDCOM_object*, Fl_Input*, Fl_Input*, Fl_Button*, Fl_Button* );
+  void checknotes(GEDCOM_object*, bool);
   void settitle();
   void show() const;
   void hide() const;
@@ -269,6 +288,8 @@ public:
   Fl_Window *fam_dbox;
   Fl_Output *husb_name;
   Fl_Output *wife_name;
+  Fl_Button *fam_notes;
+  Fl_Button *fam_sources;
   Fl_Tabs   *fam_events;
   Fl_Tile   *fam_engage;
   Fl_Input  *fam_engagedate;
@@ -278,7 +299,9 @@ public:
   Fl_Light_Button *fam_engagedef;
   Fl_Input  *fam_engageplace;
   Fl_Input  *fam_engagesite;
-  Fl_Output *fam_engagesrc;
+  Fl_Button *fam_engagenotes;
+  Fl_Button *fam_engagesources;
+//  Fl_Output *fam_engagesrc;
   Fl_Tile   *fam_marry;
   Fl_Input  *fam_marrydate;
   Fl_Input  *fam_marrytime;
@@ -287,7 +310,9 @@ public:
   Fl_Light_Button *fam_marrydef;
   Fl_Input  *fam_marryplace;
   Fl_Input  *fam_marrysite;
-  Fl_Output *fam_marrysrc;
+  Fl_Button *fam_marrynotes;
+  Fl_Button *fam_marrysources;
+//  Fl_Output *fam_marrysrc;
 // potentially we should be able to add things like witnesses, and of
 // course, a source reference
   Fl_Tile   *fam_divorce;
@@ -298,10 +323,14 @@ public:
   Fl_Light_Button *fam_divorcedef;
   Fl_Input  *fam_divorceplace;
   Fl_Input  *fam_divorcesite;
-  Fl_Output *fam_divorcesrc;
+  Fl_Button *fam_divorcenotes;
+  Fl_Button *fam_divorcesources;
+//  Fl_Output *fam_divorcesrc;
   Fl_Button *fam_cancel;
   Fl_Return_Button *fam_ok;
   Fl_Button *fam_help;
+  Fl_Button *fam_restore;
+  Fl_Button *fam_commit;
 
   famUI( treeinstance*, GEDCOM_object* = 0 );
   ~famUI();
@@ -314,6 +343,7 @@ public:
   void clear_details();
   void insert_details(GEDCOM_object*);
   void setdatefields(GEDCOM_object*, Fl_Input*, Fl_Input*, Fl_Button*, Fl_Button* );
+  void checknotes(GEDCOM_object*, bool);
   void settitle();
   void show() const;
   void hide() const;
@@ -349,14 +379,17 @@ class findUI {
 public:
   Fl_Window* findbox;
   Fl_Input* find_input;
+  // the searchfind_cb callback needs to be able to see the search buttons:
   Fl_Button* find_fromright;
   Fl_Button* find_fuzzy;
   Fl_Button* find_fromleft;
   Fl_Button* find_help;
   Fl_Return_Button* find_ok;
+  mainUI*    view;
 
   findUI();
   void setview( mainUI* );
+  mainUI* getview() const;
   void open( mainUI*, short, short );
   void finish();
 };
@@ -371,11 +404,31 @@ public:
   char* searchfor;
   int searchmethod;
   completion_item* first;
+  int widths[6];
 
   completionsUI();
   void open( treeinstance*, char*, int, Fl_Callback*, void*, short, short );
   void finish();
   GEDCOM_object* chosen_indi( int );
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+class completion_item {
+GEDCOM_object*    indiptr;
+completion_item*  nextptr;
+GEDCOM_string*    displayptr;
+int width[6];
+
+public:
+  completion_item( GEDCOM_object* );
+  ~completion_item();
+  void setwidths( int[] );
+  GEDCOM_object* indi() const;
+  completion_item* next() const;
+  void setnext( completion_item* );
+  char* display() const;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -422,26 +475,31 @@ class notesUI {
   notesUI    *previousui;
   notesmenu  *menu;
   char       notes_title[MAX_notestitle];
+  char       notes_id[MAX_notestitle];
   treeinstance  *edittree;   // which tree - we have to know so we can mark it
   // as modified when we save the changed notes back, and so we can put it in
   // the window title - the user needs to know too !
-  GEDCOM_object *editobject; // which object we are editing
+  GEDCOM_object *editobject; // which object we are editing a NOTE/TEXT on ?
+  GEDCOM_object *textobject; // this is our (possibly ephemeral) actual NOTE/TEXT
   GEDCOM_tag *edittag;   // which subobject (NOTE or TEXT)
   int size;
   bool modified;
 
 public:
   Fl_Window   *window;
+  Fl_Output   *ident;
   Fl_Menu_Bar *menubar;
   Fl_Input    *input;
 
   notesUI( treeinstance*, GEDCOM_object*, GEDCOM_tag* );
-//  ~notesUI();
+  void status(bool);
+  ~notesUI();
   notesUI* getnext() const;
   void setnext( notesUI* );
   notesUI* getprevious() const;
   void setprevious( notesUI* );
   GEDCOM_object* object() const;
+  GEDCOM_tag* tag() const;
   void changed(bool);
   bool changed() const;
   void clear();

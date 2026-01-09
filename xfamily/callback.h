@@ -14,7 +14,11 @@
 
 ///////////////// callback routines for the GUI classes ///////////////
 
-// lots more still to add here
+// lots more still to add here - meanwhile some code to do nothing to
+// attach to interfces still in development:
+
+extern void deadbutton_cb(Fl_Button*, void *);
+extern void deadmenu_cb(Fl_Menu_ *, void *);
 
 // callback routines from mainUI menu applying to whole program
 
@@ -34,7 +38,7 @@ extern void popup_cb(Fl_Button*, void*);
 // callback routines from mainUI menu to start help
 
 extern void help_cb(Fl_Menu_ *, void* ); // void* points to leafname of helpfile
-void shell_for_help( void* ); // also used by callbacks from help buttons
+void show_help( void* ); // also used by callbacks from help buttons
 
 // callback routines for infoUI
 
@@ -47,6 +51,8 @@ extern void gplinfo_cb(Fl_Button*, void*);
 extern void edit_cb(Fl_Menu_ *, void *);
 extern void okedit_cb(Fl_Return_Button *, void *);
 extern void canceledit_cb(Fl_Button*, void*);
+extern void restoreedit_cb(Fl_Button*, void*);
+extern void commitedit_cb(Fl_Button*, void*);
 extern void helpedit_cb(Fl_Button*, void*);
 extern void searchma_cb(Fl_Button*, void*);
 extern void searchpa_cb(Fl_Button*, void*);
@@ -56,6 +62,8 @@ extern void searchpa_cb(Fl_Button*, void*);
 extern void famed_cb(Fl_Menu_ *, void *);
 extern void okfam_cb(Fl_Return_Button *, void *);
 extern void cancelfam_cb(Fl_Button*, void*);
+extern void restorefam_cb(Fl_Button*, void*);
+extern void commitfam_cb(Fl_Button*, void*);
 extern void helpfam_cb(Fl_Button*, void*);
 
 // callback routines for statsUI
@@ -82,7 +90,9 @@ extern void helpchoices_cb(Fl_Button*, void*);
 
 // callback routines to drive notesUI
 
-extern void opennotes_cb(Fl_Menu_ *, void *);
+extern void menuopennotes_cb(Fl_Menu_ *, void *);
+extern void buttonopennotes_cb(Fl_Button*, void*);
+extern void buttonopentext_cb(Fl_Button*, void*);
 extern void changenotes_cb(Fl_Multiline_Input*, void*);
 extern void cancelnotes_cb(Fl_Menu_*, void*);
 extern void quitnotes_cb(Fl_Window*, void*);
@@ -90,5 +100,9 @@ extern void clearnotes_cb(Fl_Menu_*, void*);
 extern void restorenotes_cb(Fl_Menu_*,void*);
 extern void savenotes_cb(Fl_Menu_*, void*);
 extern void oknotes_cb(Fl_Menu_*, void*);
+
+// calback routines to drive sourceUI
+
+extern void buttonopensourceui_cb(Fl_Button*, void*);
 
 #endif

@@ -8,6 +8,7 @@ char *languages[] = {
   "en",
   "fr"
 };
+
 char *languagenames[] = {
   "English",
   "Français"
@@ -20,6 +21,7 @@ char msg_apply[MAX_apply];
 char msg_save[MAX_save];
 char msg_clear[MAX_clear];
 char msg_restore[MAX_restore];
+char msg_revert[MAX_revert];
 char msg_saveto[MAX_saveto];
 char msg_oksave[MAX_oksave];
 char msg_window_title[MAX_window_title];
@@ -92,6 +94,7 @@ char msg_event_site[MAX_event_site];
 char msg_event_plot[MAX_event_plot];
 char msg_event_cause[MAX_event_cause];
 char msg_event_src[MAX_event_src];
+char msg_event_ident[MAX_event_ident];
 char msg_birth[MAX_birth];
 char msg_chr[MAX_chr];
 char msg_bapm[MAX_bapm];
@@ -110,6 +113,10 @@ char msg_wife[MAX_wife];
 char msg_engage[MAX_engage];
 char msg_marry[MAX_marry];
 char msg_divorce[MAX_divorce];
+char msg_notes[MAX_notes];
+char msg_sources[MAX_sources];
+char msg_will[MAX_will];
+char msg_probate[MAX_probate];
 char msg_newfamily[MAX_newfamily];
 char msg_find_title[MAX_find_title];
 char msg_find[MAX_find];

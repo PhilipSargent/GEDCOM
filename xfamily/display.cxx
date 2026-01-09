@@ -9,6 +9,7 @@
 #include <FL/fl_draw.H>
 
 #include "classes.h"
+#include "fixes.h"
 #include "family.h"
 #include "display.h"
 #include "trees.h"
@@ -20,6 +21,12 @@
 // The canvas upon which we draw our family tree is a subclass of Fl_Button,
 // which provides us with the callbacks to make popup menus happen, and
 // know about where their context is on the canvas itself.
+
+// There is an issue on X displays in that the canvas pixelmap is limited
+// to 32kx32k which we can easily exceed in the x-direction with a biggish
+// tree. Sometime we need to implement the canvas we present to X as being
+// a window into an arbitralily large bitmap we store internally - but this
+// will probably lose us access to the FLTK drawing and font code :-(
 
 treedisplay::treedisplay( int x, int y, int w, int h ) :
   Fl_Button( x,y, w,h ),
@@ -54,7 +61,8 @@ int            yoffset;
 
 void treedisplay::draw() {
 
-char          *showname;
+// currently not tested - we just show names anyway: char          *showname;
+// but it is something we are inteding to set with an options dbox, so don't just forget it...
 displaytree   *display;
 indidisplay   *person;
 int            xoffset;
@@ -62,10 +70,15 @@ int            yoffset;
 
   // get the current size and position from Fl_Button's methods - we may
   // have been resized in response to the tree being recalculated:
-  fl_clip(x(), y(), w(), h());
+  fl_push_clip(x(), y(), w(), h());
   // whatever else we may cock up, we should now draw only where we are
   // supposed to ! Lets clear our background to white so we can see:
   fl_color(FL_WHITE);
+  // this demonstrably overwrites the scroll bars, so we must deduce that
+  // the fl_clip above is not restrictive enough. I suspect that the clip
+  // rectangle is inherited when the window is resized and that we just
+  // overrode it with something too big. But even if this is untrue and we
+  // really do need to set it ourselves, then we should get it right !
   fl_rectf(x(), y(), w(), h());
 
   xoffset = scroller->xposition();
@@ -78,7 +91,11 @@ int            yoffset;
   // by setting the initial y to addmarriages to 25 - everything then falls out
 
   // this shouldn't happen, but we had better check:
-  if (view==NULL) { fl_pop_clip(); return; }
+  if (view==NULL) {
+#ifdef debugging
+    printf("treedisplay::draw got a null view/n");
+#endif
+    fl_pop_clip(); return; }
 
   fl_font( fontface, fontsize );
   display = view->whattodraw();
@@ -97,6 +114,11 @@ int            yoffset;
     case SEX_FEMALE: fl_color(COLOUR_FEMALE); break;
     case SEX_UNKNOWN:fl_color(COLOUR_UNKNOWN); break;
   }
+  fl_pop_clip(); // AERW added 2003-12-01 - shouldn't this be here, or have I
+  // misunderstood horribly ? Nope, adding that fixes a longstanding bug :-)
+
+  // However, having an empty tree still causes a segfault, which may be
+  // something in here.
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -109,7 +131,7 @@ indidisplay::indidisplay( GEDCOM_object *person ) :
   bottomy (INFINITY)
 {
   GEDCOM_object *obj;
-  string tempstring;
+  std::string tempstring;
   tempstring = "";
   int i;
   char* val;
@@ -125,7 +147,7 @@ indidisplay::indidisplay( GEDCOM_object *person ) :
     }
   }
 
-  /* if we are showing titles... */
+  /* if we are showing titles... (with present code, we always are) */
   obj = indi->subobject( TITL_tag );
   if (obj!=NULL) {
     tempstring += obj->value();
@@ -150,7 +172,14 @@ indidisplay::indidisplay( GEDCOM_object *person ) :
       else tempstring = val;
     }
   }
+  // ideally, in the absence of a birth date, we'd like to show a CHR or BAPM
+  // date in a different colour. We'd also like to provide a colour key to the
+  // situation in which BIRT has more than one DATE - if we have different dates
+  // from different sources, for example. Same applies to DEAT - we may have a
+  // CREM or BURI date in the absence of a DEAT date, or again, may have alternatives
   tempstring += " - ";
+  // a date string really ought to be provided by a method somewhere - code like
+  // this here has this class knowing rather a lot about GEDCOM internals
   obj = indi->subobject( DEAT_tag );
   if (obj != NULL) {
     obj = obj->subobject( DATE_tag );
@@ -166,6 +195,8 @@ indidisplay::indidisplay( GEDCOM_object *person ) :
   dates = new GEDCOM_string( (char *)tempstring.c_str() );
   // ah... bollox. We should get the font values from our displaytree,
   // but we don't keep a pointer to that, which is a bit of a blow :-(
+  // FIXME need to add to the class, otherwise we won't understand
+  // when we implement configurability and it fails to work...
   fl_font( FL_HELVETICA_BOLD , XF_FONT_SIZE );
   widthn = (int)(1+fl_width( showname->string() ));
   widthd = (int)(1+fl_width( dates->string() ));
@@ -179,6 +210,41 @@ indidisplay::~indidisplay() {
 }
 
 GEDCOM_object* indidisplay::getperson() const { return indi; }
+
+#ifdef fix0002
+// this code will be obsoleted by fix0003 (when that's coded) - see fixes.h
+indidisplay *indidisplay::findindi( GEDCOM_object* person ) {
+
+indidisplay *indicheck;
+indidisplay *obj;
+famdisplay  *famcheck;
+
+  if (this==NULL) return NULL;
+#ifdef debugging
+  printf("indidisplay::findindi Starting to check with %s\n", this->name());
+#endif
+  if (this->indi == person) return this;
+  indicheck = this->sibling();
+  if (indicheck != NULL) {
+#ifdef debugging
+    printf("Checking %s\n", indicheck->name());
+#endif
+    if ((obj = indicheck->findindi( person )) != NULL) {
+#ifdef debugging
+      printf("obj = indicheck->findindi( person ) is %s\n",obj->name());
+#endif
+      return obj;
+    }
+  }
+  famcheck = this->family();
+  while (famcheck != NULL ) {
+    if ((indicheck = famcheck->findindi( person )) != NULL) return indicheck;
+    famcheck = famcheck->nextfam();
+  }
+  return NULL;
+}
+#endif
+
 indidisplay*   indidisplay::sibling() const { return next; }
 indidisplay*   indidisplay::last() const {
 indidisplay* sib;
@@ -206,6 +272,11 @@ bool indidisplay::findfam( famdisplay* self, GEDCOM_object* fam ) const {
 // this case we won't want to display all the issue again.
 
 // WATCHIT ! the nature of our recursion means we may be called on a NULL
+
+// hmmm, this is costly - it is order N squared for the number of famdislays
+// which becomes order N cubed over the number of times it is called
+// an order N method would be to keep a linked list of all the famdisplays ?
+// that's order N to build, order N to search, and order N squared overall
 
 famdisplay* check;
 
@@ -268,11 +339,19 @@ indidisplay *indicheck;
 famdisplay  *famcheck;
 
   if (this == NULL) return NULL;
+  // if this indidisplay encloses the point, return the pointer to the INDI
   if (this->testat(h,x,y)) return this->getperson();
   indicheck = this->sibling();
+#ifndef test0002
   while (indicheck != NULL) {
+#else
+  if (indicheck != NULL) {
+#endif
     if ((obj = (indicheck->whoisat( h, x, y ))) != NULL ) return obj;
+#ifndef test0002
+    // think this is gratuitously testing everything extra times
     indicheck = indicheck->sibling();
+#endif
   }
   famcheck = this->family();
   while (famcheck != NULL) {
@@ -304,7 +383,7 @@ famdisplay::famdisplay( GEDCOM_object *family, indidisplay *spousedisplay, int s
   issue (NULL)
 {
 GEDCOM_object *object;
-string         labeltext;
+std::string         labeltext;
 char * val;
 int i;
 
@@ -356,6 +435,23 @@ char*          famdisplay::marrlabel() const { return label->string(); }
 indidisplay*   famdisplay::getissue() const { return issue; }
 void           famdisplay::setissue( indidisplay* child ) { issue = child; }
 
+#ifdef fix0002
+indidisplay *famdisplay::findindi( GEDCOM_object *person ) {
+
+indidisplay *indicheck;
+indidisplay *obj;
+
+  if (this == NULL) return NULL;
+  if ((indicheck = this->getspouse()) != NULL) {
+    if (indicheck->getperson() == person ) return indicheck;
+  }
+  if ((indicheck = this->getissue()) != NULL) {
+    if ((obj = indicheck->findindi( person )) != NULL ) return obj;
+  }
+  return NULL;
+}
+#endif
+
 void famdisplay::displayfam( int h, int xoffset, int yoffset ) const {
 
   this->centre( h, xoffset, yoffset );
@@ -395,8 +491,9 @@ int x, y;
 GEDCOM_object *famdisplay::whoisat( int h, int x, int y ) const {
 
 GEDCOM_object *obj;
-indidisplay *indicheck;
-famdisplay  *famcheck;
+// not sure what these were going to be for
+//indidisplay *indicheck;
+//famdisplay  *famcheck;
 
   if (this == NULL) return NULL;
   if (this->testat(h,x,y)) return this->getfamily();
@@ -418,6 +515,13 @@ bool famdisplay::testat( int h, int x, int y ) const {
 /////////////////////////////////////////////////////////////////////////
 
 indidisplay* displaytree::gettop() const { return treetop; }
+
+indidisplay *displaytree::findindi( GEDCOM_object* person ) {
+#ifdef debugging
+  printf("displaytree::gettop() looking for %s\n",person->subobject(NAME_tag)->value());
+#endif
+  return treetop->findindi( person );
+}
 
 displaytree::displaytree( GEDCOM_object *treeroot ) :
   ymax (0),
@@ -445,7 +549,9 @@ void displaytree::buildtree() {
    pointer to the top of the new tree would not be available until the
    constructor exits */
 
-  // printf("trying to addmarriages from treetop=%d\n", (int)treetop );
+#ifdef debugging
+  printf("displaytree::buildtree trying to addmarriages from treetop=%ld\n", (long)treetop );
+#endif
   addmarriages( treetop );
 }
 
@@ -479,34 +585,55 @@ int famnumber = 0;      // zero if we don't need to sequence-number marriages, e
 
   while (fams != NULL) { // for each FAMS subobject, we need to dereference to the FAM
 
-    // printf("Trying to dereference from this FAMS:\n");
-    // fams->outline( stdout, 1 );
     family = fams->followxref(); // get the FAM object
-    // this should never return null, and the object should always be a FAM. It was
-    // until we upgraded the machine, then it stopped working - a C++ bug ?
-    if (family==NULL) printf("display.cxx: fams->followxref() dereferenced to NULL\n");
-/*    else {
-      printf("Dereferenced to this FAM object:\n");
+    // this should never return null, and the object should always be a FAM. However
+    // it can happen for broken GEDCOM and we should cope, not core dump ...
+    if (family==NULL) {
+      printf("display.cxx displaytree::addmarriages: fams->followxref() dereferenced to NULL\n");
+      printf("Trying to dereference from this FAMS:\n");
+      fams->outline( stdout, 1 );
+    }
+
+#ifdef debugging
+    else {
+      printf("displaytree::addmarriages dereferenced to this FAM object:\n");
       family->outline( stdout, 0 );
-      family->subobject()->output( stdout, 1 ); } */ // diagnose
-    // printf("trying to find a spouse (which may or may not exist)\n");
+      family->subobject()->output( stdout, 1 ); }
+    //printf("trying to find a spouse (which may or may not exist)\n");
+#endif
     spouse = family->thespouseof( person );
-    // printf("the spouse is %d\n",(int)spouse);
+#ifdef debugging
+    if (spouse==NULL) {
+      printf("displaytree::addmarriages no spouse\n");
+    } else {
+      printf("displaytree::addmarriages the spouse is %s\n",spouse->getidname());
+    }
+#endif
     if (spouse != NULL) {
       spousedisplay = new indidisplay( spouse );
-      if (spousedisplay==NULL) printf("out of heap ?\n");
+      if (spousedisplay==NULL) printf("displaytree::addmarriages out of heap ?\n");
     } else spousedisplay = NULL;
     oldfam = newfam;
     newfam = new famdisplay( family, spousedisplay, famnumber );
-    if (newfam==NULL) printf("out of heap ?\n");
+    if (newfam==NULL) printf("displaytree::addmarriages out of heap ?\n");
     if (oldfam == NULL) newdisplay->setfamily( newfam );
      else oldfam->setnext( newfam );
-    // printf("added newfam pointer to chain, now to add descendants:\n");
+#ifdef debugging
+    printf("displaytree::addmarriages added newfam pointer to chain, now to add descendants:\n");
+#endif
     this->adddescendants( newfam );
-    // printf("added descendants OK\n");
+#ifdef debugging
+    printf("displaytree::addmarriages added descendants OK\n");
+#endif
     famnumber++;
     fams = fams->next_object( FAMS_tag );
-    // printf("next FAMS object to deal with %d\n",(int)fams);
+#ifdef debugging
+    if (fams==NULL) {
+      printf("displaytree::addmarriages next FAMS object NULL\n");
+    } else {
+      printf("displaytree::addmarriages next FAMS object to deal with %s\n",fams->value());
+    }
+#endif
   }
 }
 
@@ -529,15 +656,19 @@ indidisplay   *oldersib;
 
   family = newdisplay->getfamily(); 
 
-  if ( treetop->findfam( newdisplay, family ) ) return; // nothing else to do, as
-                       // we don't wish descendants to be shown twice
-  
+  if ( treetop->findfam( newdisplay, family ) ) {
+#ifdef debugging
+    printf("displaytree::adddescendants nothing to do - this lot already shown\n");
+#endif
+    return; // nothing else to do, as
+            // we don't wish descendants to be shown twice
+  }
   chil = family->subobject( CHIL_tag );
   while (chil != NULL) {
     child = chil->followxref();
     oldersib = childdisplay;
     childdisplay = new indidisplay( child );
-    if (childdisplay==NULL) printf("out of heap ?\n");
+    if (childdisplay==NULL) printf("displaytree::adddescendants out of heap ?\n");
     if (oldersib == NULL)
       newdisplay->setissue( childdisplay );
     else oldersib->setsibling( childdisplay );
@@ -560,9 +691,10 @@ void displaytree::calcmarriages( indidisplay* display, int y, int gen,
 /* we should not need to look at any of the GEDCOM_objects again */
 
 int OxMax[MAX_TREE_GENERATIONS];
-int width; int w; int yindi, ydate;
+int width; int w; int yindi;
+int ydate;
 famdisplay  *family;
-indidisplay *spouse;
+// don't seem to use: indidisplay *spouse;
 int xf, xlf, xrf;  // passed by reference to/from calcdescendants
 int xr, x1, pass;
 
@@ -570,6 +702,7 @@ int xr, x1, pass;
   yindi = (y += lineheight);
   /* if we are showing dates: */
   if ((w = display->datewidth()) > width ) width = w;
+// we don't seem to be using ydate (and the compiler whinges), but we *do* need the side-effect of incrementing y !!
   ydate = (y += lineheight); // y for lifedates
   /* end of the if */
   if (width>0) width += gap;
@@ -630,7 +763,8 @@ void displaytree::calcdescendants( famdisplay* display, int y, int gen,
 /* we should not need to look at any of the GEDCOM_objects again */
 
 int OxMax[MAX_TREE_GENERATIONS];
-int width; int w; int yindi, ydate;
+int width; int w; int yindi; 
+int ydate;
 indidisplay *childdisplay;
 indidisplay *spousedisplay;
 int xc, xlf, xrf; // passed to/from adddescendants by reference

@@ -1,0 +1,49 @@
+infoUI has no minimise or maximise buttons.
+it gets
+
+w->labeltype(FL_NORMAL_LABEL);
+w->set_non_modal();
+
+indiUI (and famUI) has a minimise, but no maximise button
+it gets ... nothing done to top window
+
+findUI
+it gets
+
+o->labeltype(FL_NO_LABEL);
+o->hotspot( find_ok, 0);
+
+completionsUI
+it gets
+
+o->labeltype(FL_NO_LABEL);
+
+prefUI
+it gets
+
+o->labeltype(FL_NORMAL_LABEL);
+
+Ah, now notesUI has both a minimise and a maximise button
+it gets
+
+window->resizable(input);
+window->size(720,80+(this->restore())*15);
+input->when(FL_WHEN_CHANGED);
+
+mainUI has a minimise button and SHOULD have a maximise button, but doesn't
+it gets
+
+w->labeltype(FL_NORMAL_LABEL);
+w->resizable(scroll);
+w->size_range(400,100,maxX,maxY);
+
+so the differences include that size_range call on mainUI,
+and the input->when(FL_WHEN_CHANGED) call on notesUI
+What exactly does the doc for ->resizable( <thing> ) say ?
+
+Aaagghh  ! What happened there ??? I just restarted X/KDE and now when I run
+./XFamily, I have a maximise button - I haven't changed anything and I haven't
+recompiled either XFamily or fltk for ages ....  Wierd !!
+And next time I run it, its gone again...
+I compiled it against released stable fltk 1.1.7 on Solaris, and I have a maximise
+button. Something very odd is going on ...
