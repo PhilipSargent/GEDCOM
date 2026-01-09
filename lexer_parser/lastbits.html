@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GEDCOM 5.5.5 Remaining Primitive Definitions</title>
+    <style>
+        body { font-family: 'Courier New', Courier, monospace; line-height: 1.6; padding: 20px; background-color: #f4f7f6; }
+        h1 { color: #2c3e50; border-bottom: 3px solid #16a085; padding-bottom: 10px; }
+        .grammar-rule { 
+            background: #ffffff; 
+            border: 1px solid #d1d8e0;
+            border-left: 6px solid #16a085; 
+            padding: 15px; 
+            margin-bottom: 15px; 
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .rule-id { font-weight: bold; color: #2c3e50; display: block; margin-bottom: 8px; font-size: 1.1em; }
+        .expression { color: #2980b9; white-space: pre-wrap; font-weight: bold; }
+        .comment { color: #7f8c8d; font-style: italic; font-size: 0.9em; margin-top: 10px; display: block; }
+        .metadata { color: #e67e22; font-weight: normal; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <h1>GEDCOM 5.5.5 Remaining Primitives</h1>
+
+    <div id="rule-address-country" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:60}</span> ADDRESS_COUNTRY:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">The name of the country used in the address[cite: 10].</span>
+    </div>
+
+    <div id="rule-address-email" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=5:120}</span> ADDRESS_EMAIL:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">An electronic mail address[cite: 10].</span>
+    </div>
+
+    <div id="rule-address-fax" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:60}</span> ADDRESS_FAX:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">A FAX telephone number[cite: 10].</span>
+    </div>
+
+    <div id="rule-address-line" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:60}</span> ADDRESS_LINE:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">One line of an address[cite: 10].</span>
+    </div>
+
+    <div id="rule-address-state" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:60}</span> ADDRESS_STATE:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">The name of the state or province[cite: 10].</span>
+    </div>
+
+    <div id="rule-ancestors-interest" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:248}</span> ANCESTORS_INTEREST:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">A description of ancestors being sought[cite: 10].</span>
+    </div>
+
+    <div id="rule-automated-record-id" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:12}</span> AUTOMATED_RECORD_ID:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">A unique number assigned to a record by a system[cite: 10].</span>
+    </div>
+
+    <div id="rule-caste-name" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:90}</span> CASTE_NAME:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">Name of a person's caste[cite: 10].</span>
+    </div>
+
+    <div id="rule-cause-of-event" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:90}</span> CAUSE_OF_EVENT:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">Used in a DEAT record to describe the cause of death[cite: 10].</span>
+    </div>
+
+    <div id="rule-county-of-recording" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:90}</span> COUNTY_OF_RECORDING:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">The name of the county where the record was created[cite: 10].</span>
+    </div>
+
+    <div id="rule-language-id" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:15}</span> LANGUAGE_ID:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">A code representing the language[cite: 10].</span>
+    </div>
+
+    <div id="rule-lds-baptism-date-status" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=5:10}</span> LDS_BAPTISM_DATE_STATUS:=</span>
+        <span class="expression">[ CHILD | CLEARED | COMPLETED | INFANT | PRE-1970 | QUALIFIED | STILLBORN | SUBMITTED | UNCLEARED ]</span>
+        <span class="comment">Status of an LDS baptism[cite: 10].</span>
+    </div>
+
+    <div id="rule-national-or-tribal-origin" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:120}</span> NATIONAL_OR_TRIBAL_ORIGIN:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">Person’s national or tribal origin[cite: 10].</span>
+    </div>
+
+    <div id="rule-occupation" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:90}</span> OCCUPATION:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">Person’s trade or profession[cite: 10].</span>
+    </div>
+
+    <div id="rule-ordi-stat" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=3:10}</span> ORDI_STAT:=</span>
+        <span class="expression">[ BIC | CANCELED | CHILD | CLEARED | COMPLETED | INFANT | PRE-1970 | QUALIFIED | STILLBORN | SUBMITTED | UNCLEARED ]</span>
+        <span class="comment">Status of an LDS ordinance[cite: 10].</span>
+    </div>
+
+    <div id="rule-phone-number" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:25}</span> PHONE_NUMBER:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">A telephone number[cite: 10].</span>
+    </div>
+
+    <div id="rule-place-name" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:120}</span> PLACE_NAME:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">The name of the jurisdiction or place[cite: 10].</span>
+    </div>
+
+    <div id="rule-religious-affiliation" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:90}</span> RELIGIOUS_AFFILIATION:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">Name of the religion[cite: 10].</span>
+    </div>
+
+    <div id="rule-responsible-agency" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:120}</span> RESPONSIBLE_AGENCY:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">The organization responsible for the data[cite: 10].</span>
+    </div>
+
+    <div id="rule-scholastic-achievement" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:248}</span> SCHOLASTIC_ACHIEVEMENT:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">Description of educational pursuit[cite: 10].</span>
+    </div>
+
+    <div id="rule-social-security-number" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=9:11}</span> SOCIAL_SECURITY_NUMBER:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">Specifically for US Social Security Numbers[cite: 10].</span>
+    </div>
+
+    <div id="rule-source-descriptive-title" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:248}</span> SOURCE_DESCRIPTIVE_TITLE:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">Title of the source[cite: 10].</span>
+    </div>
+
+    <div id="rule-user-reference-number" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:20}</span> USER_REFERENCE_NUMBER:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">A user-assigned identification number[cite: 10].</span>
+    </div>
+
+    <div id="rule-user-reference-type" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:40}</span> USER_REFERENCE_TYPE:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">Type classification for the user reference number[cite: 10].</span>
+    </div>
+
+</body>
+</html>

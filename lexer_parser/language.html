@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GEDCOM 5.5.5 File Structure Grammar</title>
+    <style>
+        body { font-family: 'Courier New', Courier, monospace; line-height: 1.6; padding: 20px; background-color: #f9f9f9; }
+        h1 { border-bottom: 2px solid #333; padding-bottom: 10px; }
+        .grammar-rule { 
+            background: #ffffff; 
+            border-left: 5px solid #2980b9; 
+            padding: 15px; 
+            margin-bottom: 10px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .rule-id { font-weight: bold; color: #2c3e50; display: block; margin-bottom: 5px; }
+        .expression { color: #d35400; white-space: pre-wrap; }
+        .comment { color: #7f8c8d; font-style: italic; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <h1>GEDCOM 5.5.5 File Structure Grammar</h1>
+
+    <div id="rule-gedcom-file" class="grammar-rule">
+        <span class="rule-id">GEDCOM_FILE:=</span>
+        <span class="expression">[U+FEFF] + &lt;GEDCOM_HEADER&gt; + {&lt;TOP_LEVEL_RECORD&gt;} + &lt;GEDCOM_TRAILER&gt;</span>
+        <div class="comment">Note: U+FEFF is the optional Byte Order Mark (BOM)[cite: 13992].</div>
+    </div>
+
+    <div id="rule-gedcom-header" class="grammar-rule">
+        <span class="rule-id">GEDCOM_HEADER:=</span>
+        <span class="expression">0 HEAD
+  +1 GEDC
+    +2 VERS &lt;GEDCOM_VERSION_NUMBER&gt;
+    +2 FORM &lt;GEDCOM_FORM&gt;
+      +3 VERS &lt;VERSION_NUMBER&gt;
+  +1 CHAR &lt;CHARACTER_ENCODING&gt;
+  [+1 SOUR &lt;SOURCE_SYSTEM&gt;
+    [+2 VERS &lt;VERSION_NUMBER&gt;]
+    [+2 NAME &lt;NAME_OF_PRODUCT&gt;]
+    [+2 CORP &lt;NAME_OF_BUSINESS&gt;
+      [+3 &lt;ADDRESS_STRUCTURE&gt;]
+    ]
+  ]
+  [+1 DEST &lt;RECEIVING_SYSTEM_NAME&gt;]
+  [+1 DATE &lt;TRANSMISSION_DATE&gt;
+    [+2 TIME &lt;TIME_VALUE&gt;]
+  ]
+  [+1 SUBM @&lt;XREF:SUBM&gt;@]
+  [+1 FILE &lt;FILE_NAME&gt;]
+  [+1 COPR &lt;COPYRIGHT_GEDCOM_FILE&gt;]
+  [+1 LANG &lt;LANGUAGE_ID&gt;]
+  [+1 NOTE &lt;USER_TEXT&gt;
+    {+2 [CONC|CONT] &lt;USER_TEXT&gt;}
+  ]</span>
+    </div>
+
+    <div id="rule-top-level-record" class="grammar-rule">
+        <span class="rule-id">TOP_LEVEL_RECORD:=</span>
+        <span class="expression">[ &lt;INDI_RECORD&gt; | &lt;FAM_RECORD&gt; | &lt;OBJE_RECORD&gt; | &lt;NOTE_RECORD&gt; | &lt;REPO_RECORD&gt; | &lt;SOUR_RECORD&gt; | &lt;SUBM_RECORD&gt; ]</span>
+    </div>
+
+    <div id="rule-indi-record" class="grammar-rule">
+        <span class="rule-id">INDI_RECORD:=</span>
+        <span class="expression">0 @&lt;XREF:INDI&gt;@ INDI
+  {+1 &lt;INDIVIDUAL_ATTRIBUTE&gt;}
+  {+1 &lt;INDIVIDUAL_EVENT&gt;}
+  {+1 &lt;FAMC_LINK&gt;}
+  {+1 &lt;FAMS_LINK&gt;}
+  {+1 &lt;SOURCE_CITATION&gt;}
+  {+1 &lt;MULTIMEDIA_LINK&gt;}
+  {+1 &lt;NOTE_STRUCTURE&gt;}
+  [+1 REFN &lt;USER_REFERENCE_NUMBER&gt;]
+  [+1 RIN &lt;AUTOMATED_RECORD_ID&gt;]
+  [+1 CHAN &lt;CHANGE_DATE&gt;]</span>
+    </div>
+
+    <div id="rule-fam-record" class="grammar-rule">
+        <span class="rule-id">FAM_RECORD:=</span>
+        <span class="expression">0 @&lt;XREF:FAM&gt;@ FAM
+  {+1 &lt;FAMILY_EVENT&gt;}
+  {+1 HUSB @&lt;XREF:INDI&gt;@}
+  {+1 WIFE @&lt;XREF:INDI&gt;@}
+  {+1 CHIL @&lt;XREF:INDI&gt;@}
+  {+1 &lt;SOURCE_CITATION&gt;}
+  {+1 &lt;MULTIMEDIA_LINK&gt;}
+  {+1 &lt;NOTE_STRUCTURE&gt;}
+  [+1 REFN &lt;USER_REFERENCE_NUMBER&gt;]
+  [+1 RIN &lt;AUTOMATED_RECORD_ID&gt;]
+  [+1 CHAN &lt;CHANGE_DATE&gt;]</span>
+    </div>
+
+    <div id="rule-sour-record" class="grammar-rule">
+        <span class="rule-id">SOUR_RECORD:=</span>
+        <span class="expression">0 @&lt;XREF:SOUR&gt;@ SOUR
+  [+1 DATA
+    [+2 EVEN &lt;EVENTS_RECORDED&gt;
+      [+3 DATE &lt;DATE_PERIOD&gt;]
+      [+3 PLAC &lt;SOURCE_JURISDICTION_PLACE&gt;]
+    ]
+    [+2 AGNC &lt;RESPONSIBLE_AGENCY&gt;]
+    {&lt;NOTE_STRUCTURE&gt;}
+  ]
+  [+1 AUTH &lt;SOURCE_ORIGINATOR&gt;
+    {+2 [CONC|CONT] &lt;SOURCE_ORIGINATOR&gt;}
+  ]
+  [+1 TITL &lt;SOURCE_DESCRIPTIVE_TITLE&gt;
+    {+2 [CONC|CONT] &lt;SOURCE_DESCRIPTIVE_TITLE&gt;}
+  ]
+  [+1 ABBR &lt;SOURCE_FILED_BY_ENTRY&gt;]
+  [+1 PUBL &lt;SOURCE_PUBLICATION_FACTS&gt;
+    {+2 [CONC|CONT] &lt;SOURCE_PUBLICATION_FACTS&gt;}
+  ]
+  [+1 TEXT &lt;TEXT_FROM_SOURCE&gt;
+    {+2 [CONC|CONT] &lt;TEXT_FROM_SOURCE&gt;}
+  ]
+  {&lt;SOURCE_REPOSITORY_CITATION&gt;}
+  {&lt;MULTIMEDIA_LINK&gt;}
+  {&lt;NOTE_STRUCTURE&gt;}
+  [+1 REFN &lt;USER_REFERENCE_NUMBER&gt;]
+  [+1 RIN &lt;AUTOMATED_RECORD_ID&gt;]
+  [+1 CHAN &lt;CHANGE_DATE&gt;]</span>
+    </div>
+
+    <div id="rule-subm-record" class="grammar-rule">
+        <span class="rule-id">SUBM_RECORD:=</span>
+        <span class="expression">0 @&lt;XREF:SUBM&gt;@ SUBM
+  +1 NAME &lt;SUBMITTER_NAME&gt;
+  [+1 &lt;ADDRESS_STRUCTURE&gt;]
+  {&lt;MULTIMEDIA_LINK&gt;}
+  [+1 LANG &lt;LANGUAGE_ID&gt;]
+  [+1 RIN &lt;AUTOMATED_RECORD_ID&gt;]
+  [+1 CHAN &lt;CHANGE_DATE&gt;]</span>
+    </div>
+
+    <div id="rule-gedcom-trailer" class="grammar-rule">
+        <span class="rule-id">GEDCOM_TRAILER:=</span>
+        <span class="expression">0 TRLR</span>
+        <div class="comment">Signals the end of the GEDCOM file.</div>
+    </div>
+
+</body>
+</html>

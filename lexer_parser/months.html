@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GEDCOM 5.5.5 Month Grammar</title>
+    <style>
+        body { font-family: 'Courier New', Courier, monospace; line-height: 1.6; padding: 20px; background-color: #f4f7f6; }
+        h1 { color: #2c3e50; border-bottom: 3px solid #16a085; padding-bottom: 10px; }
+        .grammar-rule { 
+            background: #ffffff; 
+            border: 1px solid #d1d8e0;
+            border-left: 6px solid #16a085; 
+            padding: 15px; 
+            margin-bottom: 15px; 
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .rule-id { font-weight: bold; color: #2c3e50; display: block; margin-bottom: 8px; font-size: 1.1em; }
+        .expression { color: #2980b9; white-space: pre-wrap; font-weight: bold; }
+        .comment { color: #7f8c8d; font-style: italic; font-size: 0.9em; margin-top: 10px; display: block; }
+        .metadata { color: #e67e22; font-weight: normal; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <h1>GEDCOM 5.5.5 Month Primitives</h1>
+
+    <div id="rule-month" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=3:3}</span> MONTH:=</span>
+        <span class="expression">[ JAN | FEB | MAR | APR | MAY | JUN | JUL | AUG | SEP | OCT | NOV | DEC ]</span>
+        <span class="comment">Standard abbreviations for months in the Gregorian and Julian calendars. All values must be exactly 3 characters.</span>
+    </div>
+
+    <div id="rule-month-hebr" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=3:3}</span> MONTH_HEBR:=</span>
+        <span class="expression">[ TSH | CSH | KSL | TVT | SHV | ADR | ADS | NSN | IYR | SVN | TAM | AAV | ELL ]</span>
+        <span class="comment">Hebrew calendar months. ADR is used for Adar I (or Adar in non-leap years); ADS is used for Adar II.</span>
+    </div>
+
+    <div id="rule-month-fren" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=4:4}</span> MONTH_FREN:=</span>
+        <span class="expression">[ VEND | BRUM | FRIM | NIVO | PLUV | VENT | GERM | FLOR | PRAI | MESS | THER | FRUC | COMP ]</span>
+        <span class="comment">French Revolutionary calendar months. All values must be exactly 4 characters. COMP refers to the "Jour complémentaires".</span>
+    </div>
+
+</body>
+</html>

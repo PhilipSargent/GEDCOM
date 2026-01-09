@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GEDCOM 5.5.5 Formal Grammar</title>
+    <style>
+        body { font-family: monospace; line-height: 1.5; padding: 20px; background-color: #f4f4f4; }
+        .grammar-rule { 
+            background: white; 
+            border: 1px solid #ccc; 
+            padding: 10px; 
+            margin-bottom: 5px; 
+            border-radius: 4px;
+        }
+        .rule-id { font-weight: bold; color: #2c3e50; margin-right: 10px; }
+        .expression { color: #c0392b; }
+    </style>
+</head>
+<body>
+    <h1>GEDCOM 5.5.5 Formal Grammar</h1>
+
+    <div id="rule-gedcom-file" class="grammar-rule">
+        <span class="rule-id">gedcom_file:</span>
+        <span class="expression">record {record}</span>
+    </div>
+
+    <div id="rule-record" class="grammar-rule">
+        <span class="rule-id">record:</span>
+        <span class="expression">line {line}</span>
+    </div>
+
+    <div id="rule-line" class="grammar-rule">
+        <span class="rule-id">line:</span>
+        <span class="expression">level [delim [xref_id]] delim tag [delim line_value] terminator</span>
+    </div>
+
+    <div id="rule-level" class="grammar-rule">
+        <span class="rule-id">level:</span>
+        <span class="expression">[ "0" .. "9" ] { [ "0" .. "9" ] }</span>
+    </div>
+
+    <div id="rule-delim" class="grammar-rule">
+        <span class="rule-id">delim:</span>
+        <span class="expression">space</span>
+    </div>
+
+    <div id="rule-tag" class="grammar-rule">
+        <span class="rule-id">tag:</span>
+        <span class="expression">alphanum {alphanum}</span>
+    </div>
+
+    <div id="rule-line-value" class="grammar-rule">
+        <span class="rule-id">line_value:</span>
+        <span class="expression">pointer | line_item</span>
+    </div>
+
+    <div id="rule-xref-id" class="grammar-rule">
+        <span class="rule-id">xref_id:</span>
+        <span class="expression">"@" alphanum {alphanum} "@"</span>
+    </div>
+
+    <div id="rule-pointer" class="grammar-rule">
+        <span class="rule-id">pointer:</span>
+        <span class="expression">"@" alphanum {alphanum} "@"</span>
+    </div>
+
+    <div id="rule-line-item" class="grammar-rule">
+        <span class="rule-id">line_item:</span>
+        <span class="expression">[any_char_except_terminator_or_at_sign] {any_char_except_terminator}</span>
+    </div>
+
+    <div id="rule-terminator" class="grammar-rule">
+        <span class="rule-id">terminator:</span>
+        <span class="expression">carriage_return | line_feed | carriage_return line_feed | line_feed carriage_return</span>
+    </div>
+
+    <div id="rule-alphanum" class="grammar-rule">
+        <span class="rule-id">alphanum:</span>
+        <span class="expression">alpha | digit | "_"</span>
+    </div>
+
+    <div id="rule-alpha" class="grammar-rule">
+        <span class="rule-id">alpha:</span>
+        <span class="expression">["A".."Z"] | ["a".."z"]</span>
+    </div>
+
+    <div id="rule-digit" class="grammar-rule">
+        <span class="rule-id">digit:</span>
+        <span class="expression">["0".."9"]</span>
+    </div>
+
+    <div id="rule-space" class="grammar-rule">
+        <span class="rule-id">space:</span>
+        <span class="expression">U+0020</span>
+    </div>
+
+    <div id="rule-any-char" class="grammar-rule">
+        <span class="rule-id">any_char:</span>
+        <span class="expression">Any Unicode character except control characters (U+0000 to U+001F) other than Tab (U+0009)</span>
+    </div>
+
+</body>
+</html>

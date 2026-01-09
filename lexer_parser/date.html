@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GEDCOM 5.5.5 Grammar - Page 80</title>
+    <style>
+        body { font-family: 'Courier New', Courier, monospace; line-height: 1.6; padding: 20px; background-color: #f4f7f6; }
+        h1 { color: #2c3e50; border-bottom: 3px solid #16a085; padding-bottom: 10px; }
+        .grammar-rule { 
+            background: #ffffff; 
+            border: 1px solid #d1d8e0;
+            border-left: 6px solid #16a085; 
+            padding: 15px; 
+            margin-bottom: 15px; 
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .rule-id { font-weight: bold; color: #2c3e50; display: block; margin-bottom: 8px; font-size: 1.1em; }
+        .expression { color: #2980b9; white-space: pre-wrap; font-weight: bold; }
+        .comment { color: #7f8c8d; font-style: italic; font-size: 0.9em; margin-top: 10px; display: block; }
+        .metadata { color: #e67e22; font-weight: normal; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <h1>GEDCOM 5.5.5 Primitive Elements (Page 80)</h1>
+
+    <div id="rule-date" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=4:35}</span> DATE:=</span>
+        <span class="expression">[ &lt;DATE_CALENDAR&gt; | &lt;DATE_CALENDAR_ESCAPE&gt; + space + &lt;DATE_CALENDAR&gt; ]</span>
+        <span class="comment">where: space = U+0020, the space character. </span>
+    </div>
+
+    <div id="rule-date-approximated" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=8:39}</span> DATE_APPROXIMATED:=</span>
+        <span class="expression">[ ABT + space + &lt;DATE&gt; | 
+  CAL + space + &lt;DATE&gt; | 
+  EST + space + &lt;DATE&gt; ]</span>
+        <span class="comment">where: 
+ABT = About, meaning the date is not exact.
+CAL = Calculated mathematically, for example, from an event date and age.
+EST = Estimated. </span>
+    </div>
+
+    <div id="rule-date-calendar" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=4:35}</span> DATE_CALENDAR:=</span>
+        <span class="expression">[ &lt;DATE_GREG&gt; | &lt;DATE_JULN&gt; | &lt;DATE_HEBR&gt; | &lt;DATE_FREN&gt; ]</span>
+        <span class="comment">The selection is based on the &lt;DATE_CALENDAR_ESCAPE&gt; that precedes the &lt;DATE_CALENDAR&gt; value immediately to the left. If no escape is present, @#DGREGORIAN@ is assumed. [cite: 3455, 3456]</span>
+    </div>
+
+<div id="rule-date-calendar-escape" class="grammar-rule">
+    <span class="rule-id"><span class="metadata">{Size=9:11}</span> DATE_CALENDAR_ESCAPE:=</span>
+    <span class="expression">[ @#DHEBREW@ | @#DFRENCH R@ | @#DGREGORIAN@ | @#DJULIAN@ | @#DUNKNOWN@ ]</span>
+    <span class="comment">The escape sequence used to specify the calendar used for the date. Note: @#DGREGORIAN@ is the default if no escape is present.</span>
+</div>
+
+<div id="rule-date-greg" class="grammar-rule">
+    <span class="rule-id"><span class="metadata">{Size=4:35}</span> DATE_GREG:=</span>
+    <span class="expression">[ &lt;YEAR&gt; | &lt;MONTH&gt; + space + &lt;YEAR&gt; | &lt;DAY&gt; + space + &lt;MONTH&gt; + space + &lt;YEAR&gt; ]</span>
+    <span class="comment">Gregorian calendar date. One- and two-digit years are illegal; they must be padded to at least 3 digits (e.g., 0095).</span>
+</div>
+
+<div id="rule-date-juln" class="grammar-rule">
+    <span class="rule-id"><span class="metadata">{Size=4:35}</span> DATE_JULN:=</span>
+    <span class="expression">[ &lt;YEAR&gt; | &lt;MONTH&gt; + space + &lt;YEAR&gt; | &lt;DAY&gt; + space + &lt;MONTH&gt; + space + &lt;YEAR&gt; | 
+  &lt;DAY&gt; + space + &lt;MONTH&gt; + space + &lt;DUAL_STYLE_YEAR&gt; ]</span>
+    <span class="comment">Julian calendar date. GEDCOM 5.5.5 allows dual-style years for the Julian calendar.</span>
+</div>
+
+<div id="rule-date-hebr" class="grammar-rule">
+    <span class="rule-id"><span class="metadata">{Size=4:35}</span> DATE_HEBR:=</span>
+    <span class="expression">[ &lt;YEAR&gt; | &lt;MONTH_HEBR&gt; + space + &lt;YEAR&gt; | &lt;DAY&gt; + space + &lt;MONTH_HEBR&gt; + space + &lt;YEAR&gt; ]</span>
+    <span class="comment">Hebrew calendar date.</span>
+</div>
+
+<div id="rule-date-fren" class="grammar-rule">
+    <span class="rule-id"><span class="metadata">{Size=4:35}</span> DATE_FREN:=</span>
+    <span class="expression">[ &lt;YEAR&gt; | &lt;MONTH_FREN&gt; + space + &lt;YEAR&gt; | &lt;DAY&gt; + space + &lt;MONTH_FREN&gt; + space + &lt;YEAR&gt; ]</span>
+    <span class="comment">French Revolutionary calendar date.</span>
+</div>
+
+<div id="rule-dual-style-year" class="grammar-rule">
+    <span class="rule-id"><span class="metadata">{Size=7:9}</span> DUAL_STYLE_YEAR:=</span>
+    <span class="expression">&lt;YEAR&gt; + / + &lt;DIGIT&gt;&lt;DIGIT&gt;</span>
+    <span class="comment">Used for dates during the transition between the Julian and Gregorian calendars, where the second year is indicated by its last two digits (e.g., 1751/52).</span>
+</div>
+
+<div id="rule-date-value" class="grammar-rule">
+    <span class="rule-id"><span class="metadata">{Size=1:255}</span> DATE_VALUE:=</span>
+    <span class="expression">[ &lt;DATE&gt; | &lt;DATE_PERIOD&gt; | &lt;DATE_RANGE&gt; | &lt;DATE_APPROXIMATED&gt; | &lt;DATE_INT&gt; | &lt;DATE_PHRASE&gt; ]</span>
+    <span class="comment">A general container for any valid date representation, including ranges, periods, and approximated dates.</span>
+</div>
+</body>
+</html>

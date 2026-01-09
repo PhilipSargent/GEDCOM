@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GEDCOM 5.5.5 Primitive Definitions</title>
+    <style>
+        body { font-family: 'Courier New', Courier, monospace; line-height: 1.6; padding: 20px; background-color: #f9f9f9; }
+        h1 { border-bottom: 2px solid #333; padding-bottom: 10px; }
+        .grammar-rule { 
+            background: #ffffff; 
+            border-left: 5px solid #16a085; 
+            padding: 15px; 
+            margin-bottom: 10px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .rule-id { font-weight: bold; color: #2c3e50; display: block; margin-bottom: 5px; }
+        .expression { color: #2980b9; white-space: pre-wrap; }
+        .comment { color: #7f8c8d; font-style: italic; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <h1>GEDCOM 5.5.5 Primitive Definitions</h1>
+
+    <div id="rule-gedcom-version-number" class="grammar-rule">
+        <span class="rule-id">&lt;GEDCOM_VERSION_NUMBER&gt;:=</span>
+        <span class="expression">[ "5.5.5" ]</span>
+        <div class="comment">GEDCOM 5.5.5 demands that the version number be "5.5.5" and nothing else[cite: 13611].</div>
+    </div>
+
+    <div id="rule-version-number" class="grammar-rule">
+        <span class="rule-id">&lt;VERSION_NUMBER&gt;:=</span>
+        <span class="expression">&lt;digit&gt; {&lt;digit&gt;} . &lt;digit&gt; {&lt;digit&gt;} [ . &lt;digit&gt; {&lt;digit&gt;} ]</span>
+        <div class="comment">A version number consists of two or three numbers separated by a dot.</div>
+    </div>
+
+    <div id="rule-gedcom-form" class="grammar-rule">
+        <span class="rule-id">&lt;GEDCOM_FORM&gt;:=</span>
+        <span class="expression">[ "LINEAGE-LINKED" ]</span>
+        <div class="comment">The specification defines exactly one form, "LINEAGE-LINKED"[cite: 13943].</div>
+    </div>
+
+    <div id="rule-character-encoding" class="grammar-rule">
+        <span class="rule-id">&lt;CHARACTER_ENCODING&gt;:=</span>
+        <span class="expression">[ "UTF-8" | "UNICODE" ]</span>
+        <div class="comment">"UNICODE" refers to the UTF-16 encoding[cite: 14146, 14282].</div>
+    </div>
+
+    <div id="rule-transmission-date" class="grammar-rule">
+        <span class="rule-id">&lt;TRANSMISSION_DATE&gt;:=</span>
+        <span class="expression">&lt;DAY&gt; &lt;MONTH&gt; &lt;YEAR&gt;</span>
+    </div>
+
+    <div id="rule-day" class="grammar-rule">
+        <span class="rule-id">&lt;DAY&gt;:=</span>
+        <span class="expression">[ "1" .. "31" ]</span>
+        <div class="comment">Days must not start with leading zeros[cite: 13609, 13628].</div>
+    </div>
+
+    <div id="rule-month" class="grammar-rule">
+        <span class="rule-id">&lt;MONTH&gt;:=</span>
+        <span class="expression">[ "JAN" | "FEB" | "MAR" | "APR" | "MAY" | "JUN" | "JUL" | "AUG" | "SEP" | "OCT" | "NOV" | "DEC" ]</span>
+    </div>
+
+    <div id="rule-year" class="grammar-rule">
+        <span class="rule-id">&lt;YEAR&gt;:=</span>
+        <span class="expression">&lt;digit&gt; &lt;digit&gt; &lt;digit&gt; &lt;digit&gt;</span>
+        <div class="comment">GEDCOM 5.5.5 requires four-digit years.</div>
+    </div>
+
+    <div id="rule-time-value" class="grammar-rule">
+        <span class="rule-id">&lt;TIME_VALUE&gt;:=</span>
+        <span class="expression">[ hh:mm[:ss[.fs]] ]</span>
+        <div class="comment">24-hour clock time.</div>
+    </div>
+
+    <div id="rule-user-text" class="grammar-rule">
+        <span class="rule-id">&lt;USER_TEXT&gt;:=</span>
+        <span class="expression">{&lt;any_char_except_terminator&gt;}</span>
+        <div class="comment">Text entered by the user, which may be continued across lines using CONC and CONT records[cite: 14148, 14149].</div>
+    </div>
+
+    <div id="rule-language-id" class="grammar-rule">
+        <span class="rule-id">&lt;LANGUAGE_ID&gt;:=</span>
+        <span class="expression">{&lt;alpha&gt;}</span>
+        <div class="comment">Commonly uses values like "English" or "French".</div>
+    </div>
+
+    <div id="rule-address-structure" class="grammar-rule">
+        <span class="rule-id">&lt;ADDRESS_STRUCTURE&gt;:=</span>
+        <span class="expression">1 ADDR &lt;ADDRESS_LINE&gt;
+  [2 CITY &lt;ADDRESS_CITY&gt;]
+  [2 STAE &lt;ADDRESS_STATE&gt;]
+  [2 POST &lt;ADDRESS_POSTAL_CODE&gt;]
+  [2 CTRY &lt;ADDRESS_COUNTRY&gt;]
+{1 PHON &lt;PHONE_NUMBER&gt;}
+{1 EMAIL &lt;ADDRESS_EMAIL&gt;}
+{1 FAX &lt;ADDRESS_FAX&gt;}
+{1 WWW &lt;ADDRESS_WEB_PAGE&gt;}</span>
+    </div>
+
+    <div id="rule-note-structure" class="grammar-rule">
+        <span class="rule-id">&lt;NOTE_STRUCTURE&gt;:=</span>
+        <span class="expression">[
+  n NOTE @&lt;XREF:NOTE&gt;@
+|
+  n NOTE &lt;USER_TEXT&gt;
+    {+1 [CONC|CONT] &lt;USER_TEXT&gt;}
+]</span>
+        <div class="comment">Notes can be internal text or pointers to a top-level NOTE record[cite: 13891, 13938].</div>
+    </div>
+
+    <div id="rule-source-citation" class="grammar-rule">
+        <span class="rule-id">&lt;SOURCE_CITATION&gt;:=</span>
+        <span class="expression">[
+  n SOUR @&lt;XREF:SOUR&gt;@
+    [+1 PAGE &lt;WHERE_WITHIN_SOURCE&gt;]
+    [+1 EVEN &lt;EVENT_TYPE_CITED_FROM&gt;
+      [+2 ROLE &lt;ROLE_IN_EVENT&gt;]
+    ]
+    [+1 DATA
+      [+2 DATE &lt;ENTRY_RECORDING_DATE&gt;]
+      [+2 TEXT &lt;TEXT_FROM_SOURCE&gt;
+        {+3 [CONC|CONT] &lt;TEXT_FROM_SOURCE&gt;}
+      ]
+    ]
+    {&lt;MULTIMEDIA_LINK&gt;}
+    {&lt;NOTE_STRUCTURE&gt;}
+|
+  n SOUR &lt;SOURCE_DESCRIPTION&gt;
+    {+1 [CONC|CONT] &lt;SOURCE_DESCRIPTION&gt;}
+    {&lt;NOTE_STRUCTURE&gt;}
+]</span>
+    </div>
+
+</body>
+</html>

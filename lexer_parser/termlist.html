@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GEDCOM 5.5.5 Complete Grammar Index</title>
+    <style>
+        body { font-family: 'Courier New', Courier, monospace; line-height: 1.6; padding: 20px; background-color: #f4f7f6; }
+        h1 { color: #2c3e50; border-bottom: 3px solid #16a085; padding-bottom: 10px; }
+        .grammar-rule { 
+            background: #ffffff; 
+            border: 1px solid #d1d8e0;
+            border-left: 6px solid #16a085; 
+            padding: 15px; 
+            margin-bottom: 15px; 
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .rule-id { font-weight: bold; color: #2c3e50; display: block; margin-bottom: 8px; font-size: 1.1em; }
+        .expression { color: #2980b9; white-space: pre-wrap; font-weight: bold; }
+        .page-num { color: #e67e22; font-weight: bold; float: right; font-size: 0.9em; }
+        .metadata { color: #7f8c8d; font-weight: normal; font-size: 0.85em; }
+    </style>
+</head>
+<body>
+    <h1>GEDCOM 5.5.5 Full Grammar Index</h1>
+
+    <div id="rule-absent-date" class="grammar-rule">
+        <span class="page-num">Page 80</span>
+        <span class="rule-id">ABSENT_DATE:=</span>
+        <span class="expression">[ &lt;NULL&gt; ]</span>
+    </div>
+
+    <div id="rule-address-city" class="grammar-rule">
+        <span class="page-num">Page 80</span>
+        <span class="rule-id">ADDRESS_CITY:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+    </div>
+
+    <div id="rule-address-country" class="grammar-rule">
+        <span class="page-num">Page 80</span>
+        <span class="rule-id">ADDRESS_COUNTRY:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+    </div>
+
+    <div id="rule-address-email" class="grammar-rule">
+        <span class="page-num">Page 80</span>
+        <span class="rule-id">ADDRESS_EMAIL:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+    </div>
+
+    <div id="rule-address-fax" class="grammar-rule">
+        <span class="page-num">Page 80</span>
+        <span class="rule-id">ADDRESS_FAX:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+    </div>
+
+    <div id="rule-address-line" class="grammar-rule">
+        <span class="page-num">Page 80</span>
+        <span class="rule-id">ADDRESS_LINE:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+    </div>
+
+    <div id="rule-address-postal-code" class="grammar-rule">
+        <span class="page-num">Page 80</span>
+        <span class="rule-id">ADDRESS_POSTAL_CODE:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+    </div>
+
+    <div id="rule-address-state" class="grammar-rule">
+        <span class="page-num">Page 80</span>
+        <span class="rule-id">ADDRESS_STATE:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+    </div>
+
+    <div id="rule-address-web-page" class="grammar-rule">
+        <span class="page-num">Page 81</span>
+        <span class="rule-id">ADDRESS_WEB_PAGE:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+    </div>
+
+    <div id="rule-age-at-event" class="grammar-rule">
+        <span class="page-num">Page 81</span>
+        <span class="rule-id">AGE_AT_EVENT:=</span>
+        <span class="expression">[ &lt; | &gt; | CHILD | INFANT | STILLBORN ] + [ YY | MM | DD ]</span>
+    </div>
+
+    <div id="rule-ancestors-interest" class="grammar-rule">
+        <span class="page-num">Page 81</span>
+        <span class="rule-id">ANCESTORS_INTEREST:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+    </div>
+
+    <div id="rule-attribute-type" class="grammar-rule">
+        <span class="page-num">Page 81</span>
+        <span class="rule-id">ATTRIBUTE_TYPE:=</span>
+        <span class="expression">[ CAST | EDUC | NATI | OCCU | PROP | RELI | RESI | TITL | EVEN ]</span>
+    </div>
+
+    <div id="rule-automated-record-id" class="grammar-rule">
+        <span class="page-num">Page 81</span>
+        <span class="rule-id">AUTOMATED_RECORD_ID:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+    </div>
+
+    <div id="rule-caste-name" class="grammar-rule">
+        <span class="page-num">Page 81</span>
+        <span class="rule-id">CASTE_NAME:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+    </div>
+
+    <div id="rule-cause-of-event" class="grammar-rule">
+        <span class="page-num">Page 81</span>
+        <span class="rule-id">CAUSE_OF_EVENT:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+    </div>
+
+    <div id="rule-character-set" class="grammar-rule">
+        <span class="page-num">Page 81</span>
+        <span class="rule-id">CHARACTER_SET:=</span>
+        <span class="expression">[ UTF-8 ]</span>
+    </div>
+
+    <div id="rule-copyright-gedcom-file" class="grammar-rule">
+        <span class="page-num">Page 81</span>
+        <span class="rule-id">COPYRIGHT_GEDCOM_FILE:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+    </div>
+
+    <div id="rule-county-of-recording" class="grammar-rule">
+        <span class="page-num">Page 81</span>
+        <span class="rule-id">COUNTY_OF_RECORDING:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+    </div>
+
+    <div id="rule-date" class="grammar-rule">
+        <span class="page-num">Page 82</span>
+        <span class="rule-id">DATE:=</span>
+        <span class="expression">[ &lt;DATE_GREG&gt; | &lt;DATE_JULN&gt; | &lt;DATE_HEBR&gt; | &lt;DATE_FREN&gt; ]</span>
+    </div>
+
+    <div id="rule-date-calendar-escape" class="grammar-rule">
+        <span class="page-num">Page 82</span>
+        <span class="rule-id">DATE_CALENDAR_ESCAPE:=</span>
+        <span class="expression">[ @#DGREGORIAN@ | @#DJULIAN@ | @#DHEBREW@ | @#DFRENCH R@ | @#DUNKNOWN@ ]</span>
+    </div>
+
+    <div id="rule-date-fren" class="grammar-rule">
+        <span class="page-num">Page 82</span>
+        <span class="rule-id">DATE_FREN:=</span>
+        <span class="expression">[ &lt;YEAR&gt; | &lt;MONTH_FREN&gt; &lt;YEAR&gt; | &lt;DAY&gt; &lt;MONTH_FREN&gt; &lt;YEAR&gt; ]</span>
+    </div>
+
+    <div id="rule-date-greg" class="grammar-rule">
+        <span class="page-num">Page 82</span>
+        <span class="rule-id">DATE_GREG:=</span>
+        <span class="expression">[ &lt;YEAR&gt; | &lt;MONTH&gt; &lt;YEAR&gt; | &lt;DAY&gt; &lt;MONTH&gt; &lt;YEAR&gt; ]</span>
+    </div>
+
+    <div id="rule-date-hebr" class="grammar-rule">
+        <span class="page-num">Page 83</span>
+        <span class="rule-id">DATE_HEBR:=</span>
+        <span class="expression">[ &lt;YEAR&gt; | &lt;MONTH_HEBR&gt; &lt;YEAR&gt; | &lt;DAY&gt; &lt;MONTH_HEBR&gt; &lt;YEAR&gt; ]</span>
+    </div>
+
+    <div id="rule-date-int" class="grammar-rule">
+        <span class="page-num">Page 83</span>
+        <span class="rule-id">DATE_INT:=</span>
+        <span class="expression">INT &lt;DATE&gt; (&lt;DATE_PHRASE&gt;)</span>
+    </div>
+
+    <div id="rule-date-juln" class="grammar-rule">
+        <span class="page-num">Page 83</span>
+        <span class="rule-id">DATE_JULN:=</span>
+        <span class="expression">[ &lt;YEAR&gt; | &lt;MONTH&gt; &lt;YEAR&gt; | &lt;DAY&gt; &lt;MONTH&gt; &lt;YEAR&gt; ]</span>
+    </div>
+
+    <div id="rule-date-period" class="grammar-rule">
+        <span class="page-num">Page 83</span>
+        <span class="rule-id">DATE_PERIOD:=</span>
+        <span class="expression">[ FROM &lt;DATE&gt; | TO &lt;DATE&gt; | FROM &lt;DATE&gt; TO &lt;DATE&gt; ]</span>
+    </div>
+
+    <div id="rule-date-phrase" class="grammar-rule">
+        <span class="page-num">Page 83</span>
+        <span class="rule-id">DATE_PHRASE:=</span>
+        <span class="expression">(&lt;TEXT&gt;)</span>
+    </div>
+
+    <div id="rule-date-range" class="grammar-rule">
+        <span class="page-num">Page 83</span>
+        <span class="rule-id">DATE_RANGE:=</span>
+        <span class="expression">[ BEF &lt;DATE&gt; | AFT &lt;DATE&gt; | BET &lt;DATE&gt; AND &lt;DATE&gt; ]</span>
+    </div>
+
+    <div id="rule-date-value" class="grammar-rule">
+        <span class="page-num">Page 83</span>
+        <span class="rule-id">DATE_VALUE:=</span>
+        <span class="expression">[ &lt;DATE&gt; | &lt;DATE_PERIOD&gt; | &lt;DATE_RANGE&gt; | &lt;DATE_INT&gt; | &lt;DATE_PHRASE&gt; ]</span>
+    </div>
+
+    <div id="rule-day" class="grammar-rule">
+        <span class="page-num">Page 84</span>
+        <span class="rule-id">DAY:=</span>
+        <span class="expression">dd</span>
+    </div>
+
+    <div id="rule-dual-style-year" class="grammar-rule">
+        <span class="page-num">Page 84</span>
+        <span class="rule-id">DUAL_STYLE_YEAR:=</span>
+        <span class="expression">&lt;YEAR&gt;/yy</span>
+    </div>
+
+    <div id="rule-entry-recording-date" class="grammar-rule">
+        <span class="page-num">Page 84</span>
+        <span class="rule-id">ENTRY_RECORDING_DATE:=</span>
+        <span class="expression">&lt;DATE_VALUE&gt;</span>
+    </div>
+
+    <div id="rule-event-attribute-type" class="grammar-rule">
+        <span class="page-num">Page 84</span>
+        <span class="rule-id">EVENT_ATTRIBUTE_TYPE:=</span>
+        <span class="expression">[ &lt;EVENT_TYPE_INDIVIDUAL&gt; | &lt;EVENT_TYPE_FAMILY&gt; | &lt;ATTRIBUTE_TYPE&gt; ]</span>
+    </div>
+
+    <div id="rule-event-descriptor" class="grammar-rule">
+        <span class="page-num">Page 84</span>
+        <span class="rule-id">EVENT_DESCRIPTOR:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+    </div>
+
+    <div id="rule-event-or-fact-classification" class="grammar-rule">
+        <span class="page-num">Page 84</span>
+        <span class="rule-id">EVENT_OR_FACT_CLASSIFICATION:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+    </div>
+
+    <div id="rule-event-type-family" class="grammar-rule">
+        <span class="page-num">Page 84</span>
+        <span class="rule-id">EVENT_TYPE_FAMILY:=</span>
+        <span class="expression">[ ANUL | CENS | DIV | DIVF | ENGA | MARB | MARC | MARL | MARR | MARS | RESI | EVEN ]</span>
+    </div>
+
+    <div id="rule-event-type-individual" class="grammar-rule">
+        <span class="page-num">Page 84</span>
+        <span class="rule-id">EVENT_TYPE_INDIVIDUAL:=</span>
+        <span class="expression">[ ADOP | BAPM | BARM | BASM | BIRT | BLES | BURI | CENS | CHR | CHRA | CONF | CREM | DEAT | EMIG | FCOM | GRAD | IMMI | NATU | ORDN | RETI | PROB | WILL | EVEN ]</span>
+    </div>
+
+    <div id="rule-language-id" class="grammar-rule">
+        <span class="page-num">Page 85</span>
+        <span class="rule-id">LANGUAGE_ID:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+    </div>
+
+    <div id="rule-month" class="grammar-rule">
+        <span class="page-num">Page 85</span>
+        <span class="rule-id">MONTH:=</span>
+        <span class="expression">[ JAN | FEB | MAR | APR | MAY | JUN | JUL | AUG | SEP | OCT | NOV | DEC ]</span>
+    </div>
+
+    <div id="rule-month-fren" class="grammar-rule">
+        <span class="page-num">Page 85</span>
+        <span class="rule-id">MONTH_FREN:=</span>
+        <span class="expression">[ VEND | BRUM | FRIM | NIVO | PLUV | VENT | GERM | FLOR | PRAI | MESS | THER | FRUC | COMP ]</span>
+    </div>
+
+    <div id="rule-month-hebr" class="grammar-rule">
+        <span class="page-num">Page 85</span>
+        <span class="rule-id">MONTH_HEBR:=</span>
+        <span class="expression">[ TSH | CSH | KSL | TVT | SHV | ADR | ADS | NSN | IYR | SVN | TAM | AAV | ELL ]</span>
+    </div>
+
+    <div id="rule-name-personal" class="grammar-rule">
+        <span class="page-num">Page 85</span>
+        <span class="rule-id">NAME_PERSONAL:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+    </div>
+
+    <div id="rule-name-phonetic" class="grammar-rule">
+        <span class="page-num">Page 85</span>
+        <span class="rule-id">NAME_PHONETIC:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+    </div>
+
+    <div id="rule-name-romanised" class="grammar-rule">
+        <span class="page-num">Page 85</span>
+        <span class="rule-id">NAME_ROMANISED:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+    </div>
+
+    <div id="rule-sex-value" class="grammar-rule">
+        <span class="page-num">Page 86</span>
+        <span class="rule-id">SEX_VALUE:=</span>
+        <span class="expression">[ M | F | X | U ]</span>
+    </div>
+
+    <div id="rule-year" class="grammar-rule">
+        <span class="page-num">Page 86</span>
+        <span class="rule-id">YEAR:=</span>
+        <span class="expression">[ yyyy | &lt;DUAL_STYLE_YEAR&gt; ]</span>
+    </div>
+
+</body>
+</html>

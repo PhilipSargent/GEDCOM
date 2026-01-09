@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GEDCOM 5.5.5 Additional Primitive Definitions</title>
+    <style>
+        body { font-family: 'Courier New', Courier, monospace; line-height: 1.6; padding: 20px; background-color: #f4f7f6; }
+        h1 { color: #2c3e50; border-bottom: 3px solid #16a085; padding-bottom: 10px; }
+        .grammar-rule { 
+            background: #ffffff; 
+            border: 1px solid #d1d8e0;
+            border-left: 6px solid #16a085; 
+            padding: 15px; 
+            margin-bottom: 15px; 
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .rule-id { font-weight: bold; color: #2c3e50; display: block; margin-bottom: 8px; font-size: 1.1em; }
+        .expression { color: #2980b9; white-space: pre-wrap; font-weight: bold; }
+        .comment { color: #7f8c8d; font-style: italic; font-size: 0.9em; margin-top: 10px; display: block; }
+        .metadata { color: #e67e22; font-weight: normal; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <h1>GEDCOM 5.5.5 Additional Primitive Definitions</h1>
+
+    <div id="rule-name-personal" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:120}</span> NAME_PERSONAL:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">A person's name, with the surname (if known) enclosed in slashes (e.g., William Lee /Parry/).</span>
+    </div>
+
+    <div id="rule-name-phonetic" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:120}</span> NAME_PHONETIC:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">A phonetic variation of a name, used for search and sorting.</span>
+    </div>
+
+    <div id="rule-name-romanised" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:120}</span> NAME_ROMANISED:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">A romanised variation of a name.</span>
+    </div>
+
+    <div id="rule-name-piece" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:90}</span> NAME_PIECE:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">A general component of a name.</span>
+    </div>
+
+    <div id="rule-name-piece-given" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:120}</span> NAME_PIECE_GIVEN:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">Given name or earned name (e.g., Mary).</span>
+    </div>
+
+    <div id="rule-name-piece-surname" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:120}</span> NAME_PIECE_SURNAME:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">Family name or surname (e.g., Smith).</span>
+    </div>
+
+    <div id="rule-address-city" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:60}</span> ADDRESS_CITY:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">The name of the city used in the address.</span>
+    </div>
+
+    <div id="rule-address-postal-code" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:10}</span> ADDRESS_POSTAL_CODE:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">The ZIP or postal code.</span>
+    </div>
+
+    <div id="rule-address-web-page" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:2048}</span> ADDRESS_WEB_PAGE:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">The World Wide Web address (URL).</span>
+    </div>
+
+    <div id="rule-sex-value" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:1}</span> SEX_VALUE:=</span>
+        <span class="expression">[ M | F | X | U ]</span>
+        <span class="comment">A code for the sex of an individual: M=Male, F=Female, X=Other, U=Unknown.</span>
+    </div>
+
+    <div id="rule-age-at-event" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:13}</span> AGE_AT_EVENT:=</span>
+        <span class="expression">[ &lt; | &gt; | CHILD | INFANT | STILLBORN ] + [ YY | MM | DD ]</span>
+        <span class="comment">A code indicating the age of the person at the time of the event (e.g., 25y 6m 3d).</span>
+    </div>
+
+    <div id="rule-national-id-number" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:30}</span> NATIONAL_ID_NUMBER:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">A nationally assigned identifier (e.g., a passport number).</span>
+    </div>
+
+    <div id="rule-place-latitude" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=5:8}</span> PLACE_LATITUDE:=</span>
+        <span class="expression">[ N | S ] + &lt;DEGREE&gt;</span>
+        <span class="comment">The latitude coordinate of a place (e.g., N45.1234).</span>
+    </div>
+
+    <div id="rule-place-longitude" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=5:9}</span> PLACE_LONGITUDE:=</span>
+        <span class="expression">[ E | W ] + &lt;DEGREE&gt;</span>
+        <span class="comment">The longitude coordinate of a place (e.g., W122.5678).</span>
+    </div>
+
+    <div id="rule-character-set" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=5:8}</span> CHARACTER_SET:=</span>
+        <span class="expression">[ UTF-8 ]</span>
+        <span class="comment">In GEDCOM 5.5.5, the only legal value is UTF-8.</span>
+    </div>
+
+    <div id="rule-restriction-notice" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=6:7}</span> RESTRICTION_NOTICE:=</span>
+        <span class="expression">[ confidential | locked | privacy ]</span>
+        <span class="comment">Specifies the level of confidentiality for the associated data.</span>
+    </div>
+
+    <div id="rule-role-in-event" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:15}</span> ROLE_IN_EVENT:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">The role played by the person in an event (e.g., CHIL, HUSB, WIFE, WITN, BURI).</span>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GEDCOM 5.5.5 Subrecord Grammar</title>
+    <style>
+        body { font-family: 'Courier New', Courier, monospace; line-height: 1.6; padding: 20px; background-color: #f4f7f6; }
+        h1 { color: #2c3e50; border-bottom: 3px solid #16a085; padding-bottom: 10px; }
+        .grammar-rule { 
+            background: #ffffff; 
+            border: 1px solid #d1d8e0;
+            border-left: 6px solid #16a085; 
+            padding: 15px; 
+            margin-bottom: 15px; 
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .rule-id { font-weight: bold; color: #2c3e50; display: block; margin-bottom: 8px; font-size: 1.1em; }
+        .expression { color: #2980b9; white-space: pre-wrap; font-weight: bold; }
+        .comment { color: #7f8c8d; font-style: italic; font-size: 0.9em; margin-top: 10px; display: block; }
+    </style>
+</head>
+<body>
+    <h1>GEDCOM 5.5.5 Subrecords (Lineage-Linked Form)</h1>
+
+    <div id="rule-address-structure" class="grammar-rule">
+        <span class="rule-id">ADDRESS_STRUCTURE:=</span>
+        <span class="expression">n ADDR
+  [+1 ADR1 &lt;ADDRESS_LINE1&gt;]
+  [+1 ADR2 &lt;ADDRESS_LINE2&gt;]
+  [+1 ADR3 &lt;ADDRESS_LINE3&gt;]
+  [+1 CITY &lt;ADDRESS_CITY&gt;]
+  [+1 STAE &lt;ADDRESS_STATE&gt;]
+  [+1 POST &lt;ADDRESS_POSTAL_CODE&gt;]
+  [+1 CTRY &lt;ADDRESS_COUNTRY&gt;]
+{n PHON &lt;PHONE_NUMBER&gt;}
+{n EMAIL &lt;ADDRESS_EMAIL&gt;}
+{n FAX &lt;ADDRESS_FAX&gt;}
+{n WWW &lt;ADDRESS_WEB_PAGE&gt;}</span>
+        <span class="comment">Used to provide the physical or digital contact information for a person or organization. [cite: 13900]</span>
+    </div>
+
+    <div id="rule-association-structure" class="grammar-rule">
+        <span class="rule-id">ASSOCIATION_STRUCTURE:=</span>
+        <span class="expression">n ASSO @&lt;XREF:INDI&gt;@
+  +1 RELA &lt;RELATION_IS_DESCRIPTOR&gt;
+  {&lt;&lt;SOURCE_CITATION&gt;&gt;}
+  {&lt;&lt;NOTE_STRUCTURE&gt;&gt;}</span>
+        <span class="comment">Describes a relationship between two individuals that is not a family relationship. [cite: 13812]</span>
+    </div>
+
+    <div id="rule-change-date" class="grammar-rule">
+        <span class="rule-id">CHANGE_DATE:=</span>
+        <span class="expression">n CHAN
+  +1 DATE &lt;CHANGE_DATE&gt;
+    [+2 TIME &lt;TIME_VALUE&gt;]
+  {&lt;&lt;NOTE_STRUCTURE&gt;&gt;}</span>
+        <span class="comment">Indicates the last time this specific record was modified. [cite: 13872]</span>
+    </div>
+
+    <div id="rule-child-to-family-link" class="grammar-rule">
+        <span class="rule-id">CHILD_TO_FAMILY_LINK:=</span>
+        <span class="expression">n FAMC @&lt;XREF:FAM&gt;@
+  [+1 PEDI &lt;PEDIGREE_LINKAGE_TYPE&gt;]
+  [+1 STAT &lt;CHILD_LINKAGE_STATUS&gt;]
+  {&lt;&lt;NOTE_STRUCTURE&gt;&gt;}</span>
+    </div>
+
+    <div id="rule-event-detail" class="grammar-rule">
+        <span class="rule-id">EVENT_DETAIL:=</span>
+        <span class="expression">n [TYPE &lt;EVENT_DESCRIPTOR&gt;]
+[n DATE &lt;DATE_VALUE&gt;]
+[n &lt;&lt;PLACE_STRUCTURE&gt;&gt;]
+[n &lt;&lt;ADDRESS_STRUCTURE&gt;&gt;]
+[n RELI &lt;RELIGIOUS_AFFILIATION&gt;]
+[n CAUS &lt;CAUSE_OF_EVENT&gt;]
+[n RESN &lt;RESTRICTION_NOTICE&gt;]
+{&lt;&lt;SOURCE_CITATION&gt;&gt;}
+{&lt;&lt;MULTIMEDIA_LINK&gt;&gt;}
+{&lt;&lt;NOTE_STRUCTURE&gt;&gt;}</span>
+    </div>
+
+    <div id="rule-individual-attribute-structure" class="grammar-rule">
+        <span class="rule-id">INDIVIDUAL_ATTRIBUTE_STRUCTURE:=</span>
+        <span class="expression">[ 
+  n CAST &lt;CASTE_NAME&gt;
+| n DSCR &lt;PHYSICAL_DESCRIPTION&gt;
+| n EDUC &lt;SCHOLASTIC_ACHIEVEMENT&gt;
+| n IDNO &lt;IDENT_NUMBER&gt;
+| n NATI &lt;NATIONAL_OR_TRIBAL_ORIGIN&gt;
+| n NCHI &lt;COUNT_OF_CHILDREN&gt;
+| n NMR  &lt;COUNT_OF_MARRIAGES&gt;
+| n OCCU &lt;OCCUPATION&gt;
+| n PROP &lt;POSSESSIONS&gt;
+| n RELI &lt;RELIGIOUS_AFFILIATION&gt;
+| n RESI
+| n SSN  &lt;SOCIAL_SECURITY_NUMBER&gt;
+| n TITL &lt;NOBILITY_TYPE_TITLE&gt;
+| n FACT &lt;ATTRIBUTE_DESCRIPTOR&gt;
+]
+  +1 &lt;&lt;INDIVIDUAL_EVENT_DETAIL&gt;&gt;</span>
+        <span class="comment">Note: The "n FACT" line allows for user-defined attributes with a descriptor. [cite: 13812]</span>
+    </div>
+
+    <div id="rule-individual-event-structure" class="grammar-rule">
+        <span class="rule-id">INDIVIDUAL_EVENT_STRUCTURE:=</span>
+        <span class="expression">[
+  n BIRT [Y]
+| n CHR  [Y]
+| n DEAT [Y]
+| n BURI [Y]
+| n CREM [Y]
+| n ADOP [Y]
+| n BAPM [Y]
+| n BARM [Y]
+| n BASM [Y]
+| n BLES [Y]
+| n CHRA [Y]
+| n CONF [Y]
+| n FCOM [Y]
+| n ORDN [Y]
+| n NATU [Y]
+| n EMIG [Y]
+| n IMMI [Y]
+| n CENS [Y]
+| n PROB [Y]
+| n WILL [Y]
+| n GRAD [Y]
+| n RETI [Y]
+| n EVEN &lt;EVENT_DESCRIPTOR&gt;
+]
+  +1 &lt;&lt;INDIVIDUAL_EVENT_DETAIL&gt;&gt;</span>
+    </div>
+
+    <div id="rule-multimedia-link" class="grammar-rule">
+        <span class="rule-id">MULTIMEDIA_LINK:=</span>
+        <span class="expression">n OBJE @&lt;XREF:OBJE&gt;@</span>
+        <span class="comment">In GEDCOM 5.5.5, multimedia links must always point to a top-level OBJE record. [cite: 13811]</span>
+    </div>
+
+    <div id="rule-note-structure" class="grammar-rule">
+        <span class="rule-id">NOTE_STRUCTURE:=</span>
+        <span class="expression">[
+  n NOTE @&lt;XREF:NOTE&gt;@
+|
+  n NOTE &lt;USER_TEXT&gt;
+    {+1 [CONC|CONT] &lt;USER_TEXT&gt;}
+]</span>
+        <span class="comment">Defines how notes are referenced or embedded. [cite: 13812]</span>
+    </div>
+
+    <div id="rule-place-structure" class="grammar-rule">
+        <span class="rule-id">PLACE_STRUCTURE:=</span>
+        <span class="expression">n PLAC &lt;PLACE_NAME&gt;
+  [+1 FORM &lt;PLACE_HIERARCHY&gt;]
+  [+1 MAP
+    +2 LATI &lt;PLACE_LATITUDE&gt;
+    +2 LONG &lt;PLACE_LONGITUDE&gt;
+  ]
+  {&lt;&lt;NOTE_STRUCTURE&gt;&gt;}</span>
+    </div>
+
+    <div id="rule-source-citation" class="grammar-rule">
+        <span class="rule-id">SOURCE_CITATION:=</span>
+        <span class="expression">[
+  n SOUR @&lt;XREF:SOUR&gt;@
+    [+1 PAGE &lt;WHERE_WITHIN_SOURCE&gt;]
+    [+1 EVEN &lt;EVENT_TYPE_CITED_FROM&gt;
+      [+2 ROLE &lt;ROLE_IN_EVENT&gt;]
+    ]
+    [+1 DATA
+      [+2 DATE &lt;ENTRY_RECORDING_DATE&gt;]
+      [+2 TEXT &lt;TEXT_FROM_SOURCE&gt;
+        {+3 [CONC|CONT] &lt;TEXT_FROM_SOURCE&gt;}
+      ]
+    ]
+    {&lt;&lt;MULTIMEDIA_LINK&gt;&gt;}
+    {&lt;&lt;NOTE_STRUCTURE&gt;&gt;}
+|
+  n SOUR &lt;SOURCE_DESCRIPTION&gt;
+    {+1 [CONC|CONT] &lt;SOURCE_DESCRIPTION&gt;}
+    {&lt;&lt;NOTE_STRUCTURE&gt;&gt;}
+]</span>
+        <span class="comment">Either a reference to a source record or an inline description. [cite: 13872]</span>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,149 @@
+General Attributes and Data Primitives
+
+ADDRESS_CITY {Size=1:60}: The name of the city used in the address. 
+
+
+ADDRESS_COUNTRY {Size=1:60}: The name of the country used in the address. 
+
+
+ADDRESS_EMAIL {Size=5:120}: An electronic mail address. 
+
+
+ADDRESS_FAX {Size=1:60}: A FAX telephone number. 
+
+
+ADDRESS_LINE {Size=1:60}: One line of an address. 
+
+
+ADDRESS_POSTAL_CODE {Size=1:10}: The ZIP or postal code. 
+
+
+ADDRESS_STATE {Size=1:60}: The name of the state or province. 
+
+
+ADDRESS_WEB_PAGE {Size=1:2048}: The World Wide Web address (URL). 
+
+
+AGE_AT_EVENT {Size=1:13}: A code indicating the age of the person at the time of the event. 
+
+
+ANCESTORS_INTEREST {Size=1:248}: Description of ancestors being sought. 
+
+
+ATTRIBUTE_TYPE {Size=4:4}: A classification of the individual attribute (e.g., CAST, EDUC, OCCU). 
+
+
+AUTOMATED_RECORD_ID {Size=1:12}: A unique number assigned to a record by a system. 
+
+
+CASTE_NAME {Size=1:90}: Name of a person's caste. 
+
+
+CAUSE_OF_EVENT {Size=1:90}: Used in a DEAT record to describe the cause of death. 
+
+
+CHARACTER_SET {Size=5:8}: The name of the character set used (e.g., UTF-8). 
+
+
+COPYRIGHT_GEDCOM_FILE {Size=1:90}: A copyright statement for the data in the GEDCOM file. 
+
+
+COUNTY_OF_RECORDING {Size=1:90}: The name of the county where the record was created. 
+
+Names and Phonetics
+
+NAME_PERSONAL {Size=1:120}: A person’s name, with the surname enclosed in slashes (e.g., William Lee /Parry/). 
+
+
+NAME_PHONETIC {Size=1:120}: A phonetic variation of the name. 
+
+
+NAME_PIECE {Size=1:90}: A component of a name (given, surname, etc.). 
+
+
+NAME_PIECE_GIVEN {Size=1:120}: Given name or earned name. 
+
+
+NAME_PIECE_NICKNAME {Size=1:120}: A descriptive or familiar name. 
+
+
+NAME_PIECE_PREFIX {Size=1:30}: Non-indexing title preceding a name (e.g., Lt. Col.). 
+
+
+NAME_PIECE_SUFFIX {Size=1:30}: Non-indexing title following a name (e.g., Jr.). 
+
+
+NAME_PIECE_SURNAME {Size=1:120}: Family name or surname. 
+
+
+NAME_PIECE_SURNAME_PREFIX {Size=1:30}: Surname prefix (e.g., de, van). 
+
+
+NAME_ROMANISED {Size=1:120}: A romanised variation of the name. 
+
+
+PHONETISATION_METHOD {Size=5:30}: The method used for phonetic transcription (e.g., kana, hangul). 
+
+
+ROMANISATION_METHOD {Size=5:30}: The method used for romanised transcription (e.g., pinyin, romaji). 
+
+Miscellaneous Primitives
+
+LANGUAGE_ID {Size=1:15}: A code representing the language (e.g., English). 
+
+
+LDS_BAPTISM_DATE_STATUS {Size=5:10}: Status of an LDS baptism. 
+
+
+NATIONAL_ID_NUMBER {Size=1:30}: A nationally assigned identifier (e.g., SSN). 
+
+
+NATIONAL_OR_TRIBAL_ORIGIN {Size=1:120}: Person’s national or tribal origin. 
+
+
+OCCUPATION {Size=1:90}: Person’s trade or profession. 
+
+
+ORDI_STAT {Size=3:10}: Status of an LDS ordinance. 
+
+
+PHONE_NUMBER {Size=1:25}: A telephone number. 
+
+
+PLACE_LATITUDE {Size=5:8}: Latitude coordinate of a place. 
+
+
+PLACE_LONGITUDE {Size=5:9}: Longitude coordinate of a place. 
+
+
+PLACE_NAME {Size=1:120}: The name of the jurisdiction or place. 
+
+
+RELIGIOUS_AFFILIATION {Size=1:90}: Name of the religion. 
+
+
+RESPONSIBLE_AGENCY {Size=1:120}: The organization responsible for the data. 
+
+
+RESTRICTION_NOTICE {Size=6:7}: A code indicating privacy restrictions (confidential, locked, or privacy). 
+
+
+ROLE_IN_EVENT {Size=1:15}: The role played by the person in the event (e.g., WITN, BRID). 
+
+
+SCHOLASTIC_ACHIEVEMENT {Size=1:248}: Description of educational pursuit. 
+
+
+SEX_VALUE {Size=1:1}: Code for the sex of an individual (M, F, X, U). 
+
+
+SOCIAL_SECURITY_NUMBER {Size=9:11}: Specifically for US Social Security Numbers. 
+
+
+SOURCE_DESCRIPTIVE_TITLE {Size=1:248}: Title of the source. 
+
+
+USER_REFERENCE_NUMBER {Size=1:20}: A user-assigned identification number. 
+
+
+USER_REFERENCE_TYPE {Size=1:40}: Type classification for the user reference

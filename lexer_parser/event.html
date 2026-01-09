@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GEDCOM 5.5.5 ENTRY and EVENT Primitives</title>
+    <style>
+        body { font-family: 'Courier New', Courier, monospace; line-height: 1.6; padding: 20px; background-color: #f4f7f6; }
+        h1 { color: #2c3e50; border-bottom: 3px solid #16a085; padding-bottom: 10px; }
+        .grammar-rule { 
+            background: #ffffff; 
+            border: 1px solid #d1d8e0;
+            border-left: 6px solid #16a085; 
+            padding: 15px; 
+            margin-bottom: 15px; 
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .rule-id { font-weight: bold; color: #2c3e50; display: block; margin-bottom: 8px; font-size: 1.1em; }
+        .expression { color: #2980b9; white-space: pre-wrap; font-weight: bold; }
+        .comment { color: #7f8c8d; font-style: italic; font-size: 0.9em; margin-top: 10px; display: block; }
+        .metadata { color: #e67e22; font-weight: normal; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <h1>GEDCOM 5.5.5 Entry & Event Primitives</h1>
+
+    <div id="rule-entry-recording-date" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:90}</span> ENTRY_RECORDING_DATE:=</span>
+        <span class="expression">&lt;DATE_VALUE&gt;</span>
+        <span class="comment">The date that this event data was entered into the original source document.</span>
+    </div>
+
+    <div id="rule-event-attribute-type" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:15}</span> EVENT_ATTRIBUTE_TYPE:=</span>
+        <span class="expression">[ &lt;EVENT_TYPE_INDIVIDUAL&gt; | &lt;EVENT_TYPE_FAMILY&gt; | &lt;ATTRIBUTE_TYPE&gt; ]</span>
+        <span class="comment">A code that classifies the principal event or happening that caused the source record entry to be created.</span>
+    </div>
+
+    <div id="rule-event-descriptor" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:90}</span> EVENT_DESCRIPTOR:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">Text describing a particular event pertaining to the individual or family. This value is usually assigned to the EVEN tag.</span>
+    </div>
+
+    <div id="rule-event-type-family" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=3:4}</span> EVENT_TYPE_FAMILY:=</span>
+        <span class="expression">[ ANUL | CENS | DIV | DIVF | ENGA | MARB | MARC | MARL | MARR | MARS | RESI | EVEN ]</span>
+        <span class="comment">The classification of a family event[cite: 7].</span>
+    </div>
+
+    <div id="rule-event-type-individual" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=3:4}</span> EVENT_TYPE_INDIVIDUAL:=</span>
+        <span class="expression">[ ADOP | BAPM | BARM | BASM | BIRT | BLES | BURI | CENS | CHR | CHRA | CONF | CREM | 
+  DEAT | EMIG | FCOM | GRAD | IMMI | NATU | ORDN | RETI | PROB | WILL | EVEN ]</span>
+        <span class="comment">The classification of an individual event[cite: 20].</span>
+    </div>
+
+    <div id="rule-event-or-fact-classification" class="grammar-rule">
+        <span class="rule-id"><span class="metadata">{Size=1:90}</span> EVENT_OR_FACT_CLASSIFICATION:=</span>
+        <span class="expression">&lt;TEXT&gt;</span>
+        <span class="comment">Used by the subordinate TYPE tag to further classify the event or attribute (e.g., "Civic Appointments").</span>
+    </div>
+
+</body>
+</html>
