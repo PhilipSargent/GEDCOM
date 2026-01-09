@@ -129,6 +129,10 @@ bool           testat(int,int,int) const;
 class displaytree {
 
   indidisplay   *treetop;
+#ifdef fix0003
+  GEDCOM_object *treecurrent;
+  indidisplay   *indicurrent;
+#endif
   int            xMax[MAX_TREE_GENERATIONS];
   int            ymax;   // "ymin" would be zero
   int            xmin;   // xMin should be zero
@@ -139,11 +143,18 @@ class displaytree {
   int            gap;
 
 public:
+#ifdef fix0003
+               displaytree( GEDCOM_object*, GEDCOM_object* );
+#else
                displaytree( GEDCOM_object* );
+#endif
                ~displaytree();
 indidisplay   *gettop() const;
 #ifdef fix0002
 indidisplay   *findindi( GEDCOM_object* );
+#endif
+#ifdef fix0003
+indidisplay   *getcurrent() const;
 #endif
 void           buildtree();
 void           addmarriages( indidisplay* );

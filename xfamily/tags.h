@@ -1,3 +1,4 @@
+#include "fixes.h"
 extern GEDCOM_tag *DATE_tag;
 extern GEDCOM_tag *NAME_tag;
 extern GEDCOM_tag *INDI_tag;
@@ -57,4 +58,6 @@ extern GEDCOM_tag *fams_tag;
 extern GEDCOM_tag *sours_tag;
 extern GEDCOM_tag *repos_tag;
 extern GEDCOM_tag *trlrs_tag;
-
+#ifdef fix0004
+extern GEDCOM_tag *ephem_tag;
+#endif

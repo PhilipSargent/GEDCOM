@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string>
 
+#include "fixes.h"
 #include "classes.h"
 #include "family.h"
 #include "trees.h"
@@ -29,6 +30,9 @@ treeinstance::treeinstance() :
   maxSOURid (-1),
   repocount (0),
   maxREPOid (-1),
+#ifdef fix0004
+  ephemnext (0),
+#endif
   modified (false)
 {
 #ifdef debugging
@@ -42,6 +46,9 @@ treeinstance::treeinstance() :
   rootobject->add_subobject( sourlist = new GEDCOM_object( sours_tag ));
   rootobject->add_subobject( repolist = new GEDCOM_object( repos_tag ));
   rootobject->add_subobject( trlrlist = new GEDCOM_object( trlrs_tag ));
+#ifdef fix0004
+  rootobject->add_subobject( ephemlist = new GEDCOM_object( ephem_tag ));
+#endif
   firstview = new mainUI(this); // is this required ?
   statsbox = new statsUI(this);
 #ifdef debugging
@@ -52,6 +59,9 @@ treeinstance::treeinstance() :
 treeinstance::~treeinstance() {
 mainUI * view;
 mainUI * eyesore;
+#ifdef destructorlogs
+  printf("~treeinstance %ld, firstview %ld, statsbox %ld, rootobject %ld\n",(long)this,(long)firstview,(long)statsbox,(long)rootobject);
+#endif
   eyesore = firstview;
   while (eyesore != NULL) {
     view = eyesore->getnext();
@@ -265,7 +275,11 @@ FILE* in;
     if (level == levelnow[currlist] + 1)
       SubTl[currlist][levelnow[currlist]+1]->add_subobject( object );
     else
+#ifdef fix0006
+      object->insert_after( SubTl[currlist][level] );
+#else
       SubTl[currlist][level]->chain_object( object );
+#endif
     levelnow[currlist] = level;
     SubTl[currlist][level] = object;  // object->next will get set for same level
     SubTl[currlist][level+1] = object;// object->sub will get set for a sub
@@ -275,6 +289,17 @@ FILE* in;
   fclose( in );
 }
 
+#ifdef fix0004
+void treeinstance::add_ephemera( GEDCOM_object* thing ) {
+  ephemlist->add_subobject( thing );
+}
+
+int treeinstance::ephemnextref() {
+  this->ephemnext++;
+  return this->ephemnext;
+}
+#endif
+
 void treeinstance::setfilename( char* newfile ) {
   filename = newfile;
 }
@@ -282,13 +307,70 @@ void treeinstance::setfilename( char* newfile ) {
 void treeinstance::save() const {
 
 FILE* out;
-int   level = -2;
-
+#ifdef debugging
+  printf("About to try to save to %s\n", filename );
+#endif
   if ((out = fopen( filename, "w" )) == NULL) {
     printf("fl_alert msg_outopenfail");
   }
-  rootobject->output( out, level );
-  fclose(out);
+  else {
+#ifdef fix0005
+  int level = -1;
+  GEDCOM_object* trlritem;
+  GEDCOM_object* oldnote;
+  GEDCOM_object* newnote;
+  GEDCOM_object* person;
+  mainUI* view;
+
+    headlist->output( out, level );
+    indilist->output( out, level );
+    famslist->output( out, level );
+    sourlist->output( out, level );
+    repolist->output( out, level );
+    trlritem = trlrlist->subobject();
+    // first, remove the old NOTE objects saying who were current person(s)
+    while (trlritem!=NULL) {
+      if (trlritem->objtype()==NOTE_tag) {
+        oldnote = trlritem;
+        trlritem = trlritem->next_object();
+        trlrlist->delete_subobject(oldnote);
+      } else {
+        trlritem = trlritem->next_object();
+      }
+    }
+
+    trlritem = trlrlist->subobject( TRLR_tag );
+    // now insert a single 0 NOTE Person <name> for the current person on the
+    // first view we have open
+    // then insert 0 NOTE View <indi-id> for the curent person on EACH view we have open
+    person = firstview->getcurrent();
+    // we should never get a view with no current person - unless we have an empty tree,
+    // but we need to code defensively at this stage..
+    if (person!=NULL) {
+      newnote = new GEDCOM_object( NOTE_tag, (new GEDCOM_string("Person ", person->subobject( NAME_tag )->value() ))->string());
+      newnote->insert_before( trlritem );
+      // this needs a way to insert the "@"s
+      newnote = new GEDCOM_object( NOTE_tag, (new GEDCOM_string("View @", person->getidname(), "@" ))->string());
+      newnote->insert_before( trlritem );
+    }
+    view = firstview->getnext();
+    while ( view!=NULL ) {
+      person = view->getcurrent();
+      if (person!=NULL) {
+        newnote = new GEDCOM_object( NOTE_tag, (new GEDCOM_string("View @", person->getidname(), "@" ))->string());
+        newnote->insert_before( trlritem );
+      }
+      view = view->getnext();
+    }
+    trlrlist->output( out, level );
+        
+#else
+  int level = -2;
+
+    rootobject->output( out, level );
+#endif
+    fclose(out);
+  }
 }
 
 char* treeinstance::getfilename() const {
@@ -561,7 +643,7 @@ return NULL; // no more matches in the tree
 
 // !Family compatability
 
-GEDCOM_object* treeinstance::noted_current() const {
+GEDCOM_object* treeinstance::noted_person() const {
 
 // a GEDCOM file loaded from !Family will have a level 0 NOTE (which will
 // therefore be in the TRLR list from TRLRs[instance]) containing the word
@@ -587,6 +669,51 @@ char* searchname;
   // we imagine we have, in order to create the new one. That would lose our
   // const-ness
 }
+
+// xfamily replacement idiom
+
+GEDCOM_object* treeinstance::noted_view( GEDCOM_object* start) const {
+
+// a GEDCOM file saved by xfamily should have one or more level 0 NOTE
+// object(s) followed by the word "View" and an indi id, representing
+// the current person on each view that was open at the time the file
+// was saved.
+// We need to be able to return more than one GEDCOM_object pointer,
+// but we can't return a linked list - the links are part of the object,
+// and INDI objects will already have links.
+// So we have the caller supply a GEDCOM_object in trlrlist as a parameter
+// and traverse that linked list finding the next 0 NOTE View object and
+// returning it. The caller can then extract the reference to an INDI,
+// open a view, and call us again with the 0 NOTE View object for us to return
+// the next one (or NULL). Since the caller doesn't have access to trlrlist,
+// he must call us passing NULL the first time - we have it as a private
+// variable, so we can use it...
+// If there are no (more) NOTE View objects, we return NULL
+
+GEDCOM_object* trythis;
+char* searchref;
+
+  trythis = start;
+  if (trythis == NULL) {
+    trythis = trlrlist->subobject( NOTE_tag );
+  } else {
+    trythis = trythis->next_object( NOTE_tag );
+  }
+  while (trythis != NULL) {
+    if ( strncmp( searchref=(trythis->value()), "View ", 5)==0 ) {
+      return trythis;
+    }
+    trythis = trythis->next_object( NOTE_tag );
+#ifdef debugging
+    if (trythis!=NULL) {
+      printf("Found another 0 NOTE\n");
+      trythis->print( 0 );
+    }
+#endif
+  }
+  return trythis;
+}
+
 
 // access to windows dealing with this tree:
 

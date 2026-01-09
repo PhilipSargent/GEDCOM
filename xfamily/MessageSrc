@@ -1,5 +1,5 @@
 en, fr
-English, Fran�ais
+English, Français
 
 nomsg
 en::No message file for this language
@@ -61,7 +61,7 @@ fr::<anonyme>
 
 info_title
 en::About this program
-fr::à propos de cette programme
+fr::À propos de cette programme
 
 menu_file
 en::File
@@ -179,7 +179,7 @@ fr::Modifiez
 
 menu_notes
 en::Notes
-fr::R�marques
+fr::Rémarques
 
 menu_marry
 en::Marry
@@ -211,7 +211,7 @@ fr::Rapports
 
 menu_ancs
 en::Ancestors
-fr::Anc�tres
+fr::Ancétres
 
 info_name
 en::Name
@@ -233,7 +233,7 @@ en::X!Family
 fr::X!Famille
 
 author
-en,fr::© A.E.R.Waddington, 2009
+en,fr::© A.E.R.Waddington, 2013
 
 version
 en::v 0.17 alpha 2013-01-14 en-gb
@@ -249,7 +249,7 @@ fr::Calendrier
 
 gregorian
 en::Gregorian
-fr::Grégorien
+fr::Gr�gorien
 
 julian
 en::Julian
@@ -340,7 +340,7 @@ fr::Sexe
 
 male
 en::Male
-fr::Mále
+fr::Mâle
 
 female
 en::Female
@@ -531,7 +531,7 @@ en,fr::ISO-8601
 
 prefs_replocal
 en::As Locale
-fr::Localit�
+fr::Localité
 
 prefs_repother
 en::Other:

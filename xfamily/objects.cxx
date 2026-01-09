@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "fixes.h"
 #include "classes.h"
 #include "family.h"
 
@@ -17,6 +18,9 @@
 // class GEDCOM_tag:  all the tags we "know" about and any new ones we
 //                    find in a GEDCOM file get kept in a linked list
 // which should be global to the whole program.
+// We don't define a destructor - we should never need to lose a tag
+// once we've seen it (and being able to dump a list of every tag we've
+// ever seen might help debug typos in GEDCOM files)
 
 // Statically allocate space for pointers to tags. Real values get set up
 // by GEDCOM_base_taglist() at run time.
@@ -115,11 +119,22 @@ GEDCOM_id::GEDCOM_id( char *newid ) {
   next = NULL;
 }
 
+#ifdef fix0004
+GEDCOM_id::GEDCOM_id( char *prefix, int suffix ) {
+  sprintf( id, "%s%i", prefix, suffix );
+  object = NULL;
+  next = NULL;
+}
+#endif
+
 GEDCOM_id::~GEDCOM_id() {
 
 // should only ever be called from tree::drop_id, which should already
 // have removed us from its linked list and have in hand the destruction
 // of the object to which we point.
+#ifdef destructorlogs
+  printf("~GEDCOM_id %ld, object %ld, next %ld (ought to be NULL already)\n",(long)this,(long)object,(long)next);
+#endif
 }
 
 char *GEDCOM_id::GEDCOM_idname() const {
@@ -155,17 +170,42 @@ GEDCOM_string::GEDCOM_string( char* callers_string ) {
   if (thestring!=NULL) strcpy( thestring, callers_string );
 }
 
+#ifdef fix0004
+// often we will generate an id by passing a prefix letter and a serial number
+GEDCOM_string::GEDCOM_string( char* prefix, char* suffix ) {
+  thestring = (char*)malloc( strlen(prefix)+strlen(suffix)+1 );
+  if (thestring!=NULL) {
+    strcpy( thestring, prefix );
+    strcat( thestring, suffix );
+  }
+}
+
+GEDCOM_string::GEDCOM_string( char* prefix, char* meat, char* suffix ) {
+// sometimes we need to create a value with a reference, so prefix/suffix will typically be "@"
+  thestring = (char*)malloc( strlen(prefix)+strlen(meat)+strlen(suffix)+1 );
+  if (thestring!=NULL) {
+    strcpy( thestring, prefix );
+    strcat( thestring, meat );
+    strcat( thestring, suffix );
+  }
+}
+#endif
+
 GEDCOM_string::GEDCOM_string( size_t size ) {
   thestring = (char*)malloc( size );
 }
 
 GEDCOM_string::~GEDCOM_string() {
+#ifdef destructorlogs
+  printf("~GEDCOM_string %ld, string %ld\n",(long)this,(long)this->thestring);
+#endif
   if (thestring!=NULL) free(thestring);
 }
 
 char* GEDCOM_string::string() const {
   return (char*)thestring;
 }
+
 
 /////////////////////////////////////////////////////////////////////////////
 // class GEDCOM_object: pretty much all the other data we use is held in
@@ -302,6 +342,19 @@ bool GEDCOM_object::delete_subobject( GEDCOM_object *oldobj ) {
 // find the object and remove it from the chain of subobjects of this. Then
 // destroy it utterly, including all subobjects
 
+// FIXME what happens if we are currently traversing the chain ? - it's OK as
+// long as we don't retain a pointer to the item we're deleting. If we have a
+// pointer to it's preceding object, the next pointer will be updated to point
+// after the deleted object, so that's OK; if we have a pointer to the following
+// object, nothing that changes will affect us.
+
+// clarification: oldobj can never be the subobject of more than one object, so it
+// is always safe to destroy a subobject once it has been removed from its parent
+// (the fact that other objects may still point to it by reference is not our concern
+// here - we assume that the caller is aware of this and has already flagged those
+// other objects to be deleted, too - that *must* occur at a higher level because of
+// the potential ramifications...)
+
   GEDCOM_object *subchain=sub;
   GEDCOM_object *sublast=NULL;
   GEDCOM_object *cull;
@@ -348,25 +401,90 @@ bool GEDCOM_object::delete_subobject( GEDCOM_object *oldobj ) {
 
 
 void GEDCOM_object::chain_object( GEDCOM_object *newobj ) {
+// FIXME, we are using an illogical mix of methods and direct access to variables
 
 // adds newobj as the next subobject of this's parent
-// ie. inserts in chain after this (and before this->next if there is one)
+// ie. inserts in chain after this (and before this->next if there is one,
+// but it is perfectly valid to be inserting it as the last object so we
+// can still go ahead if next==NULL)
 
-  // if (next!=NULL) {
-    newobj->next = next;
-  // } nah, we should add it even if it is NULL, cos its harmless and quicker
+// logic says call this "insert_after", but that gives the impression that
+// we are inserting this after newobj, and it's the other way round. But we
+// do seem to have access to newobj's private variables, so we could equally
+// well have done it the other way. Maybe implemente both ways and see which
+// seems cleaner ?
+
+  newobj->next = next;
   next = newobj;
-  // we should be checking newobj->parent() == this->parent() [myparent]
-  // or are we confident that it has not been set ? So set it:
   newobj->setparent( myparent );
 }
 
-GEDCOM_object::~GEDCOM_object() {
-  //printf("Destroying GEDCOM_object at %ld\n",(long)this);
-  if (val!=NULL) {
-#ifdef debugging
-   printf("Destroying value '%s' at %ld\n",val->string(),(long)val);
+// we are a singly-linked list, so "insert before" is a bit harder, but clearly we
+// will need this or similar for changing the order of CHIL and MARR objects in a
+// FAM
+
+void GEDCOM_object::precede_object( GEDCOM_object *newobj ) {
+// FIXME, we are using an illogical mix of methods and direct access to variables
+
+// adds newobj as the subobject of this's parent *preceding* this
+GEDCOM_object *oldobj;
+  oldobj = myparent->subobject();
+  while (oldobj!=this) {
+    if ((oldobj->next)==this) {
+      oldobj->next = newobj;
+      newobj->next = this;
+      newobj->setparent( myparent );
+      return;
+    } else
+      oldobj = oldobj->next;
+      // if that ever comes back as NULL, our GEDCOM is broken ! so segfault ;)
+  } 
+  // only get here if this was the first subobject 
+  myparent->sub = newobj;
+  newobj->next = oldobj;
+  newobj->setparent( myparent );
+}
+
+#ifdef fix0006
+// I'm finding chain_object() and precede_object() a little opaque, so here we
+// will implement insert_before() and insert_after() as being a little more
+// human-readable, and should not actually be more work ?
+// In these routines 'this' is the object to insert and oldobj is an existing
+// subobject which we want to follow or precede in the list.
+
+// FIXME, we are using an illogical mix of methods and direct access to variables
+
+void GEDCOM_object::insert_after( GEDCOM_object *oldobj ) {
+
+  this->next = oldobj->next;
+  oldobj->next = this;
+  this->setparent( oldobj->parent() );
+}
+
+void GEDCOM_object::insert_before( GEDCOM_object *oldobj ) {
+GEDCOM_object *preobj;
+  preobj = oldobj->parent()->subobject();
+  while (preobj!=oldobj) {
+    if ((preobj->next)==oldobj) {
+      preobj->next = this;
+      this->next = oldobj;
+      this->setparent( oldobj->parent() );
+      return;
+    } else
+      preobj = preobj->next;
+  }
+  // only get here if oldobj was the first subobject
+  oldobj->parent()->sub = this;
+  this->next = oldobj;
+  this->setparent( oldobj->parent() );
+}
 #endif
+
+GEDCOM_object::~GEDCOM_object() {
+#ifdef destructorlogs
+  printf("~GEDCOM_object %ld, val %ld, next %ld, sub %ld (last two ought to be NULL already)\n",(long)this,(long)val,(long)next,(long)sub);
+#endif
+  if (val!=NULL) {
    delete val;
   }
   // AERW 2003-12-24 what about subobjects ? if we evaporate whilst subobjects
@@ -463,7 +581,7 @@ GEDCOM_object *then;
 // first subobject of an object, so you don't get the actual object line
 // (and if you did, then you get the rest of the file...)
 
-// if we have an object wth no value, reference or subobjects, we should not
+// if we have an object with no value, reference or subobjects, we should not
 // output it at all - in all probability it is an ephmeral object which only
 // exists whilst we have an indiUI or famUI open, or it is an error in the
 // GEDCOM. This is certainly true for the events, should never happen for
@@ -476,6 +594,21 @@ GEDCOM_object *then;
     }
     else this->outline( out, level );
   }
+  // OK, here we need an else and do some checking on which object we
+  // are about to deal with. at level -2 it should be root, whilst
+  // at level -1 it will be one of the main list objects. trlrlist
+  // should contain a number of 0 NOTE objects, and these will reflect
+  // the current person at the time the GEDCOM was loaded. These will
+  // be out of date, and we will want to generate a new trlr_list before
+  // dropping back to output the objects. However, we probably can't see
+  // enough to identify trlr_list, which is a private variable of treeinstance
+
+  // we are being called from treeinstance::save() as rootobject->output()
+  // maybe we need to set level one higher and call output once each for
+  // headlist, indilist, famslist,sourlist,repolist and trlrlst
+  // both headlist and trlrlist will need to be modified - need to write
+  // another devel-doc ...
+  
   if ((then=sub)!=NULL) then->output( out, level+1 );
   if ((then=next)!=NULL) then->output( out, level );
 }
@@ -490,6 +623,30 @@ void GEDCOM_object::outline( FILE* out, int level ) const {
     fprintf( out,"\n");
 
 }
+
+#ifdef debugging
+void GEDCOM_object::print( int level ) const {
+
+// when debugging, we want to print everything, even if it has no value, reference or subobjects
+// but we probably only want to print one object (and its subobjects). To do this, call with level
+// 0.
+
+GEDCOM_object *then;
+  this->printline( level );
+  if ((then=sub)!=NULL) then->print( level+1 );
+  if (level>0) { if ((then=next)!=NULL) then->print( level ); }
+}
+
+void GEDCOM_object::printline( int level ) const {
+  printf( "%d",level);
+  if (id!=NULL) printf(" @%s@",id->GEDCOM_idname());
+  printf(" %s",tag->GEDCOM_namefromtag());
+  if (ref!=NULL) printf(" @%s@",ref->GEDCOM_idname());
+  if (val!=NULL) printf(" %s",val->string());
+  printf( "\n");
+}
+
+#endif
 
 // methods appropriate for objects which have an @id@ such as INDI, SOUR, REPO, FAM
 

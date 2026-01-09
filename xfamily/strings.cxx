@@ -11,7 +11,7 @@ char *languages[] = {
 
 char *languagenames[] = {
   "English",
-  "Français"
+  "FranÃ§ais"
 };
 
 char msg_nomsg[MAX_nomsg];

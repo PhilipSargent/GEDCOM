@@ -3,13 +3,16 @@
 # is definitely not going to work - and the directory name we run from
 # is built into the code at present, so the program can't be moved anyway
 
+# However, we haven't defined how to build the messages and xlate source
+# files from MessageSrc using StringFactory.py, nor the tag source files
+# with TagFactory.py
+
 PROGRAM = XFamily
 
 # if you have an older/newer version of FLTK, or have installed it in a
 # non-standard place, you will need to change this line.
-# X!Family is known to work with 1.0.6, 1.0.9 and 1.1.4, but loses its window's
-# "maximise" icon under at least 1.1.5 and 1.1.6, and all the menus are empty
-# in 1.1.6 on Debian-sparc :-( Time to read the 1.1.x docs, I think !
+# X!Family is known to work with 1.3.0 on precise, fixing several bugs which appeared
+# with 1.0.x and 1.1.x versions. Don't use older fltk versions !
 FLTKHOME = /usr/include/FL
 FLTKLIB  = /
 
@@ -26,9 +29,10 @@ CPPFILES = \
 
 OBJECTS = $(CPPFILES:.cxx=.o)
 
-# we want to find the leafname dynamically PWLEAF = $(PWD##*/)
+# we want to find the leafname dynamically PWLEAF = ${PWD##*/}
 # but have had no success as yet
-PWLEAF = v016
+PWLEAF=${PWD##*/}
+#PWLEAF = v017
 
 include makeinclude
 

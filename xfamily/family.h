@@ -34,7 +34,14 @@
 // maximum amount of text we will place on a line before splitting with CONC
 // when we are putting arbitrary user-supplied strings into GEDCOM tag lines
 
-#define MAX_GEDCOM_text 80
+// 2013-01-14 this is causing us to split lines in existing GEDCOM files,
+// which makes doing diff between loaded and saved files get filled with
+// diffs between unsplit and split lines. This means that useful debugging
+// differences are getting lost in the noise, so temporarily increase this
+// to a safe value which is longer than any lines in our test file. The
+// original value was 80.
+
+#define MAX_GEDCOM_text 200
 
 // maximum depth of GEDCOM structure we expect - GEDCOM generating software
 // will need to be being deliberately perverse to exceed this, although it

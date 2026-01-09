@@ -1,0 +1,137 @@
+main UI
+
+  Fl_Window* w = window = new Fl_Window(600, 400);
+  w->labeltype(FL_NORMAL_LABEL);
+  w->resizable(scroll);
+  w->size_range(400,100,maxX,maxY);
+
+don't really understand how things inside the main window get associated
+with the window, though we can see how they are set up...
+
+  Fl_Menu_Bar* o = main_menu = new Fl_Menu_Bar( 0, 0, 600, 25);
+  Fl_Scroll* o = scroll = new Fl_Scroll(0,25,600,375);
+  o->type(Fl_Scroll::BOTH_ALWAYS);
+    { treedisplay* o = main = new treedisplay(0,25,maxX-17,maxY-42);
+      o->setview( this );
+    ...
+
+main window has close, all-desktops, minimise, maximise, scrollbars and is resizable
+
+-------------
+
+indi UI
+
+  { Fl_Window* o = indi_dbox = new Fl_Window( dboxwidth, dboxheight, buf_indi_title );
+
+indi dbox has close, all-desktops, minimise, isn't resizeable
+
+-------------
+
+fam UI
+
+  { Fl_Window* o = fam_dbox = new Fl_Window( dboxwidth, dboxheight, buf_fam_title ); // *not* msg_fam_title :-)
+
+fam dbox has close, all-desktops, minimise, isn't resizeable
+
+-------------
+
+stats UI
+
+  { Fl_Window* o = statsdbox = new Fl_Window(520, 165, msg_stats_title);
+
+stats dbox has close, all-desktops, minimise, isn't resizeable and currently isn't big enough !!
+ Minimise seems a little pointless, as it doesn't update until you close and reopen it. So it
+ probably should be modal.
+
+-------------
+
+find UI
+
+  { Fl_Window* o = findbox = new Fl_Window(500, 65, msg_find_title);
+    o->labeltype(FL_NO_LABEL);
+    o->hotspot( find_ok, 0);
+
+find dbox has close, all-desktops, minimise, isn't resizeable and currently isn't big enough !!
+
+It probably ought to be modal and not have minimise
+
+-------------
+
+completions UI
+
+  { Fl_Window* o = completionswin = new Fl_Window( 400, 500, msg_completions_title );
+    o->labeltype(FL_NO_LABEL);
+
+completions window has close, all-desktops, minimise, maximise, vertical scrollbar and is resizable,
+but really ought to be a fixed width (we've calculated column widths to fit the data we are going
+to display, so resizing the window horizontally makes very little sense).
+
+Having a minimise button is a bit off, as you can minimise it and forget it's there, which
+has side effects if you want to open a new one (the old one gets closed, but the new one
+kinda remembers where it was...)
+
+-------------
+
+info UI
+
+  Fl_Window* w = info_panel = new Fl_Window( 520, 210, msg_info_title );
+  w->labeltype(FL_NORMAL_LABEL);
+  w->set_non_modal();
+
+info window has close, all-desktops, minimise, isn't resizeable and currently isn't big enough
+ if you click on the © button. Also, when you do that, the OK button obscures some of
+ the text. Altogether rather shambolic :-(
+
+info UI shouldn't have a minimise button, and should probably be modal.
+OK, removing w->set_non_modal(); didn't help and adding
+w->set_modal(); left infoUI with a minimise icon still, which when clicked,
+resulted in the window disappearing, with nothing on the task bar, but the
+remaining mainUI windows totally unresponsive
+
+-------------
+
+pref UI
+
+  { Fl_Window* o = optsbox = new Fl_Window(460, 315, msg_prefs_title);
+    o->color(50);
+    o->labeltype(FL_NORMAL_LABEL);
+
+prefs dbox has close, all-desktops, minimise, isn't resizeable
+
+-------------
+
+notes UI
+
+  window = new Fl_Window(720, 305, notes_title);
+  window->resizable(input);
+
+notes window has close, all-desktops, minimise, maximise and is resizeable, but needs,
+ and doesn't have, scrollbars. It has what looks like a menu bar (and indeed, looking
+ at the code, that's what it is), but which really acts like a load of buttons.
+ As such, the buttons should be made to look like buttons, and should be at the
+ bottom of the window, not the top.
+
+OK, so the text is displayed in an   input = new Fl_Multiline_Input(0, 55, 720, 250);
+can we put that inside an Fl_Scroll ?
+
+Alternative approach is to use an Fl_Text_Display - this seems to have worked,
+using fix0007, except that a Text_Display expects us to have callbacks for all
+the editing things, so perhaps we now need to change it to an Fl_Text_Editor
+widget instead... - remarkable, we changed just four lines and that worked :-)
+
+-------------
+
+A number of the windows uses the current tree filename in the title, but
+are not really big enough - indiUI, famUI, ...
+
+notes UI has the filename in the window title, but not the name of the FAM or
+INDI (or event) on which it is raised, which makes it hard to identify in
+the task bar if you have a load open (and maybe minimised)
+
+findUI and completions UI have no indication in the window title of the
+filename.
+
+main UI title includes filename and current INDI name, but perhaps
+in the wrong order, but that's debatable. Which bit of info is more
+important if you have a small bit of tree displayed so there isn't
+room for both ?

@@ -1,3 +1,4 @@
+#include "fixes.h"
 DATE_tag = new GEDCOM_tag("DATE");
 NAME_tag = new GEDCOM_tag("NAME");
 INDI_tag = new GEDCOM_tag("INDI");
@@ -57,4 +58,6 @@ fams_tag = new GEDCOM_tag("fams");
 sours_tag = new GEDCOM_tag("sours");
 repos_tag = new GEDCOM_tag("repos");
 trlrs_tag = new GEDCOM_tag("trlrs");
-
+#ifdef fix0004
+ephem_tag = new GEDCOM_tag("ephemera");
+#endif

@@ -3,6 +3,8 @@
 #ifndef gui_h
 #define gui_h
 
+#include "fixes.h"
+
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Box.H>
@@ -20,9 +22,16 @@
 #include <FL/Fl_Tile.H>
 #include <FL/Fl_Select_Browser.H>
 
+#ifdef fix0007
+#include <FL/Fl_Text_Buffer.H>
+#include <FL/Fl_Text_Display.H>
+#include <FL/Fl_Text_Editor.H>
+#endif
+
 #include "classes.h"
 #include "family.h"
 #include "languages.h"
+#include "fixes.h"
 
 ///////////////// menu structures used by the GUIs ///////////////
 
@@ -138,7 +147,7 @@ public:
 class indiUI {
 //
 // the user interface for editing an individual's details
-// there is must be only one instanciation of this dbox for any one
+// there must be only one instanciation of this dbox for any one
 // individual. The input values must be personalised for each individual.
 // The labels remain unchanged except for the window title which should
 // be "Edit John Doe (Innnn in test.ged)" or "Edit new person in test.ged",
@@ -146,8 +155,14 @@ class indiUI {
 // was opened in response to the "child of" menu item, we should be able
 // to deduce a surname and we could use "Edit new child Bloggs"
 
-  GEDCOM_object *who;
-  treeinstance  *which;
+  treeinstance  *which;  // the treeinstance from which this indiUI was opened
+  GEDCOM_object *who;    // pointer to the INDI object representing that person
+#ifdef fix0004
+  GEDCOM_object *mum;    // pointer to the female parent of the person
+  GEDCOM_object *dad;    // pointer to the male parent of the person
+  GEDCOM_object *fam;    // pointer to a FAM object for the person and parents
+  // each (or all) of the above may be ephemeral objects which exists only whilst indiUI open
+#endif
   indiUI        *next;
   indiUI        *previous;
   char buf_indi_title[MAX_indititle];
@@ -486,10 +501,15 @@ class notesUI {
   bool modified;
 
 public:
-  Fl_Window   *window;
-  Fl_Output   *ident;
-  Fl_Menu_Bar *menubar;
-  Fl_Input    *input;
+  Fl_Window       *window;   // handle of the main window
+  Fl_Output       *ident;    // handle of the text which says what we're editing
+  Fl_Menu_Bar     *menubar;  // handle of the row of buttons (not really a menu, yet)
+#ifdef fix0007
+  Fl_Text_Editor  *scroll;   // handle of the pane which contains the editable text
+  Fl_Text_Buffer  *input;    // an FLTK buffer for that sort of thing
+#else
+  Fl_Input        *input;    // handle of the pane which contain the text
+#endif
 
   notesUI( treeinstance*, GEDCOM_object*, GEDCOM_tag* );
   void status(bool);

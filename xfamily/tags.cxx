@@ -1,3 +1,4 @@
+#include "fixes.h"
 GEDCOM_tag *DATE_tag = NULL;
 GEDCOM_tag *NAME_tag = NULL;
 GEDCOM_tag *INDI_tag = NULL;
@@ -57,3 +58,6 @@ GEDCOM_tag *fams_tag = NULL;
 GEDCOM_tag *sours_tag = NULL;
 GEDCOM_tag *repos_tag = NULL;
 GEDCOM_tag *trlrs_tag = NULL;
+#ifdef fix0004
+GEDCOM_tag *ephem_tag = NULL;
+#endif

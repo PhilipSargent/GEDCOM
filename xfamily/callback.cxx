@@ -15,6 +15,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#include "fixes.h"
+
 #include "classes.h"
 #include "family.h"
 #include "structure.h"
@@ -81,13 +83,6 @@ void language_cb(Fl_Menu_ *, void *index) {
 // callback routines from mainUI menu applying to whole tree
 
 void save_cb( Fl_Menu_ *, void *userdata) {
-// we should find the TRLR section level 0 NOTE object which specifies
-// the current person, and replace its value() with the string
-// "Person "+<name_of_current_person> before writing the file.
-
-// this gets more complex with multiplew views - do we use the current
-// person in this view ? In which case the callback needs to receive
-// the mainUI pointer, not the treeinstance pointer:
 
   mainUI *view = (mainUI*)userdata;
   treeinstance *tree = view->whichtree();
@@ -317,10 +312,13 @@ void canceledit_cb(Fl_Button *, void *userdata) {
 indiUI* indibox = (indiUI*)userdata;
 GEDCOM_object* edited = indibox->whois();
 GEDCOM_object *event, *eventdata;
-// just bin all the changes
-// "changes" in this context includes the creation of dummy events to hang
-// NOTE objects from. We need to garbage collect any dead events (ie. ones
-// with no subobjects). If there are still NOTE objects for any event (eg.
+// just bin all the changes - which may include creation of ephemeral objects (fix0004)
+// "changes" in this context also includes the creation of dummy events (within the
+// main GEDCOM or ephemera) to hang NOTE objects from. We need to garbage collect any
+// dead events (ie. ones with no subobjects). We need to be careful, in that there
+// may be no BIRT, CHR, BAPM, DEAT, CREM or BURI objects at all, but there *may* be
+// other subobjects for which we don't yet provide an interface....
+// If there are still NOTE objects for any event (eg.
 // if there are active notesUI dboxes open), they will persist.
   if ( (eventdata = (event=edited->subobject( BIRT_tag ))->subobject()) == NULL ) {
     // clearly, if it has no subobjects, we can remove it.
@@ -368,9 +366,11 @@ void helpedit_cb(Fl_Button *, void *userdata) {
 }
 
 void searchma_cb(Fl_Button *, void *userdata) {
+// called to create a completions box, searching for a partially-typed mother's name
 }
 
 void searchpa_cb(Fl_Button *, void *userdata) {
+// called to create a completions box, searching for a partially-typed father's name
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -519,7 +519,7 @@ void searchfind_cb(Fl_Button* button, void *userdata) {
 
 void chosenfind_cb( Fl_Select_Browser* chooser, void *userdata ) {
 // userdata is (void*) of the mainUI class ... which for this callback
-// is always going to be a mainUI (ie. a particular view).
+// is always going to be a mainUI (ie. a particular view). erm, see below...
   mainUI* view = (mainUI*)userdata;
   int chosen = chooser->value();
 //  printf("completions selected item %d\n", chosen);
@@ -527,6 +527,12 @@ void chosenfind_cb( Fl_Select_Browser* chooser, void *userdata ) {
   completionsbox->finish();
   // anyone chosen in the completionsbox ought to be a real INDI, so we
   // should never get NULL here, but test anyway:-)
+  // 2013-01-15: this is not going to work !! It's OK when the completions
+  // window was opened in response to a View->GoTo menu item, but we also
+  // use a completions window to fill in details of parents in an indiUI
+  // so we need a way for the completions window to know what it should be
+  // doing with newperson. But we can't just return the pointer - we are a
+  // callback, so the caller is ... kinda weird ...
   if (newperson != NULL) {
     view->setcurrent(newperson);
     gotobox->findbox->hide();
@@ -699,6 +705,22 @@ notesUI *ui;
   noteUIs->close(ui);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//
+// callback routines for other Person menu clicks
+
+void menu_newmarriage_cb(Fl_Menu_ *menu, void* userdata) {
+// opens something like a famUI for a Person->Marry menu click
+
+  treeinstance* tree = (treeinstance*)userdata;
+  // the code which popped up the menu should have called setevent for
+  // the relevant object, so all we will need to do is look at the value
+  // something vaguely like:
+  // newui = famUIs->open(tree, tree->geteventobject());
+  // tree->getevenetobject should point to the relevant INDI, for which, as
+  // yet, there should not be a relevant FAMS (well, there might be, but the
+  // purpose of this code is to create a new one)
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //

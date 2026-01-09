@@ -1,0 +1,19 @@
+You will need a load of stuff
+
+build-essential
+libfltk-images1.3  (pulls in other fltk stuff)
+libfltk1.3-dev     (pulls in tons of other stuff)
+
+-lpng -ljpeg -lz
+apt-get install libpng12-dev libjpeg62-dev zlib1g-dev
+
+That was all needed to make it build fine on Precise Pangolin, but when
+run without a filename it just segfaults - we don't seem to be able to find
+a way to get a valid pointer to a static string for the default filename.
+
+The workaround is not not use a hard-wired default filename (the final
+code should never do this anyway...). However, there are almost certainly
+other static strings that we are using that cause null pointers to be
+floating round. The first time we try to use one, we will crash ...
+Need to learn how modern C++ does default strings likethis.
+

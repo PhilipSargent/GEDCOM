@@ -1,5 +1,7 @@
 // structure.cxx
 
+#include "fixes.h"
+
 #include "classes.h"
 #include "family.h"
 #include "structure.h"

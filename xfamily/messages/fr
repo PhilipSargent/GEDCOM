@@ -13,24 +13,24 @@ en
 untitled
 X!Famille
 <anonyme>
-À propos de cette programme
+Ã€ propos de cette programme
 Fichier
 Ouvrez
 Sauvez
 Sauvez comme ...
 Imprimez
 Nouvelle vue
-Défaussez
+DÃ©faussez
 Statistiques
 Quittez
 Personnes
 Nouveau ...
-Allez à ...
+Allez Ã  ...
 Rapports
 Normale
 Familles
 Pages de la WWW ...
-Préférences
+PrÃ©fÃ©rences
 Langue
 Choix ...
 Sauvez Choix
@@ -44,29 +44,29 @@ Choices dbox
 Fichiers GEDCOM
 Info
 Modifiez
-Rémarques
+RÃ©marques
 Mariez
 Plus ancien
-Antérieure
+AntÃ©rieure
 Enfant
 Effacez
 Effacez mariage
 Rapports
-Ancêtres
+AncÃ©tres
 Nom
 Autor
 Version
 But
 X!Famille
-© A.E.R.Waddington, 2009
-v 0.16 alpha 2009-01-14 fr
-Editeur pour Arbre Généalogique
+Â© A.E.R.Waddington, 2013
+v 0.17 alpha 2013-01-14 fr
+Editeur pour Arbre GÃ©nÃ©alogique
 Calendrier
-Grégorien
+Grï¿½gorien
 Julien
-défaut
+dÃ©faut
 X!Famille modifiez
-X!Famille événements de famille
+X!Famille Ã©vÃ©nements de famille
 <anonyme>
 <nouvelle personne>
 Nom
@@ -80,30 +80,30 @@ Cause
 Sources
 Texte pour:
 Naissance
-Nommant chrétien
-Baptême
+Nommant chrÃ©tien
+BaptÃªme
 Mort
-Crémation
+CrÃ©mation
 Enterrement
 Sexe
-Mâle
+MÃ¢le
 Femelle
 Inconnu
 Vivant
-Mère
-Père
+MÃ¨re
+PÃ¨re
 Mari
 Femme
 Engagement
 Mariage
 Divorce
-Rémarques
+RÃ©marques
 Sources
 Testament
 Homologation
 <nouvelle famille>
 X!Famille Cherchez pour personne
-Allez à:
+Allez Ã :
 X!Famille noms possible
 Statistiques X!Famille
 Fichier GEDCOM  :
@@ -113,18 +113,18 @@ Familles:
 Maximum FAM Id:
 Sources d'information
 Maximum SOUR Id:
-Répertoires d'information
+RÃ©pertoires d'information
 Maximum REPO Id:
-X!Famille préférences
+X!Famille prÃ©fÃ©rences
 Noms
 Montrez les noms des familles
 Montrez titres
-Dates Montrées
+Dates MontrÃ©es
 Montrez dates sur arbre
 montrez ...
 Dates des conjoint(e)s
 Dates des mariages
-Montrez année seulement
+Montrez annÃ©e seulement
 Format des dates ...
 Dates GEDCOM
 Dates ISO-8601
@@ -136,6 +136,6 @@ Passez en silence
 Format des dates sur Rapports:
 GEDCOM
 ISO-8601
-Localité
+LocalitÃ©
 Autre:
-Le progiciel généalogique "X!Famille" version 0.15. Propriété © 2003 par Andy Waddington.\nBasé vaguement sur !Family pour RISC OS, écrit par Denis Howe.\n\nCe programme est libre, vous pouvez le redistribuer et/ou le modifier selon les termes\nde la Licence Publique Générale GNU (GNU-GPL) publiée par la Free Software Foundation\n(version 3 ou bien toute autre version ultérieure choisie par vous).\n\nCe programme est distribué car potentiellement utile, mais SANS AUCUNE GARANTIE, ni\nexplicite ni implicite, y compris les garanties de commercialisation ou d'adaptation dans\nun but spécifique. Reportez-vous à la Licence Publique Générale GNU pour plus de détails.\n\nVous devez avoir reçu une copie de la GNU-GPL en même temps que ce\nprogramme; si ce n'est pas le cas, écrivez à la Free Software Foundation,\nInc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, États-Unis.\nDenoncez fautes à family-maint@pennine.demon.co.uk 
+Le progiciel gÃ©nÃ©alogique "X!Famille" version 0.17. PropriÃ©tÃ© Â© 2013 par Andy Waddington.\nBasÃ© vaguement sur !Family pour RISC OS, Ã©crit par Denis Howe.\n\nCe programme est libre, vous pouvez le redistribuer et/ou le modifier selon les termes\nde la Licence Publique GÃ©nÃ©rale GNU (GNU-GPL) publiÃ©e par la Free Software Foundation\n(version 3 ou bien toute autre version ultÃ©rieure choisie par vous).\n\nCe programme est distribuÃ© car potentiellement utile, mais SANS AUCUNE GARANTIE, ni\nexplicite ni implicite, y compris les garanties de commercialisation ou d'adaptation dans\nun but spÃ©cifique. Reportez-vous Ã  la Licence Publique GÃ©nÃ©rale GNU pour plus de dÃ©tails.\n\nVous devez avoir reÃ§u une copie de la GNU-GPL en mÃªme temps que ce\nprogramme; si ce n'est pas le cas, Ã©crivez Ã  la Free Software Foundation,\nInc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, Ã‰tats-Unis.\nDenoncez fautes Ã  family-maint@pennine.ddns.me.uk 

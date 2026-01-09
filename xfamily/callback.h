@@ -15,7 +15,7 @@
 ///////////////// callback routines for the GUI classes ///////////////
 
 // lots more still to add here - meanwhile some code to do nothing to
-// attach to interfces still in development:
+// attach to interfaces still in development:
 
 extern void deadbutton_cb(Fl_Button*, void *);
 extern void deadmenu_cb(Fl_Menu_ *, void *);
@@ -101,7 +101,11 @@ extern void restorenotes_cb(Fl_Menu_*,void*);
 extern void savenotes_cb(Fl_Menu_*, void*);
 extern void oknotes_cb(Fl_Menu_*, void*);
 
-// calback routines to drive sourceUI
+// callback routines for other things done from Person menu
+
+extern void menu_newmarriage_cb(Fl_Menu_*, void*);
+
+// callback routines to drive sourceUI
 
 extern void buttonopensourceui_cb(Fl_Button*, void*);
 

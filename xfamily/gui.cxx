@@ -22,6 +22,12 @@
 #include <FL/Fl_Window.H>
 #include <FL/fl_draw.H>
 
+#ifdef fix0007
+#include <FL/Fl_Text_Buffer.H>
+#include <FL/Fl_Text_Display.H>
+#include <FL/Fl_Text_Editor.H>
+#endif
+
 #include "classes.h"
 #include "languages.h"
 #include "gui.h"
@@ -99,9 +105,9 @@ barmenu::barmenu(mainUI* view) {
 // cast with (Fl_Menu_Item*) to use with ->menu(thing)
 
 indipopupmenu::indipopupmenu(mainUI* view) {
-  popup_data[0] = (Fl_Menu_Item){msg_menu_edit,      0, (Fl_Callback*)edit_cb, (void*)(view),   0, 0, 0, 14, 0 };
-  popup_data[1] = (Fl_Menu_Item){msg_menu_notes,     0, (Fl_Callback*)menuopennotes_cb, (void*)(view->whichtree()), 0,0,0,14, 0 };
-  popup_data[2] = (Fl_Menu_Item){msg_menu_marry,     0, 0, 0,   0, 0, 0, 14, 0 };
+  popup_data[0] = (Fl_Menu_Item){msg_menu_edit,      0, (Fl_Callback*)edit_cb,             (void*)(view),              0,0,0,14,0 };
+  popup_data[1] = (Fl_Menu_Item){msg_menu_notes,     0, (Fl_Callback*)menuopennotes_cb,    (void*)(view->whichtree()), 0,0,0,14,0 };
+  popup_data[2] = (Fl_Menu_Item){msg_menu_marry,     0, (Fl_Callback*)menu_newmarriage_cb, (void*)(view->whichtree()), 0,0,0,14,0 };
   popup_data[3] = (Fl_Menu_Item){msg_menu_older,     0, 0, 0,   0, 0, 0, 14, 0 };
   popup_data[4] = (Fl_Menu_Item){msg_menu_child,     0, 0, 0,   0, 0, 0, 14, 0 };
   popup_data[5] = (Fl_Menu_Item){msg_menu_remove,    0, 0, 0, 128, 0, 0, 14, 0 };
@@ -264,6 +270,16 @@ void mainUI::canvassize( int xsize, int ysize ) {
   // fills the window - one would hope that fltk would do this itself (it doesn't), so
   // maybe we ought to make this a conditional compilation bit ? FIXME.
 #ifdef fix0001
+  // fix0001 is supposed to stop us ever getting the canvas off to one side of the window,
+  // leaving grey background showing. It isn't working.
+  // a) canvassize (+scrollbars and menubar) should never go lower than the minimum window size
+  // b) windowsize should never go bigger than canvassize (+scrollbars and menu bar)
+  // c) canvas should always be scrolled to ensure the window (-scrollbars and menu bar) is
+  //    fully covered by canvas.
+  // d) if at all possible, if we've just resized the window in response to a new current person
+  //    we should scroll such that the current person is visible. We *don't* want to do any
+  //    scrolling off our own bat in response to the *user* resizing the window, except to the
+  //    minimum extent needed to ensure that we meet the criteria a-c above.
   int offX = scroll->xposition();
   int offY = scroll->yposition();
   if (offX + nowX > xsize + 17) offX = xsize + 17 - nowX;
@@ -305,7 +321,7 @@ bool redraw;
 #ifdef debugging
   printf("attempting to set current to this object:\n");
   newperson->outline( stdout, 1 );
-  newperson->subobject( NAME_tag )->output( stdout, 1 ); // diagnose
+  newperson->subobject( NAME_tag )->print( 1 ); // diagnose
 #endif
 
   person = newperson;
@@ -324,6 +340,7 @@ bool redraw;
 #endif
   // FIXME we ought to centre the new person on the display, and adjust the canvas size
   // so that you don't get a blank grey window with all the data scrolled off somewhere
+  // newdisplay is supposed to be doing that - but is currently failing
   if (redraw) this->show();
 }
 
@@ -335,7 +352,11 @@ void mainUI::newdisplay() {
 #ifdef debugging
   printf("mainUI::newdisplay Now start new tree from %ld\n", (long)topind);
 #endif
+#ifdef fix0003
+  display = new displaytree( topind, person );
+#else
   display = new displaytree( topind );
+#endif
 #ifdef debugging
   printf("mainUI::newdisplay created new displaytree at %ld\n", (long)display);
 #endif
@@ -349,26 +370,41 @@ void mainUI::newdisplay() {
 #endif
   // to put the top person of the tree at top centre of the window we need:
 #ifndef fix0002
-#ifdef fltk13
-  scroll->scroll_to( display->gettop()->x() - (this->window->w()/2), 0 );
-#else
-  scroll->position( display->gettop()->x() - (this->window->w()/2), 0 );
+ #ifndef fix0003
+    // but this doesn't seem to be doing it...
+  #ifdef fltk13
+    scroll->scroll_to( display->gettop()->x() - (this->window->w()/2), 0 );
+  #else
+    scroll->position( display->gettop()->x() - (this->window->w()/2), 0 );
+  #endif
+ #endif
 #endif
   // but often this puts the newly selected current person off-screen, which is
   // not ideal, so we probably want to do that vertically, but centre our new
   // current person left-right like this:
+#ifdef fix0003
+  indidisplay *newcurrent;
+  newcurrent = display->getcurrent();
+ #ifdef fltk13
+   scroll->scroll_to( newcurrent->x() - (this->window->w()/2), 0 );
+ #else
+   scroll->position( newcurrent->x() - (this->window->w()/2), 0 );
+ #endif
+#endif
+#ifdef fix0002
   // the current person is at indi object this->person, but that's not the
   // display object, for which we need to write displaytree::getindi ...
-#ifdef fix0002
   indidisplay *newcurrent;
   newcurrent = display->findindi( this->person );
-#ifdef debugging
-  printf("Found %s at %ld, offset into canvas is %d\n",newcurrent->name(),(long)newcurrent,newcurrent->x());
-#endif#ifdef fltk13
-  scroll->scroll_to( newcurrent->x() - (this->window->w()/2), 0 );
-#else
-  scroll->position( newcurrent->x() - (this->window->w()/2), 0 );
-#endif
+ #ifdef debugging
+   printf("Found %s at %ld, offset into canvas is %d\n",newcurrent->name(),(long)newcurrent,newcurrent->x());
+ #endif
+
+ #ifdef fltk13
+   scroll->scroll_to( newcurrent->x() - (this->window->w()/2), 0 );
+ #else
+   scroll->position( newcurrent->x() - (this->window->w()/2), 0 );
+ #endif
 #endif
   this->canvassize(display->xsize(),display->ysize());
 #ifdef debugging
@@ -490,7 +526,9 @@ infoUI::infoUI() {
     o->down_box(FL_DOWN_BOX);
     o->callback((Fl_Callback*)okinfo_cb);
   }
-  w->set_non_modal();
+// doesn't seem to do anything -removed w->set_non_modal();
+// seems to be a bad idea when added - still have a minimise icon, and using it
+// leaves every window unresponsive with no way to get ifnoUI back  w->set_modal();
   w->end();
 }
 
@@ -507,6 +545,11 @@ infoUI::infoUI() {
 // more thought to make it work without ID conflicts...]
 
 indiUI::indiUI( treeinstance* thistree, GEDCOM_object* whofor ):
+#ifdef fix0004
+  mum (NULL),
+  dad (NULL),
+  fam (NULL),
+#endif
   who (whofor),       // NULL for a new person not yet in the tree
   which (thistree)
 {
@@ -988,7 +1031,10 @@ indiUI::indiUI( treeinstance* thistree, GEDCOM_object* whofor ):
 }
 
 indiUI::~indiUI() {
-  //printf("Called to destroy indi_dbox at %ld\n",(long)indi_dbox);
+  // by the time we are here, all ephemeral GEDCOM structures should already be freed
+#ifdef destructorlogs
+  printf("~indiUI %ld, dbox %ld\n",(long)this,(long)indi_dbox);
+#endif
   delete indi_dbox;
   //printf("Survived deletion of indi_dbox\n");
 }
@@ -1018,6 +1064,8 @@ void indiUI::setprevious( indiUI* prevui ) {
 }
 
 void indiUI::clear_details() {
+  // this is clearing out the indibox, but NOT removing any ephemeral GEDCOM structures
+  // it is used for initialisation, not tidy up !
   indi_name->value("");
   indi_title->value("");
   indi_ma->value("");
@@ -1080,11 +1128,19 @@ void indiUI::insert_details( GEDCOM_object* thisindi ) {
 GEDCOM_object *event;
 GEDCOM_object *thing; // deeper subobjects
 GEDCOM_object *parent;
+#ifndef fix0004
 GEDCOM_object *fam=NULL;
+#endif
+GEDCOM_id *xref;
 char *val;
 
   this->clear_details();
   who = thisindi;
+
+// if who is NULL (this will be the case if we open as a result of a "New person" menu item
+// or an indi->Child menu item, then we should be creating an ephemeral INDI object first
+// - otherwise stuff we do later will cause a crash... FIXME as part of fix0004. This will
+// be hard to test until we create a route to do those things...
 
 #define fillin( field, object, tag ) if ((thing=(object->subobject(tag)))!=NULL) field->value( thing->value() )
 
@@ -1118,9 +1174,52 @@ char *val;
     // a WIFE, which points to an INDI, for which we can look up the NAME !
 
     fam = thisindi->parental_family();
+#ifdef fix0004
+    if (fam==NULL) {
+      // create a temporary FAM object on this treeinstance:
+      fam = new GEDCOM_object( xref = new GEDCOM_id("E",this->which->ephemnextref()), FAM_tag );
+      printf("%s\n",xref->GEDCOM_idname());
+      this->which->add_ephemera( fam );
+      printf("Added ephemeral FAM object\n");
+      // create a temporary FAMS subobject of our INDI to point to our ephemeral FAM
+      thisindi->add_subobject( new GEDCOM_object( GEDCOM_tagfromname( "FAMC" ), xref ));
+      fam->add_subobject( new GEDCOM_object( GEDCOM_tagfromname( "CHIL" ), thisindi->getid() ));
+    }
+    thisindi->print( 0 );
+#endif
     if (fam != NULL ) {
-      if ((parent =  fam->thewife()) != NULL ) { fillin( indi_ma, parent, NAME_tag ); }
-      if ((parent = fam->thehusband()) != NULL){ fillin( indi_pa, parent, NAME_tag ); }
+      parent =  fam->thewife();
+#ifdef fix0004
+      if (parent==NULL) {
+        // create a temporary INDI object on this treeinstance as our mother
+        parent = new GEDCOM_object( xref = new GEDCOM_id("E",this->which->ephemnextref()), INDI_tag );
+        parent->add_subobject( new GEDCOM_object( FAMS_tag, fam->getid()));
+        printf("%s\n",xref->GEDCOM_idname());
+        this->which->add_ephemera( parent );
+        // create a WIFE subobject of the fam to point to it
+        fam->add_subobject( new GEDCOM_object( GEDCOM_tagfromname( "WIFE" ), xref ));
+      }
+      this->mum = parent;
+
+#endif
+      if (parent != NULL ) { fillin( indi_ma, parent, NAME_tag ); }
+      parent = fam->thehusband();
+#ifdef fix0004
+      if (parent==NULL) {
+        // create a temporary INDI object on this treeinstance as our mother
+        parent = new GEDCOM_object( xref = new GEDCOM_id("E",this->which->ephemnextref()), INDI_tag );
+        parent->add_subobject( new GEDCOM_object( FAMS_tag, fam->getid()));
+        printf("%s\n",xref->GEDCOM_idname());
+        // create a HUSB subobject of the fam to point to it
+        fam->add_subobject( new GEDCOM_object( GEDCOM_tagfromname( "HUSB" ), xref ));
+      }
+      this->dad = parent;
+
+      fam->print( 0 );
+      this->mum->print( 0 );
+      this->dad->print( 0 );
+#endif
+      if (parent != NULL){ fillin( indi_pa, parent, NAME_tag ); }
     }
 
     thing = thisindi->subobject( NOTE_tag );
@@ -1660,6 +1759,9 @@ famUI::famUI( treeinstance* thistree, GEDCOM_object* famfor ):
 }
 
 famUI::~famUI() {
+#ifdef destructorlogs
+  printf("~famUI %ld, dbox %ld\n",(long)this,(long)fam_dbox);
+#endif
   delete fam_dbox;
 }
 
@@ -2503,20 +2605,36 @@ notesUI::notesUI( treeinstance* whichtree, GEDCOM_object* newobject, GEDCOM_tag*
    menubar = new Fl_Menu_Bar( 0, 30, 720, 25);
    menubar->menu((Fl_Menu_Item*)menu);
 
+#ifdef fix0007
+   input = new Fl_Text_Buffer(0,1024);
+   scroll = new Fl_Text_Editor(0,55,720,250);
+   scroll->buffer(input);
+   scroll->type(Fl_Scroll::BOTH_ALWAYS);
+   scroll->callback((Fl_Callback*)changenotes_cb);
+   scroll->user_data((void*)(this));
+   scroll->when(0);
+   scroll->textfont(FL_SCREEN_BOLD);
+#else
    input = new Fl_Multiline_Input(0, 55, 720, 250);
+
    input->callback((Fl_Callback*)changenotes_cb);
    input->user_data((void*)(this));
    input->when(0);
    input->textfont(FL_SCREEN_BOLD);
+#endif
 
   window->end();
   window->user_data((void*)(this));
   window->callback((Fl_Callback*)quitnotes_cb);
+#ifdef fix0007
+   window->resizable(scroll);
+#else
   window->resizable(input);
+#endif
   // this->restore expects that there is a NOTE (or TEXT) object from which it
   // can extract the contents of the editor box. Whilst restore() can cope with
   // a NULL object when there is no existing NOTE, doing so risks being orphaned
-  // if we are raided on an event object and the dbox on the owning INDI or FAM
+  // if we are raised on an event object and the dbox on the owning INDI or FAM
   // object is closed with the event object empty, because it will be garbage
   // collected. So we need to ensure that there is a NOTE or TEXT object hanging
   // from that event throughout the time that the notesUI is open:
@@ -2536,8 +2654,16 @@ notesUI::notesUI( treeinstance* whichtree, GEDCOM_object* newobject, GEDCOM_tag*
   // the window. When the window is closed, the text will be put into the object
   // (and CONC or CONT subobjects) replacing any previous contents, or, if there
   // is no text, textobject will be destroyed.
+  // if textobject is garbage collected, we should call code to check whether its
+  // parent is now an empty object, and recurse upwards, freeing objects as needed
+  // but beware - if any objects are marked ephemeral, then the UI for which they
+  // were created probably still exists and we should *not* garbage collect.
   window->size(720,80+(this->restore())*15);
+#ifdef fix0007
+//  input->when(FL_WHEN_CHANGED);
+#else
   input->when(FL_WHEN_CHANGED);
+#endif
 }
 
 void notesUI::status( bool extant) {
@@ -2571,12 +2697,14 @@ notesUI::~notesUI() {
   // ensure the continued existence of editobject if the dbox on that
   // were to be closed. But if textobject is empty, we shouldn't save
   // it into the GEDCOM.
-  //printf("Called to destroy notesUI, on editobject at %ld, textobject at %ld, text in textobject %s, first subobject at %ld\n",(long)editobject,(long)textobject,textobject->value(),(long)textobject->subobject());
+#ifdef destructorlogs
+  printf("~notesUI %ld, editobject %ld, textobject %ld, text in textobject %s, first subobject at %ld\n",(long)this,(long)editobject,(long)textobject,textobject->value(),(long)textobject->subobject());
+#endif
   if ( ((textobject->value())==NULL) && ((textobject->subobject())==NULL) ) {
     editobject->delete_subobject(textobject);
   }
   this->status(false);
-  // if the textobject continues to exist, we needn't worry that out pointer
+  // if the textobject continues to exist, we needn't worry that our pointer
   // to it is being destroyed here - the parent GEDCOM object still points to
   // it, as one of its subobjects...
 }
@@ -2591,7 +2719,11 @@ int notesUI::restore() {
   char *string;
 
   // input is our editor buffer, start off with it empty:
+#ifdef fix0007
+  input->text("");
+#else
   input->value("");
+#endif
   note = textobject; //  = editobject->subobject( edittag );
   //printf("notesUI::restore passed %d\n",(int)note);
   while (note != NULL ) {
@@ -2600,7 +2732,11 @@ int notesUI::restore() {
     if (string!=NULL) {
       //printf("value of NOTE object was %s\n",string);
       len=strlen(string);
+#ifdef fix0007
+      input->replace(pos,pos,string);
+#else
       input->replace(pos,pos,string,0);
+#endif
       pos += len;
     }
     sub = note->subobject();
@@ -2610,7 +2746,12 @@ int notesUI::restore() {
       while ((sub->objtype())==CONC_tag) {
          string = sub->value();
          if (string!=NULL) { // (which it is allowed to be - a blank line)
+#ifdef fix0007
+           input->replace(pos,pos,string);
+           len=strlen(string);
+#else
            input->replace(pos,pos,string,len=strlen(string));
+#endif
            pos += len;
          }
          sub = sub->next_object();
@@ -2620,11 +2761,20 @@ int notesUI::restore() {
     while (sub != NULL) {
       if ((sub->objtype())==CONT_tag) {
         //printf("Concatenating a CONT into buffer\n");
+#ifdef fix0007
+        input->replace(pos,pos,"\n"); lines++;
+#else
         input->replace(pos,pos,"\n",1); lines++;
+#endif
         pos++;
         string = sub->value();
         if (string!=NULL) { // (which it is allowed to be - a blank line)
+#ifdef fix0007
+          input->replace(pos,pos,string);
+          len=strlen(string);
+#else
           input->replace(pos,pos,string,len=strlen(string));
+#endif
           pos += len;
         }
         conc = sub->subobject();
@@ -2633,7 +2783,12 @@ int notesUI::restore() {
            if ((conc->objtype())==CONC_tag) {
              string = conc->value();
              if (string!=NULL) { // (which it is allowed to be - a blank line)
+#ifdef fix0007
+               input->replace(pos,pos,string);
+               len=strlen(string);
+#else
                input->replace(pos,pos,string,len=strlen(string));
+#endif
                pos += len;
              }
           }
@@ -2642,7 +2797,11 @@ int notesUI::restore() {
       } // end of CONT object
       sub = sub->next_object(); // get another CONT if there is one
     } // no more subobjects
+#ifdef fix0007
+    input->replace(pos,pos,"\n"); lines++;
+#else
     input->replace(pos,pos,"\n",1); lines++;
+#endif
     debug = note;
     note = note->next_object( edittag );
     if (note==debug) { printf("object at %p is its own next_object\n",note); break; }
@@ -2666,7 +2825,11 @@ void notesUI::update() {
     //printf("Deleted OK, checking for additional %s objects\n",edittag->GEDCOM_namefromtag());
     oldnotes = editobject->subobject( edittag );
   }
+#ifdef fix0007
+  size = input->length();
+#else
   size = input->size(); // this isn't updated automatically ...
+#endif
   if (size==0) { // we must still ensure that we retain an empty NOTE/TEXT
     //printf("now creating replacement %s\n",edittag->GEDCOM_namefromtag());
     textobject = new GEDCOM_object( edittag );
@@ -2677,7 +2840,11 @@ void notesUI::update() {
   //printf("now creating replacement %s of finite size\n",edittag->GEDCOM_namefromtag());
   char *line, *ptr, *end;
 // don't seem to use: GEDCOM_object *noteobject;
+#ifdef fix0007
+  line = (char*) input->text(); // discard const-ness
+#else
   line = (char*) input->value(); // discard const-ness
+#endif
   end = line + size;
   ptr = line; while (*ptr!='\n') ptr++;
   *ptr = '\0';
@@ -2728,7 +2895,11 @@ bool notesUI::changed() const {
 
 void notesUI::clear() {
 //  input->replace(0, size, "", 0); would be fine if size was maintained up to date
+#ifdef fix0007
+  input->text("");
+#else
   input->value("");
+#endif
   modified = true;
 }
 

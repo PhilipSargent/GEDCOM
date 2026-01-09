@@ -1,0 +1,52 @@
+void searchfind_cb(Fl_Button* button, void *userdata) {
+  int strategy=0;
+  findUI* searchfrom = (findUI*)userdata;
+  short x,y;
+  x = gotobox->findbox->x();
+  y = gotobox->findbox->y();
+  // this is inelegant - we aren't a method of findUI (although, logically, we should be,
+  // but I don't think callbacks can be methods - or am I just igorrant ?? )
+  if (button==searchfrom->find_fromright) strategy = 1;
+  if (button==searchfrom->find_fuzzy)     strategy = 2;
+  if (button==searchfrom->find_fromleft)  strategy = 3;
+  completionsbox->open( searchfrom->getview()->whichtree(),
+                        (char*)gotobox->find_input->value(),
+                        strategy,
+                        (Fl_Callback*) chosenfind_cb,
+                        (void*) searchfrom->getview(), x+65, y+55 );
+}
+
+OK, we need more documentation - currently we only open a find dbox in response
+to a menu->GoTo, but we have buttons to do similar searches from an indiUI and
+(we should have) from a famUI (for Person->Marry menu item).
+
+But searchfind is currently only a callback on the initial window
+which is popped up in response to the GoTo menu item...
+
+We don't want to set up almost-duplicate code for every dbox which
+has the search buttons, so we need a better callback structure here.
+
+First: where might we be setting up these buttons ?
+
+1) Menu->GoTo on a mainUI
+2) on Mother's name in an indiUI
+3) on Father's name in an indiUI
+4) on spouses's name in a famUI
+
+currently, we don't do that for case (4), as we don't open any dbox
+in response to a Person->Marry menu click.
+
+In !Family, in response to that menu click, we pop up a simplified
+dbox, but we have, in many ways, found this to be a pain. However
+there is a logic to it, in that the main famUI alwyas has Husband
+first and Wife second, whereas the "Marry" dbox has the person for
+which it was opened first, and the intended spouse second, with
+the gender implied.
+
+One approach here is to reuse the same famUI, but have it set up
+with a flag to determine whether Husband or Wife appears first.
+This should avoid some code duplication and some ease of use
+issues, but may make the interface more confusing in other
+circumstances. This is a design issue we need to think about
+before wading in to code...
+

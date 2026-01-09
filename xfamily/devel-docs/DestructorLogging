@@ -1,0 +1,10 @@
+We certainly seem to be destroying a lot of GEDCOM_strings, and their
+values.
+
+On save we do indeed destroy three GEDCOM_objects and their values
+(these will be the three 0 NOTE objects which defined current persons).
+
+We do indeed destroy an indiUI when it is closed, however, we note that
+nothing else is being destroyed when we change the notes and save back
+to GEDCOM. I had thought that we did do that save back, but it seems
+that we don't. That would be a useful fix...

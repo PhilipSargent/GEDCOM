@@ -1,21 +1,26 @@
 // main entry point for XFamily
 
+// get conditional compilation flags
+#include "fixes.h"
 // get class declarations
 #include "classes.h"
 // get global #definitions and static storage declarations
 #include "family.h"
-// get conditional compilation flags
-#include "fixes.h"
 
 #include "structure.h"
 #include "trees.h"
 #include "gui.h"
 #include "objects.h"
 #include "xlate.h"
+#include "tags.h"
 
 int main(int argc, char** argv ) {
 // that used to be char* **argv but now that's a no no it seems
 
+  GEDCOM_object* noted;
+  GEDCOM_object* current;
+  char id[MAX_TAG];
+  char* notedid;
   // here we should load our choices file to decide (among other
   // things) which language to use
   // here we should parse our command line arguments to see if we
@@ -53,26 +58,49 @@ int main(int argc, char** argv ) {
   if (argc>0) {
      initialtree = argv[1];
   }
-#ifdef debugging
-  printf("about to create a treeinstance on initialtree at %s\n",initialtree);
-#endif
   treeinstance *first = trees->newinstance( initialtree );
-#ifdef debugging
-  printf("created first treeinstance at %ld, next determine view of tree\n",(long)first);
-#endif
 
   // now find the view of that tree
 
   mainUI *view = first->mainui();
-#ifdef debugging
-  printf("initial mainUI view at %ld, about to set current person\n",(long)view);
-#endif
-  view->setcurrent( first->noted_current() );
-#ifdef debugging
-  printf("current person and view title now set, about to show the view and enter the fltk event loop\n");
-#endif
-  // view->settitle(); done by setcurrent anyway
-  view->show();
+  noted = first->noted_view( (GEDCOM_object*) NULL );
+  if (noted != NULL) {
+    // noted is a pointer to the 0 NOTE View object
+    // noted->value() should be "View @I<num>@"
+    // but what do we need to pass to GEDCOM_objectfromref ? @I<num>@ or just I<num> ?
+    notedid=(noted->value())+6;
+    strncpy( id, notedid, strlen(notedid)-1 );
+    // that produces something not-null-terminated which fails to match later - a very opaque bug
+    memcpy(id+strlen(notedid)-1,"\0",1);
+    current = first->GEDCOM_objectfromref( id );
+    // defensive coding in case there was a duff 0 NOTE View like 0 NOTE View @S34@
+    // or we got no valid INDI for some other reason (like broken code...)
+    if ( (current!=NULL) && (current->objtype() == INDI_tag) ) {
+      view->setcurrent( current );
+    } else {
+      view->setcurrent( first->noted_person() );
+    }
+    view->show();
+    // we should now loop looking for additional 0 NOTE View objects
+    // and opening a new view for each.
+    noted = first->noted_view( noted );
+    while ( noted!=NULL ) {
+      notedid=(noted->value())+6;
+      strncpy( id, notedid, strlen(notedid)-1 );
+      current = first->GEDCOM_objectfromref( id );
+      view = new mainUI( first );
+      first->addview( view );
+      view->setcurrent( current );
+      view->show();
+      noted = first->noted_view( noted );
+    }
+  }
+  else {    
+    view->setcurrent( first->noted_person() );
+    // if there is no 0 NOTE Person, that will return a suitable default
+    // so it should always be safe to setcurrent and show the view
+    view->show();
+  }
 
   return Fl::run();
 

@@ -1,0 +1,69 @@
+As we are loading tree (from !Family), we get headlist to hold:
+
+0 HEAD
+1 SOUR !Family_for_RISC_OS
+2 VERS 2.2.7 20071018
+1 GEDC
+2 VERS 5.3
+2 FORM LINEAGE-LINKED
+2 LANG English
+1 LANG English
+1 SUBM @A1@
+1 SCHEMA
+2 INDI
+3 _NINO
+4 LABL NATIONAL_INSURANCE_NUMBER
+4 DEFN United Kingdom National Insurance Number
+4 ISA IDNO
+1 SCHEMA
+2 INDI
+3 _NHSNO
+4 LABL NATIONAL_HEALTH_NUMBER
+4 DEFN United Kingdom National Health Service Number
+4 ISA IDNO
+
+and the 1 SOUR object needs hacked to be:
+
+1 SOUR xfamily for Linux
+2 VERS 0.17 2013-01-14
+
+which we should probably do at the time we load the GEDCOM
+
+the rest is probably OK - but beware that 1 SUBM @A1@
+points at something later on, in the trlrlist. Actually, the
+rest should be fixed - everything in the header is a statement
+of things we support and may use in the tree. BUT, of course,
+anything we read and don't understand in the main tree, we will
+simply preserve, so anything in the header that tells other
+software what it might find in this tree (like 1 GEDC 2 VERS 5.3,
+and all the 1 SCHEMA objects) must be preserved.
+
+The trlrlist contains any objects where the level zero object
+is none of HEAD INDI FAM SOUR or REPO, which in our tree, means
+SUBM, NOTE and TRLR itself.
+
+there should be a method to create a SUBM object if we don't have
+one already, and that will need that we add a 1 SUBM @ref@ object
+in the headlist to point to it.
+
+On output we need to throw away all the NOTE Person and NOTE View
+objects, and create new ones based on the current view(s), which,
+as of fix0005 in v017, we do.
+
+
+Our best approach is going to be in treeinstance::save(), where
+we have access to the list heads
+
+current trailer stuff is:
+
+0 @A1@ SUBM
+1 NAME Andrew Waddington
+1 ADDR Postal Address at time of submission is Copyright © A.E.R.Waddington 1991
+2 CONT It may have changed by the time you read this. Use of post is deprecated
+2 CONT and address will only be supplied on email request citing valid need-to-know
+2 CONT and undertaking to respect specific and restricted conditions of use.
+1 _EMAIL family@absolutely-no-spam.pennine.ddns.me.uk
+0 NOTE Person William /Lane/ (d1661)
+0 NOTE View @I1388@
+0 TRLR
+

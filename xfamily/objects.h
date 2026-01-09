@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "fixes.h"
 #include "classes.h"
 #include "family.h"
 
@@ -55,6 +56,9 @@ class GEDCOM_id {
   GEDCOM_id     *previous;
 public:
   GEDCOM_id( char *);
+#ifdef fix0004
+  GEDCOM_id( char*, int );
+#endif
   ~GEDCOM_id();
   char* GEDCOM_idname() const;
   GEDCOM_id* getnext() const; // changed the name of this from nextid() for consistency
@@ -71,6 +75,10 @@ class GEDCOM_string {
   char *thestring;
 public:
   GEDCOM_string( char* );
+#ifdef fix0004
+  GEDCOM_string( char*, char* );
+  GEDCOM_string( char*, char*, char* );
+#endif
   GEDCOM_string( size_t );
   ~GEDCOM_string();
   char* string() const;
@@ -96,6 +104,11 @@ class GEDCOM_object {
   GEDCOM_object *sub;   // -> object representing first subobject of this object
   GEDCOM_object *next;  // -> next subobject of our parent object
   GEDCOM_object *myparent;
+  int flags;            // we (probably) need some flags to indicate things like
+                        // this is an ephemeral object which we need to garbage collect
+                        //   if not made permanent
+                        // this is an object which is flagged for deletion and should be
+                        //   freed as soon as all its subobjects have gone
 
 // to make that clearer:
 //   the @ref@ in         1 CHIL @I960@  refers to a 0 @I960@ INDI
@@ -121,6 +134,11 @@ public:
   void add_subobject( GEDCOM_object* );
   bool delete_subobject( GEDCOM_object* );
   void chain_object( GEDCOM_object* );
+  void precede_object( GEDCOM_object* );
+#ifdef fix0006
+  void insert_before( GEDCOM_object* );
+  void insert_after( GEDCOM_object* );
+#endif
 
 // for destroying objects
   ~GEDCOM_object();
@@ -128,7 +146,7 @@ public:
 // for changing objects
   void setid( GEDCOM_id*);
 
-// for navigating - these will return NULL if no approriate object
+// for navigating - these will return NULL if no appropriate object
   GEDCOM_object* next_object() const;     // the next object at this level
   GEDCOM_object* next_object( GEDCOM_tag* ) const; // next with this tag
   GEDCOM_object* subobject() const;       // the first subobject
@@ -138,8 +156,12 @@ public:
   char* value() const;                    // the text value of this object
   GEDCOM_tag* objtype() const;            // the tag
   char* tagname() const;                  // the text string for the tag of this object
-  void output( FILE*, int ) const;        // output an object (recursive)
+  void output( FILE*, int ) const;        // output a chain of objects (recursive)
   void outline( FILE*, int ) const;       // output a line of the object
+#ifdef debugging
+  void print( int ) const;
+  void printline( int ) const;
+#endif
 
 // methods appropriate for objects which have an @id@ such as INDI, SOUR, REPO, FAM
   GEDCOM_id* getid() const;               // pointer to @id@ for this object

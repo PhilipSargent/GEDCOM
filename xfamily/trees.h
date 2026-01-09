@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 #include "classes.h"
+#include "fixes.h"
 
 class treeinstance {
   treeinstance *next;
@@ -20,6 +21,9 @@ class treeinstance {
   GEDCOM_object *sourlist; // by having direct access to them as class
   GEDCOM_object *repolist; // members.
   GEDCOM_object *trlrlist;
+#ifdef fix0004
+  GEDCOM_object *ephemlist; // not entirely sure if we need this
+#endif
   GEDCOM_object *lastevent;// the object on which a mouse event was last
   // raised - this can be fairly transient, only needed by the callback
   // which deals with the event, so each event can overwrite it
@@ -31,6 +35,9 @@ class treeinstance {
   int famcount;  int maxFAMid;
   int sourcount; int maxSOURid;
   int repocount; int maxREPOid;
+#ifdef fix0004
+  int ephemnext;
+#endif
   bool modified;
 
 public:
@@ -48,6 +55,13 @@ public:
   void setfilename( char* );
   void save() const;
   char* getfilename() const;
+
+#ifdef fix0004
+// methods for adding ephemeral objects, converting ephemeral objects to permanent
+// and inserting objects into the main chains - not a complete set of the methods we'll need
+  void add_ephemera( GEDCOM_object* );
+  int ephemnextref();
+#endif
 
 // methods for extracting stats
   int getindicount() const;
@@ -72,10 +86,10 @@ public:
   GEDCOM_object* INDI_fuzzymatch( GEDCOM_object*, char* ) const;
 
 
-// !Family compatability
-  GEDCOM_object* noted_current() const;
-// no method yet defined to set the 0 NOTE person <name>
-// since it is an ambiguous concept (one current person per view)
+// !Family compatability ( 0 NOTE Person <name> )
+  GEDCOM_object* noted_person() const;
+// xfamily idiom for same functionality ( 0 NOTE View <indi-id> )*
+  GEDCOM_object* noted_view( GEDCOM_object* ) const;
 
 // access to windows dealing with this tree:
   mainUI* mainui() const;   // first view in list, then use mainUI::getnext()

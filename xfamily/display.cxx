@@ -1,5 +1,7 @@
 // > display.cxx
 
+#include "fixes.h"
+
 #include <string>
 #include <stdio.h>
 
@@ -9,7 +11,6 @@
 #include <FL/fl_draw.H>
 
 #include "classes.h"
-#include "fixes.h"
 #include "family.h"
 #include "display.h"
 #include "trees.h"
@@ -26,7 +27,8 @@
 // to 32kx32k which we can easily exceed in the x-direction with a biggish
 // tree. Sometime we need to implement the canvas we present to X as being
 // a window into an arbitralily large bitmap we store internally - but this
-// will probably lose us access to the FLTK drawing and font code :-(
+// will probably lose us access to the FLTK drawing and font code :-( But,
+// in fact, from fltk 1.3, this issue seems to have gone away.
 
 treedisplay::treedisplay( int x, int y, int w, int h ) :
   Fl_Button( x,y, w,h ),
@@ -62,7 +64,7 @@ int            yoffset;
 void treedisplay::draw() {
 
 // currently not tested - we just show names anyway: char          *showname;
-// but it is something we are inteding to set with an options dbox, so don't just forget it...
+// but it is something we are intending to set with an options dbox, so don't just forget it...
 displaytree   *display;
 indidisplay   *person;
 int            xoffset;
@@ -212,7 +214,7 @@ indidisplay::~indidisplay() {
 GEDCOM_object* indidisplay::getperson() const { return indi; }
 
 #ifdef fix0002
-// this code will be obsoleted by fix0003 (when that's coded) - see fixes.h
+// this code now obsoleted by fix0003 - see fixes.h (we hope)
 indidisplay *indidisplay::findindi( GEDCOM_object* person ) {
 
 indidisplay *indicheck;
@@ -516,14 +518,25 @@ bool famdisplay::testat( int h, int x, int y ) const {
 
 indidisplay* displaytree::gettop() const { return treetop; }
 
+#ifdef fix0002
 indidisplay *displaytree::findindi( GEDCOM_object* person ) {
 #ifdef debugging
   printf("displaytree::gettop() looking for %s\n",person->subobject(NAME_tag)->value());
 #endif
   return treetop->findindi( person );
 }
+#endif
 
+#ifdef fix0003
+indidisplay* displaytree::getcurrent() const { return indicurrent; }
+#endif
+
+#ifdef fix0003
+displaytree::displaytree( GEDCOM_object *treeroot, GEDCOM_object *current ) :
+  treecurrent(current),
+#else
 displaytree::displaytree( GEDCOM_object *treeroot ) :
+#endif
   ymax (0),
   xmin (0),
   xmax (0)  // or some minimum width
@@ -549,9 +562,6 @@ void displaytree::buildtree() {
    pointer to the top of the new tree would not be available until the
    constructor exits */
 
-#ifdef debugging
-  printf("displaytree::buildtree trying to addmarriages from treetop=%ld\n", (long)treetop );
-#endif
   addmarriages( treetop );
 }
 
@@ -574,6 +584,9 @@ int famnumber = 0;      // zero if we don't need to sequence-number marriages, e
 			// because there are 0 or 1
 
   person = newdisplay->getperson(); // look at the INDI object
+#ifdef fix0003
+  if (person==treecurrent) indicurrent = newdisplay;
+#endif
   
   fams = person->subobject( FAMS_tag ); // see if it contains a FAMS subobject
   // WARNING! fams is a FAMS object - not the FAM object to which it points
@@ -594,21 +607,7 @@ int famnumber = 0;      // zero if we don't need to sequence-number marriages, e
       fams->outline( stdout, 1 );
     }
 
-#ifdef debugging
-    else {
-      printf("displaytree::addmarriages dereferenced to this FAM object:\n");
-      family->outline( stdout, 0 );
-      family->subobject()->output( stdout, 1 ); }
-    //printf("trying to find a spouse (which may or may not exist)\n");
-#endif
     spouse = family->thespouseof( person );
-#ifdef debugging
-    if (spouse==NULL) {
-      printf("displaytree::addmarriages no spouse\n");
-    } else {
-      printf("displaytree::addmarriages the spouse is %s\n",spouse->getidname());
-    }
-#endif
     if (spouse != NULL) {
       spousedisplay = new indidisplay( spouse );
       if (spousedisplay==NULL) printf("displaytree::addmarriages out of heap ?\n");
@@ -618,22 +617,9 @@ int famnumber = 0;      // zero if we don't need to sequence-number marriages, e
     if (newfam==NULL) printf("displaytree::addmarriages out of heap ?\n");
     if (oldfam == NULL) newdisplay->setfamily( newfam );
      else oldfam->setnext( newfam );
-#ifdef debugging
-    printf("displaytree::addmarriages added newfam pointer to chain, now to add descendants:\n");
-#endif
     this->adddescendants( newfam );
-#ifdef debugging
-    printf("displaytree::addmarriages added descendants OK\n");
-#endif
     famnumber++;
     fams = fams->next_object( FAMS_tag );
-#ifdef debugging
-    if (fams==NULL) {
-      printf("displaytree::addmarriages next FAMS object NULL\n");
-    } else {
-      printf("displaytree::addmarriages next FAMS object to deal with %s\n",fams->value());
-    }
-#endif
   }
 }
 

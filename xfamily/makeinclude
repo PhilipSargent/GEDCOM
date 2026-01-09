@@ -8,8 +8,8 @@ libdir		=$(exec_prefix)/lib
 srcdir		=.
 XHOME		=/usr/X11R6
 # <string> etc. now seem to live here:
-# cppinclude	=/usr/include/c++/3.4.3
-# I don't seem to need to specify that at all on Linux-Debian-sparc
+# cppinclude	=/usr/include/c++/4.6.3 -> 4.6
+# I don't seem to need to specify that at all on recent distros
 
 # compiler names
 

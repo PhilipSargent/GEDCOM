@@ -1,0 +1,103 @@
+Upcoming changes for v 0.18:
+
+********************************************************************************
+**** We are doing code tidying and minor infrastructure changes in v 0.17  *****
+**** Much of what is described here is being postponed to v 0.18, by which *****
+**** time one would hope to know my way round the code a little better...  *****
+********************************************************************************
+
+Bring into conformity with GEDCOM 5.5 by removing the CEME, SITE and PLOT
+tags, and implementing a structured PLAC with essentially the same user
+interface as at present. The issue is what to use as our internal delimiter.
+GEDCOM expects that the structure will be delimited by commas, but, of course,
+these are already used internally within the strings, which would make it hard
+for us to parse off at what level things should go. That is, of course, fairly
+arbitrary anyway, but we would like to preserve what the user chose if at all
+possible. Within a cemetery we can delimit the old PLOT tag simply with the word
+plot.
+
+Actually, we have a fairly clear idea of the level of division between PLAC
+(essentially a map-defined place with some sort of administrative boundary,
+and, ideally, the smallest such unit, such as a parish or a village name
+within a parish) SITE/CEME essentially an address of a building or property
+PLOT a location within a property (ie. a precise burial location in a
+graveyard or cemetery).
+
+Move to implement the NAME subtags NPFX, GIVN, NICK, SPFX, SURN and NSFX
+
+Although we currently include UK National Grid References for a lot of our
+places, this is in no way formalised. In GEDCOM 5.5, PLAC has a MAP subobject
+with LATI and LONG subtags which expect degrees and decimal fractions (ie.
+not minutes and seconds). There is no provision for alternate coordinate systems
+such as UTM or UK National Grid. We could choose to implement this information
+with specifically formatted NOTE structures.
+
+We should really support the format for dates derived by interpretation from a
+free-form date as in  DATE (int) <date> (The Thursday before Palm Sunday, 1788)
+
+Remove the LVG tag, introduce the RESN tag. I believe we should only support
+the "confidential" value within our GEDCOM. Exported GEDCOM which removes
+information from objects marked as confidential, should use 'RESN privacy'
+to indicate that data are missing from this transmission. We could use the
+'RESN locked' field for stuff that we know looks wrong but is proven by
+enough evidence that we should be preventing casual alteration of the record.
+However, this object was really intended for publically-accessible records,
+and may not seem appropriate for a personal desktop product. The GEDCOM
+documentation doesn't seem to be clear about whether a record which is
+both locked and confidential uses both keywords in one tag, or repeats
+
+----------------------------------------------------------------------------
+
+To contemplate the next section, we need to have edit functionality on
+events (there's no sense in having a UI to add extra events if we have
+no way of keeping the events - we'd be generating pointers to bombsville...)
+
+So to what extent do we have ANY editing functionality now ?
+
+We believe we have full editing of NOTE objects, so we need to test this
+to be sure (and to do that, we need to be sure that our "save" function
+is actually working - there's a suspicion that it did, and now might not.
+OK it works except where it can't open the file for writing, in which
+case it fails safely, with a message to the terminal which may not be
+seen. We don't display a "modified" indicator anywhere.). We have been
+working on some code to support indiUI editing in v 0.17.
+
+----------------------------------------------------------------------------
+
+The major change contemplated for this version is to remove the fixed tabs
+on the INDI and FAM objects (BIRT,CHR,BAPM,DEAT,CREM,BURI; ENGA,MARR,DIV)
+and allow arbitrary appropriate events to be added to these objects, each
+creating a tab for entry or editing of the details. So the INDI ui would
+initially be rather bleak and empty-looking for a newly created INDI object,
+but clicking on an 'Add Event' button would give a menu of possible events,
+and choosing one would add the appropriate subobject to the INDI object,
+and a suitable tab to the dbox. In theory, this could allow you to have, for
+example, two BIRT tags, for different dates with different sources, although
+we would definitely need an 'are you sure' dialogue to allow that. We'd
+also want to clearly define which one would be displayed in the tree view -
+and probably display that with a question mark or in a colour that indicates
+that it is an alternative, not definitive...
+
+The object here is to simplify the user interface for the majority of
+individuals and families that do not have all the various events defined
+(you don't need BURI or CREM for someone lost at sea; you are unlikely to
+need both CHR and BAPM for most people; you don't need DIV for most
+marriages, and there aren't many for which you will know the details to
+fill in the ENGA tag). But also to provide the flexibilty to record other
+events for those few individuals and families that need them. For instance,
+multiple birth dates from different sources; perhaps two MARR objects, one
+for a TYPE Common Law, and one for a legal marriage at a later date; and
+records for Banns, marriage by licence, marriage contracts or settlements,
+and so on.
+
+Internally, we need a list of events for which we can create tabs, a
+preferred order in which tabs would appear (usually the order in which
+the associated events would _normally_ appear chronologically) and, of
+course, a detailed layout for each of these tabs.
+
+Implementation detail: How do we add a new tab to a dbox ? Does FLTK
+display them in the order that they were defined, or can we insert a new
+tab into a list between existing tabs ? The former will be much more of a
+pain as we would need to basically rebuild the dbox from scratch anytime
+a new event with associated tab was added (or an old one removed).
+

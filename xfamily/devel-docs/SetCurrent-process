@@ -1,0 +1,76 @@
+Obsolete document retained as aide-memoire. We've now made the changes
+that this "what goes on" document was written to help with. fix0002
+was obsoleted, fix0003 implemented.
+
+OK, the process of setting a new current person goes as:
+
+1a) the loading process finds a 0 NOTE view (or person) and generates
+ first->noted_person() or one of a series of first->noted_view()s
+
+1b) click on a person in the tree, the main canvas is a button, and this will
+ raise an event on that button, so we can use the location to determine the
+ person clicked on
+
+1c) open a gotobox and choose a person (may be returned by a click on a
+ person in a completions box).
+
+In each case, what we get back is a GEDCOM_object which is the INDI object
+ of the person who should become current which is then passed to
+
+view->setcurrent( GEDCOM_object* )
+
+where view is a mainUI
+
+setcurrent checks first to see if that person is already current, and if
+so, does nothing. Checks if the object was NULL (which it ought to cope
+with, to generate an empty view, which may or may not reflect an empty
+tree, which we must eventually cope with). Otherwise:
+
+set our pointer person to the new current person
+
+call this->settop() on the view (works out that the top of the tree
+is, in order of preference, the current person's father, mother, or
+self, whichever is found to exist first). The top is topind
+
+then calls this->newdisplay() on the mainUI
+
+mainUI has a pointer to display, which is a displaytree*, and newdisplay()
+simply deletes this (which should call the displaytree destructor, and
+get rid of the entire structure).
+
+then we create a new displaytree, starting from topind.
+*** So topind is what we pass to the displaytree code and it does not know
+    who is the current person - this is bad !! ***
+[ so, do we pass current in as well, so that when it creates the indidisplay
+  for that person, it can retain a pointer ? or do we just pass current, and
+  allow newdisplay to calcuylate the appropriate topind ? Well, if we did the
+  latter, then the view (mainUI) wouldn't end up with a record of topind,
+  which, in all probability, we should have, so lets do the former - fix0003 ]
+
+  a) display->buildtree() builds the structure of who is shown
+  b) display->cacltree() works out the position on the canvas of everyone
+
+we can (and do) now use display->gettop()->x() to find an x-position for
+the top person in the treedisplay. We use gettop() even though we already have
+topind, because we want to indidisplay of topind, not topind itself and since
+topind might appear in an arbitrary number of displaytrees, it doesn't have a
+pointer into any display structure.
+
+we now (as an alternative, depending on which fixes are applied) want not the
+top person as returned by view->gettop(), but the *current* person, and we find
+that using findindi( current ).
+
+This in where we see that that code is ill-considered. It solves a general
+problem of returning (by laboriously scanning through the displaytree) an
+indidisplay for a person, starting at any arbitrary point in the tree (but
+we always start at the top). This should be the first indidisplay from the
+top left (since below the top, any person might have more than one indidisplay).
+
+In practice this is only useful to us, and we only look for, the current person.
+It is going to be vastly simpler to maintain a single pointer, analogous to
+topind, which points to the indisdisplay of the current person.
+
+The only reason we are looking for the indisdisplays of the top person and/or
+the current person is with the aim of scrolling the window so that they are visible.
+Code which fails anyway...
+
