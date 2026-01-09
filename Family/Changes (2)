@@ -1,0 +1,194 @@
+Changes:
+
+Changes since 2.20:
+
+Completions window limit increased to 150: ideally this should be user
+configurable, but since the completions window has to be persistent and
+the user's choice communicated to whichever entry field it was invoked
+for, we can't DIM the Comp%() array locally to anywhere. A compiled version
+ought to be able to get round this by malloc'ing space for the list. In effect
+we could do this in the BASIC version by allocating a chunk on the heap, but
+then we couldn't use the handy array mechanism. Although I suppose we could
+use a Comp% block in which Comp%!(n%<<2) act as pointers ...
+
+The various event dboxes (Birth, Christening, Baptism, Death, Cremation and
+Burial) are now accessible from the Edit dbox by clicking on a "Details"
+button while the caret is in the relevant date field. This saves going
+through a menu selection several times to set details for one person. Making
+this work was a lot harder than I expected !! Marriages and divorces are
+a bit harder, but the interface is being redesigned slowly, to make it work
+more through dialogues than menus. [Note to the compiled version: the Linux
+version using FLTK has these life events in tabbed panels on the Edit dbox,
+which is a lot neater - is there a mechanism to build Wimp dboxes this way ?]
+
+New (1999-11-16) window for cremation details, date, time, place, site -
+CREM tag defined in GEDCOM 5.4 (A slight blow is that since 5.3, GEDCOM
+has lost the "SITE" and "CEME" tags, in favour of a rather less transparent
+internal structure for the "PLAC" tag...
+
+Since 1999-11-16, the French messages file has been fully translated,
+including help strings. This should at least be understandable by a
+french-speaker, even if not very fluent/elegant :-)
+
+--------- ADDED FUNCTIONALITY at 2.20 ---------
+
+Edit window allows you to specify dates for christening, baptism, and burial,
+as well as Title/rank and a "Living" flag.
+
+Titles stored separately from names (TITL tag) but optionally shown as part
+of name on display, in reports and in completions window.
+
+The Marry menu item now leads to a dbox with space for date/place/site as
+well as name of spouse. Latter name is required to create a marriage (nothing
+happens if you don't include a name). You can set the other details later via:
+
+New window for setting marriage details, date, time, place and site.
+New window for setting christening details, date, time, place and site.
+New window for setting baptism details, date, time, place and site.
+New window for setting death details, date, time, place, site and cause.
+New window for setting burial details, date, time, place, cemetery and plot.
+
+"Unmarry" replaces previous "Divorce". New option "Divorce" sets a date for
+a divorce.
+
+In the same way that F1 tries to complete a name by adding characters to the
+right hand end, F2 now tries to add characters to the left (thus giving you
+a choice of people in the completions window if you type just a surname).
+
+The completions window shows birth and death years for all the individuals
+(just the years) to aid identification. Individual's names (but not titles)
+are also shown in red, blue or green according to gender.
+
+Options to Show:
+
+* Spouse's dates on main display (but not if Show Dates disabled)
+* Wedding dates on main display (but not if Show Dates disabled)
+
+As well as the existing Report (in text), you can also generate:
+
+* An ancestor tree from the current person (in text, showing title, name, dates)
+* A family group report (showing each family group, giving title, name, dates
+  of each person, and date/place of marriage)
+* A Website edifice, comprising an index to all the individuals, and one page
+  for each of them. Note that most trees will need to be saved to an image
+  filing system or some other FS which supports more than 77 files per dir !
+- in these reports Titles are shown optionally (main menu choices), but dates
+  are always included.
+
+Date format in GEDCOM is GEDCOM format, but date format used by displays and
+reports depends on a library supplied by user (choice of library fixed by
+option "DateLib" in Choices file - can't change this from within the
+program). Two Libraries come as standard:
+
+* DefDateLib (display format same as GEDCOM)
+* ISODateLib (dates in ISO-8601 format).
+
+Date format used in header lines of reports has its format fixed by an
+OS_ConvertDateAndTime template in the Choices file under "ReportDate:".
+This can have values of "GED", "ISO" or any arbitrary string which will
+be passed to OS_ConvertDateAndTime as a format string. These choices
+can be set in a "miscellaneous options" dbox.
+
+Cross-reference IDs are preserved from load through modify to save. Makes it
+much easier if you are also editing the GEDCOM file directly. Newly generated
+Family Xref ids are Fnnn, and Individuals Innn. There is a small utility
+program (<Family$Dir>.Utils.XmogTree) to convert from the existing "random
+number" xrefs to this new style. Currently this means that merging two GEDCOM
+files is a problem if IDs clash, though this can be avoided by using XmogTree
+with the -I and -F parameters to produce a file to merge which has
+non-clashing ids.
+
+There is a "Statistics" window which shows the number of individuals and
+families, and the maximum IDs used in INDI and FAM objects starting with
+an I or an F, which you need to know if you are XmogTree-ing a file to be
+merged.
+
+For cross-references to those structures that !Family does not deal with (ie.
+other than INDI or FAM objects) the objects can be missing from the file and
+not be fatal (ie. the null pointers that result will never be followed).
+Thus, optionally, they may cause errors which abort loading, be reported as
+warnings, or be ignored completely according to selection in the
+"miscellaneous options" dbox. Xrefs of the form "Fnnn", "Innn" (which should
+definitely be to objects that !Family deals with), and pure numerics (which
+we can't readily decide) are still faulted and will abort loading.
+
+The consequence of this apparently bizarre and dangerous arrangement is that
+you can manage objects which !Family doesn't deal with (such as SOURce
+records) in a separate file which you don't load into the program.
+Cross-references from the file which is loaded will not cause any crashes. I
+needed this because I am adding SOUR references (by hand-editing the GEDCOM),
+but the sources are currently listed in a separate GEDCOM file which I am
+editing entirely by hand. For any new object type which !Family can deal with
+(after future functionality enhancements) simply use Xref codes starting with
+a new letter, and add this to the list of types for which strict
+cross-reference-resolution is enforced. It would be easy to add these sorts
+of objects to the XmogTree utility too.
+
+Internationalisation: now finds the country which is set on your machine and
+looks for an appropriate message file. (If you are running RISC OS 3, it
+first checks the Territory, but if this is the default (1) then it looks to
+see if a country is set too). I believe all strings which the user should
+ever see, including all those in the templates, now get translated. There are
+new help strings for all the new icons and windows. Currently only Messages.1
+(UK) is fully correct, though there is also a French (Messages.6) version
+with all the messages, menus and template data translated (which I did mainly
+for testing purposes).
+
+Note that a consequence of this is that you can't upgrade !Family from 2.18
+by dragging the new version over the old version - you need to delete the
+existing Messages file so that it can be replaced by the new Messages
+directory.
+
+--------- Bug fixes from 2.18 ---------
+
+* if you have a date (eg. birth or death) and you make it an empty field in the
+  edit window (or any of the new windows), program no longer locks up.
+
+* FNScan would not free a FAM which had less than two persons if it also had a
+  MARR or similar object - now fixed to free if <2 of {HUSB,WIFE,CHIL}
+
+* Now allow fractional point sizes - useful if you are trying to get a huge tree
+  onto a high-resolution printer. The difference between (for example) 5 point
+  text and 6 point text is considerable, and it can be very useful to use (say)
+  5.5 point text :-)
+
+* saving a file checked for filename=scrap, or for filename containing a "."
+  This meant you couldn't save to "ram:temp" for example (or indeed, any file
+  name using a path variable such as "<Tree$Path>MyFamily" or "Tree:Us").
+  Now checks for a filename containing a ":" too.
+  Because this allows a user to save a report to "printer:" (which is
+  perfectly reasonable:-), PROCSetFileType now checks that the file exists
+  before trying to set its type.
+
+* If you tried to save a tree to a device such as the printer or serial port
+  then it was actually saved to a file called serial= in the current directory
+  and then an error generated when this couldn't be renamed as serial:. This
+  is now prevented, as long as a bare device name is used. If user uses the
+  device# form, then he's still on his own... [If this sounds perverse, just
+  remember that software QA people often save to null: when doing testing, as
+  a way of exercising code without generating unwanted output :-]
+
+* The numbers used when raising an ERROR have been changed from -1 and 1 to
+  avoid the irritating "!Family may have gone wrong ... Describe" dialogue
+  which occurs with RISC OS 3.5 and above. Now use ErrFatal% for a program
+  problem and ErrChide% for a user-input type of problem. An error raised
+  by BASIC (eg. "Syntax error") will still raise the "... Describe" dialogue,
+  as long as the Wimp thinks this is one of its hard-coded error values.
+
+* now produces a "To save, drag the icon to a directory display" error box
+  if you click OK on a save dbox's OK button with a filename not containing
+  a "." or ":", rather than just reopening the save dbox at some offset from
+  the mouse position.
+
+* Software program name in HEADer SOURce record is not allowed to contain
+  embedded blanks (see GEDCOM 5.3 spec). Now use "!Family_for_RISC_OS"
+  (or !Kin ... for Development version)
+
+* Version string in HEADer SOURce VERSion record has max length 15 chars (see
+  GEDCOM 5.3 spec). Now use "2.20 1999.03.04" etc.
+
+* some programs (eg. Brother's Keeper) bomb out if there is an XREF on some
+  level 0 objects (eg. TRLR). Saved GEDCOM now doesn't have such an Xref
+  unless the loaded one did in the first place. Trees saved from a new
+  creation don't have XREFs in HEAD, TRLR or 0 NOTE <person>.
+

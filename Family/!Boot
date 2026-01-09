@@ -1,0 +1,8 @@
+| !Family.!Boot
+
+Set Family$Dir <Obey$Dir>
+Set Alias$XmogTree /<Obey$Dir>.Utils.XmogTree %*0
+IconSprites <Family$Dir>.!Sprites
+Set File$Type_D78 GEDCOM
+Set Alias$@RunType_D78 Run <Family$Dir> %%*0
+Set Alias$@PrintType_D78 Run <Family$Dir> -print %%*0

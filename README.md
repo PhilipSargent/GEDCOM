@@ -12,6 +12,9 @@ the current GEDCOM 5.5.5 standard.
 Andy also worked on a new build version called 'xfamily' written for Linux. His 
 preferred distribution was Kubuntu.
 
+In accordance with Andy's expressed wishes [cplusplus.htm in the xfamily source code], 
+this software is published with the GNU General Public License.
+
 ## GEDCOM version notes
 
 "!Family was producing GEDCOM which seemed to be correct on a
@@ -35,7 +38,7 @@ two of which seem to be causing some confusion, especially among users of earlie
 radical rethink of some aspects of the interface is currently [2003] in development which it is 
 hoped will address all such confusion. Documentation is currently ahead of development (!), but if
 you use Acorn's interactive help program (!Help), the information it reports is almost up to the 
-minute in 2.24 and way out of date in 2.25. [from armbasic.htm in the xfamily source code tree.]
+minute in 2.24 and way out of date in 2.25." [from armbasic.htm in the xfamily source code tree.]
 
 ## Installation
 

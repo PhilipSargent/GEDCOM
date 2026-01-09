@@ -1,0 +1,14 @@
+| !Family.!Run
+
+RMEnsure UtilityModule 3.00  Error 0 !Family needs RISC OS 3
+Set Family$Dir <Obey$Dir>
+IconSprites <Family$Dir>.!Sprites
+Set File$Type_D78 GEDCOM
+Set Alias$@RunType_D78 Run <Family$Dir> %%*0
+Set Alias$@PrintType_D78 Run <Family$Dir> -print %%*0
+
+| Edit the WimpSlot command to change the amount of memory available:
+
+|WimpSlot -min 320k -max 320k
+WimpSlot -min 2048k -max 2048k
+Run <Family$Dir>.!RunImage %*0

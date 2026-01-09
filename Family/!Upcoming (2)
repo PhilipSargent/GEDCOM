@@ -1,0 +1,22 @@
+What sort of menu to open is determined in PROCOpenMenu(X%,Y%,WH%)
+at line 1405 or thereabouts. For any window (including the iconbar
+icon) other than the main window, we open the iconbar menu. But in
+fact, only the main window and the iconbar icon generate events
+here, so that is OK.
+
+If this is the main menu, we call FNNear(X%,Y%) to determine who is
+to be the MenuPerson.
+
+In fact, what we need to do is to is change the order of the tests,
+then for the main window, call a modified version of FNNear which
+
+a) doesn't need us to click very near the centre of a name
+b) will return a pointer to either an INDI (as now) or a FAM, if
+ we clicked on the marriage.
+
+then we can choose between two menus for the main window (as per the
+Linux version).
+
+Having two versions will also need changes to the menu creation code,
+and menu item numbering (so we grey out the right items :-).
+

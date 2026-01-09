@@ -1,0 +1,143 @@
+Fixed at 2.24
+
+AERW:found 2000-09-12, fixed 2000-09-18: Quite a lot of interactive help is
+missing - the "update" icon of the edit window has none, the cremation
+details dbox has none at all, and moving the pointer over a burial details
+window just caused an "unknown or missing variable at 3166". Ooops. This
+means that with interactive help running, you can't get to its cancel button!
+
+A couple more header items added to specify that GEDCOM form is
+Lineage-linked, and to specify that the default language is that of the
+messages file you are using. Header is also updated to show that the GEDCOM
+was last modified by !Family 2.24 - previously any existing header was
+preserved.
+
+ISODateLib no longer stores dates like 2000.04.05 as 05 APR 2000, but
+correctly as 5 APR 2000. No change for DEFDateLib users.
+
+Changed text alignment of "Details..." button icon in the edit window to
+make it look better with system font (as experienced by users on older
+machines...).
+
+Fixed typo which caused saving a family report to fail with "Save failed
+(Mistake)". Added line numbers to that general class of errors.
+
+(existed 2.18) If a family name is delimited by slashes, as is recommended
+in GEDCOM and quite necessary for names containing a space like /de Bolton/,
+then opening a child edit dbox will carefully insert the family name for you,
+*but minus the delimiters*, which it is then very easy to forget to insert,
+resulting in your new person being put in the wrong place alphabetically, and
+a subsequent generation getting that part of the surname after the space. So
+in two generations you drop from "/de Bolton/" to "de Bolton" to "Bolton".
+
+Probably fixed 2000-04-13
+
+Ambiguous year like 1750/1.01.13 was confusing ISODateLib on return
+conversion from GEDCOM format to ISO format because the line which parsed
+the year off the end of the GEDCOM format date wasn't allowing "/".
+
+Fixed up to 2.23
+
+If your family includes surnames like /de Groot/, then any new surname
+got inserted before them because the collating comparison was done
+case-sensitively. Now use FNlower on each FNFamName() first.
+
+If you enter a three-digit year - an infinite loop results !! This is
+a major show-stopping bug for anyone with pre-conquest ancestors (or
+who makes a typing error !) Only occurred in ISODateLib - the result
+of several LEFT$(D$)s that should have been LEFT$(D$,1)s, and some code
+that was not defensive enough. Both now fixed.
+
+Fixed at 2.22
+
+2000-02-22:
+
+Adding families seems to increase the highest F identifier faster than
+one per family. Is the code renumbering FAM when a child is added ?
+Yes, this is not new. Adding a child with two parents takes two steps.
+In the first step the child is added with the father but no mother.
+This creates a new FAM object with just the HUSB and CHIL. Next, the
+child is added to the mother. A check finds that there is a FAMS with
+a particular FAM->HUSB. A further check finds the existence of a FAM
+with this HUSB and the intended WIFE. So the CHIL is added to that
+FAM and removed from the FAM recently created. The next check shows that
+that FAM now has only a HUSB, no WIFE and no CHIL, so it gets deleted.
+But the MaxFamId is irretrievably incremented. There is a kludge fix
+for this by asking if a FAM to be deleted has an id equal to the Max,
+and if so, it is safe to decrease the Max again... nasty.
+
+In Edit window, adding a title but changing nothing else seems to lose
+the change. This seems to be a case in which the code was simply never
+added. Any belief that it used to work is simply your imagination :-(
+
+2000-02-21:
+
+Removing a family (decreasing the number of individuals below two)
+caused Fcount% to be decremented twice - once in the code which called
+PROCKill, and once within PROCScan. The former removed (as PROCScan may
+recursively remove more families, so this decrement has to remain).
+
+2000-02-15:
+
+Click menu on an empty area and all the options are greyed except Edit
+and Remove. Remove should be greyed too ! (change 12 to 13 in greying FOR
+loop - bug caused by adding an option and not keeping this value up to date)
+
+Click menu on an empty tree and you can choose Edit to create a new person.
+Once you have a person, clicking menu on a blank area gives you a menu
+headed "Person". Choosing "Person => Edit" no longer edits a new person,
+but the current person. It should probably be a new person.
+
+When editing a new person (either the first person in the tree, or a new
+person created from the "<name> => Child" menu choice) putting the caret
+in a date field and clicking "Details" causes an error because the code
+which tries to fill in the dbox is looking for details of an existing
+person, but the person has not yet been created, so there is no GEDCOM
+object pointer. You have to give the person a name and close the dbox,
+then choose Edit again. This is pretty serious, in fact, how come I haven't
+noticed this before ? Fix is to add an "Update" button which does an
+update and redraw without closing the edit dbox. Until this is done,
+the "Details..." button never gets ungreyed. A bit of a kludge, but
+probably adequate, and difficult to see what else to do given the way that
+the child dboxes are implemented.
+
+Fixed before 2000-02-15
+
+Month string in LVG tag is part lower case (result of using OS_Convert...
+which uses such strings). Fix: use OS_Convert to ISO date, then use
+FN_GEDCOMDate - but this won't work because we might not have the right
+library loaded - so try just FN_Ucase (or whatever it's called) the date.
+Note that though the web contains many references to the LVG tag, this
+still wasn't a defined tag at GEDCOM 5.5, so the correct format is still
+not known, almost certainly implemented incorrectly and probably not
+supported by other software either.
+
+The SITE and CEME tags should be subobjects of the PLAC object, ie. increment
+the level by one, rather than place at the same level. (Fix now includes the
+PLOT tag at a further level down, for BURIal event). [SITE and CEME tags
+removed at GEDCOM 5.4 and above, drat]
+
+Fix for SITE/CEME/PLOT as subobjects has caused !Family to insert tags for
+BIRT/CHR/BAPM/DEAT and BURI for anyone edited, even if there are no
+subobjects of these tags (eg. DATE/PLAC/TIME). [ditto]
+
+Some templates needed changing for use with system font (wider than my
+usual desktop font - a QA failure )-:
+
+If dates are wider than names, then adjacent spouses may not have the
+proper gap when showing spouse dates. Oops, used P% when I% meant. Fixed.
+
+99.12.18: noted that web page generation broken fails to deUnix the links
+correctly. Rogue pointer in FNdeUnix fixed. Also noted that the sense of
+"Omit details of living individuals" was inverted - fixed.
+
+During HTML page generation, some <tr> are preceded by one or several
+copies of the title of the person in the previous row. oops, writing
+to wrong handle when writing a title in the individual's web page
+itself.
+
+aaarggh ! Also, fail to write any title to the first child in any
+family (in the parent's web page), and add the title of the parent
+to all subsequent children. Must have written this code very late
+at night :-(
+
