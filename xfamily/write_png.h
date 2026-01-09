@@ -5,8 +5,10 @@
 
 #ifndef WRITE_PNG_H_
 #define WRITE_PNG_H_
- 
 
+#include "fixes.h"
+ 
+#ifndef WIN32
 extern int write_png(const char *file_name,             /* Name of file to be 
 written */
                           unsigned char *datap,                         /* 
@@ -20,5 +22,6 @@ pointer to image data array */
                         );
 
 // return zero for success, -1 for error
+#endif
 
 #endif /* WRITE_PNG_H_ */

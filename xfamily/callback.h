@@ -1,6 +1,8 @@
 #ifndef callbacks_h
 #define callbacks_h
 
+#include "fixes.h"
+
 #include <FL/Fl.H>
 #include <FL/Fl_Menu.H>
 #include <FL/Fl_Button.H>
@@ -21,8 +23,6 @@ extern void deadbutton_cb(Fl_Button*, void *);
 extern void deadmenu_cb(Fl_Menu_ *, void *);
 
 // callback routines from mainUI menu applying to whole program
-
-extern void language_cb(Fl_Menu_ *, void *);
 
 // callback routines from mainUI menu applying to whole tree
 

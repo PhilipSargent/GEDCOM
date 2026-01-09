@@ -2,12 +2,13 @@
 #ifndef display_h
 #define display_h
 
+#include "fixes.h"
+
 #include <FL/Fl.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Scroll.H>
 
 #include "classes.h"
-#include "fixes.h"
 
 #define SEX_UNKNOWN 0
 #define SEX_MALE    1

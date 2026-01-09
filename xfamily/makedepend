@@ -1,4 +1,4 @@
-main.o: main.cxx /usr/include/stdc-predef.h fixes.h classes.h family.h \
+main.o: main.cpp /usr/include/stdc-predef.h fixes.h classes.h family.h \
  structure.h trees.h /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/x86_64-linux-gnu/sys/cdefs.h \
@@ -108,7 +108,7 @@ main.o: main.cxx /usr/include/stdc-predef.h fixes.h classes.h family.h \
  /usr/include/FL/Fl_Pixmap.H /usr/include/FL/Fl_RGB_Image.H \
  /usr/include/FL/Fl_Text_Buffer.H /usr/include/FL/Fl_Text_Editor.H \
  /usr/include/FL/Fl_Text_Display.H menucodes.h objects.h tags.h
-structure.o: structure.cxx /usr/include/stdc-predef.h fixes.h classes.h \
+structure.o: structure.cpp /usr/include/stdc-predef.h fixes.h classes.h \
  family.h structure.h trees.h /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/x86_64-linux-gnu/sys/cdefs.h \
@@ -218,7 +218,8 @@ structure.o: structure.cxx /usr/include/stdc-predef.h fixes.h classes.h \
  /usr/include/FL/Fl_Pixmap.H /usr/include/FL/Fl_RGB_Image.H \
  /usr/include/FL/Fl_Text_Buffer.H /usr/include/FL/Fl_Text_Editor.H \
  /usr/include/FL/Fl_Text_Display.H menucodes.h objects.h
-trees.o: trees.cxx /usr/include/stdc-predef.h /usr/include/stdio.h \
+trees.o: trees.cpp /usr/include/stdc-predef.h fixes.h \
+ /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
@@ -345,7 +346,7 @@ trees.o: trees.cxx /usr/include/stdc-predef.h /usr/include/stdio.h \
  /usr/include/c++/9/bits/functional_hash.h \
  /usr/include/c++/9/bits/basic_string.tcc /usr/include/FL/fl_ask.H \
  /usr/include/FL/Enumerations.H /usr/include/FL/abi-version.h \
- /usr/include/FL/Fl_Export.H /usr/include/FL/fl_types.h fixes.h classes.h \
+ /usr/include/FL/Fl_Export.H /usr/include/FL/fl_types.h classes.h \
  family.h structure.h trees.h gui.h /usr/include/FL/Fl.H \
  /usr/include/FL/Fl_Export.H /usr/include/FL/fl_utf8.h \
  /usr/include/string.h /usr/include/strings.h \
@@ -392,10 +393,10 @@ trees.o: trees.cxx /usr/include/stdc-predef.h /usr/include/stdio.h \
  /usr/include/FL/Fl_Pixmap.H /usr/include/FL/Fl_RGB_Image.H \
  /usr/include/FL/Fl_Text_Buffer.H /usr/include/FL/Fl_Text_Editor.H \
  /usr/include/FL/Fl_Text_Display.H menucodes.h objects.h tags.h
-callback.o: callback.cxx /usr/include/stdc-predef.h /usr/include/FL/Fl.H \
- /usr/include/FL/Fl_Export.H /usr/include/FL/fl_utf8.h \
- /usr/include/FL/Fl_Export.H /usr/include/FL/fl_types.h \
- /usr/include/stdio.h \
+callback.o: callback.cpp /usr/include/stdc-predef.h fixes.h \
+ /usr/include/FL/Fl.H /usr/include/FL/Fl_Export.H \
+ /usr/include/FL/fl_utf8.h /usr/include/FL/Fl_Export.H \
+ /usr/include/FL/fl_types.h /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
@@ -508,22 +509,16 @@ callback.o: callback.cxx /usr/include/stdc-predef.h /usr/include/FL/Fl.H \
  /usr/include/FL/Fl_Browser.H /usr/include/FL/Fl_Browser_.H \
  /usr/include/FL/Fl_File_Icon.H /usr/include/FL/Fl_Check_Button.H \
  /usr/include/FL/Fl_Light_Button.H /usr/include/FL/Fl_File_Input.H \
- /usr/include/FL/fl_ask.H fixes.h /usr/include/unistd.h \
- /usr/include/x86_64-linux-gnu/bits/posix_opt.h \
- /usr/include/x86_64-linux-gnu/bits/environments.h \
- /usr/include/x86_64-linux-gnu/bits/confname.h \
- /usr/include/x86_64-linux-gnu/bits/getopt_posix.h \
- /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
- /usr/include/x86_64-linux-gnu/bits/unistd.h \
- /usr/include/x86_64-linux-gnu/bits/unistd_ext.h menucodes.h classes.h \
- family.h structure.h gui.h /usr/include/FL/Fl_Light_Button.H \
- /usr/include/FL/Fl_Output.H /usr/include/FL/Fl_Menu_Bar.H \
- /usr/include/FL/Fl_Scroll.H /usr/include/FL/Fl_Tabs.H \
- /usr/include/FL/Fl_Select_Browser.H /usr/include/FL/Fl_Text_Buffer.H \
- /usr/include/FL/Fl_Text_Display.H /usr/include/FL/Fl_Text_Buffer.H \
- /usr/include/FL/Fl_Text_Editor.H /usr/include/FL/Fl_Text_Display.H \
- display.h trees.h objects.h callback.h tags.h write_png.h
-objects.o: objects.cxx /usr/include/stdc-predef.h /usr/include/string.h \
+ /usr/include/FL/fl_ask.H menucodes.h classes.h family.h structure.h \
+ gui.h /usr/include/FL/Fl_Light_Button.H /usr/include/FL/Fl_Output.H \
+ /usr/include/FL/Fl_Menu_Bar.H /usr/include/FL/Fl_Scroll.H \
+ /usr/include/FL/Fl_Tabs.H /usr/include/FL/Fl_Select_Browser.H \
+ /usr/include/FL/Fl_Text_Buffer.H /usr/include/FL/Fl_Text_Display.H \
+ /usr/include/FL/Fl_Text_Buffer.H /usr/include/FL/Fl_Text_Editor.H \
+ /usr/include/FL/Fl_Text_Display.H display.h trees.h objects.h callback.h \
+ tags.h write_png.h
+objects.o: objects.cpp /usr/include/stdc-predef.h fixes.h \
+ /usr/include/string.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
@@ -565,7 +560,7 @@ objects.o: objects.cxx /usr/include/stdc-predef.h /usr/include/string.h \
  /usr/include/x86_64-linux-gnu/bits/iscanonical.h \
  /usr/include/x86_64-linux-gnu/bits/mathinline.h /usr/include/FL/fl_ask.H \
  /usr/include/FL/Enumerations.H /usr/include/FL/abi-version.h \
- /usr/include/FL/Fl_Export.H /usr/include/FL/fl_types.h fixes.h classes.h \
+ /usr/include/FL/Fl_Export.H /usr/include/FL/fl_types.h classes.h \
  family.h objects.h tags.h /usr/include/c++/9/stdlib.h \
  /usr/include/c++/9/cstdlib \
  /usr/include/x86_64-linux-gnu/c++/9/bits/c++config.h \
@@ -598,8 +593,8 @@ objects.o: objects.cxx /usr/include/stdc-predef.h /usr/include/string.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib.h \
- /usr/include/c++/9/bits/std_abs.h tags.cxx taginc.cxx
-gui.o: gui.cxx /usr/include/stdc-predef.h fixes.h \
+ /usr/include/c++/9/bits/std_abs.h
+gui.o: gui.cpp /usr/include/stdc-predef.h fixes.h \
  /usr/include/c++/9/stdlib.h /usr/include/c++/9/cstdlib \
  /usr/include/x86_64-linux-gnu/c++/9/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/9/bits/os_defines.h \
@@ -776,7 +771,7 @@ gui.o: gui.cxx /usr/include/stdc-predef.h fixes.h \
  structure.h trees.h callback.h /usr/include/FL/Fl_Menu.H \
  /usr/include/FL/Fl_Menu_Item.H /usr/include/FL/Fl_Multiline_Input.H \
  display.h objects.h tags.h
-display.o: display.cxx /usr/include/stdc-predef.h fixes.h \
+display.o: display.cpp /usr/include/stdc-predef.h fixes.h \
  /usr/include/c++/9/string \
  /usr/include/x86_64-linux-gnu/c++/9/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/9/bits/os_defines.h \
@@ -950,7 +945,7 @@ display.o: display.cxx /usr/include/stdc-predef.h fixes.h \
  /usr/include/FL/Fl_Text_Display.H /usr/include/FL/fl_draw.H \
  /usr/include/FL/Fl_Text_Buffer.H /usr/include/FL/Fl_Text_Editor.H \
  /usr/include/FL/Fl_Text_Display.H menucodes.h objects.h tags.h
-write_png.o: write_png.cxx /usr/include/stdc-predef.h \
+write_png.o: write_png.cpp /usr/include/stdc-predef.h fixes.h \
  /usr/include/c++/9/fstream /usr/include/c++/9/istream \
  /usr/include/c++/9/ios /usr/include/c++/9/iosfwd \
  /usr/include/x86_64-linux-gnu/c++/9/bits/c++config.h \

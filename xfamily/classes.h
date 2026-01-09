@@ -3,19 +3,19 @@
 #ifndef classes_h
 #define classes_h
 
-// forward refs: the top level linked list classes (structure.h/cxx)
+// forward refs: the top level linked list classes (structure.h/cpp)
 
 class instancelist;
 class editlist;
 class famedlist;
 class noteslist;
 
-// tree classes - one instanciation per loaded GEDCOM (trees.h/cxx)
+// tree classes - one instanciation per loaded GEDCOM (trees.h/cpp)
 
 class treeinstance;
 // class tree; now subsumed
 
-// window classes (gui.h/cxx)
+// window classes (gui.h/cpp)
 
 class mainUI;
 class infoUI;
@@ -29,7 +29,7 @@ class famcompletionsUI;
 class prefUI;
 class notesUI;
 
-// menu classes (gui.h/cxx)
+// menu classes (gui.h/cpp)
 
 class barmenu;
 class indipopupmenu;
@@ -38,20 +38,20 @@ class notesmenu;
 
 // component classes
 
-//   display structures - one treedisplay per view or print job (display.h/cxx)
+//   display structures - one treedisplay per view or print job (display.h/cpp)
 
 class treedisplay; // an Fl_Button subclass used by mainUI
 class displaytree; // display info for a particular displayed tree
 class indidisplay; // one per individual displayed
 class famdisplay;  // one per marriage/family displayed
 
-//   GEDCOM structures (objects.h/cxx)
+//   GEDCOM structures (objects.h/cpp)
 
 class GEDCOM_object;
 class GEDCOM_tag;
 class GEDCOM_id;
 
-//   other structures (objects.h/cxx)
+//   other structures (objects.h/cpp)
 
 class indicompletion_item;
 class famcompletion_item;

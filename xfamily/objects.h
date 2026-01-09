@@ -3,10 +3,11 @@
 #ifndef GEDCOMobjects_h
 #define GEDCOMobjects_h
 
+#include "fixes.h"
+
 #include <string.h>
 #include <stdio.h>
 
-#include "fixes.h"
 #include "classes.h"
 #include "family.h"
 

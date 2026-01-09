@@ -17,7 +17,7 @@
 
 #define fix0001
 // assume fltk does not scroll an Fl-Scroll to prevent window displaying
-// beyond the canvas area (used in gui.cxx) [AERW 2007-09-18 I don't think
+// beyond the canvas area (used in gui.cpp) [AERW 2007-09-18 I don't think
 // this fix works, if it is fixing what it sounds as if it was meant to fix]
 // remove this code in v018 unless we continue to see the problem (in which
 // case, do more experiments...) [Still here in v 0.20 I believe ]
@@ -32,7 +32,7 @@
 // upcoming fixes:
 
 //#define fix0008
-// display.cxx knows rather a lot about GEDCOM structure - we should have methods,
+// display.cpp knows rather a lot about GEDCOM structure - we should have methods,
 // applicable to any event object, which return the date, place (and site, for 5.3)
 // of the event. OK, that may be overkill - what inspired this is that we want a
 // birth and death date for display in an indiUI (and a marriage date for famUI).
@@ -52,7 +52,7 @@
 // marriage is shown, much like birth - death dates.
 
 //#define fix0009
-// in display.cxx, we have hard-coded some font sizes, because the displaytree
+// in display.cpp, we have hard-coded some font sizes, because the displaytree
 // class doesn't have a pointer to the ones configured for it. In fact, as a
 // start (and since we only ever have one prefUI), we should implement a method
 // on the preferences to return this - how does prefUI get these ? Does prefUI

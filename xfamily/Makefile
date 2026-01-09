@@ -16,16 +16,16 @@ FLTKHOME = /usr/include/FL
 FLTKLIB  = /
 
 CPPFILES = \
-	main.cxx \
-	structure.cxx \
-	trees.cxx \
-	callback.cxx \
-	objects.cxx \
-	gui.cxx \
-	display.cxx \
-        write_png.cxx
+	main.cpp \
+	structure.cpp \
+	trees.cpp \
+	callback.cpp \
+	objects.cpp \
+	gui.cpp \
+	display.cpp \
+        write_png.cpp
 
-OBJECTS = $(CPPFILES:.cxx=.o)
+OBJECTS = $(CPPFILES:.cpp=.o)
 
 # we want to find the leafname dynamically PWLEAF = ${PWD##*/}
 # but have had no success as yet
@@ -34,21 +34,21 @@ PWLEAF=${PWD##*/}
 
 include makeinclude
 
-.SUFFIXES : .cxx .c .o
+.SUFFIXES : .cpp .c .o
 
-.cxx.o :
-	$(CXX) -I$(FLTKHOME) $(CXXFLAGS) -c $<
+.cpp.o :
+	$(CPP) -I$(FLTKHOME) $(CPPFLAGS) -c $<
 .c.o :
 	$(CC) -I$(FLTKHOME) $(CFLAGS) -c $<
-.cxx :
-	$(CXX) -I$(FLTKHOME) $(CXXFLAGS) -o $@ $< -L$(FLTKHOME)/lib64 $(LINKFLTKIMG) $(LDLIBS)
+.cpp :
+	$(CPP) -I$(FLTKHOME) $(CPPFLAGS) -o $@ $< -L$(FLTKHOME)/lib64 $(LINKFLTKIMG) $(LDLIBS)
 
 $(PROGRAM) : $(OBJECTS)
 # $(FLTKHOME)/lib/$(LIBNAME)
-	$(CXX) $(LDFLAGS) -o $(PROGRAM) $(OBJECTS) -L$(FLTKHOME)/lib64 $(LINKFLTKIMG) $(LDLIBS)
+	$(CPP) $(LDFLAGS) -o $(PROGRAM) $(OBJECTS) -L$(FLTKHOME)/lib64 $(LINKFLTKIMG) $(LDLIBS)
 
 depend:
-	$(MAKEDEPEND) -I$(FLTKHOME) $(CXXFLAGS) $(CPPFILES) $(CFILES) > makedepend
+	$(MAKEDEPEND) -I$(FLTKHOME) $(CPPFLAGS) $(CPPFILES) $(CFILES) > makedepend
 include makedepend
 
 install: $(PROGRAM)

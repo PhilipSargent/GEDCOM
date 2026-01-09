@@ -13,14 +13,14 @@ XHOME		=/usr/X11R6
 
 # compiler names
 
-CXX		=c++
+CPP		=c++
 CC		=gcc
-MAKEDEPEND	=$(CXX) -M
+MAKEDEPEND	=$(CPP) -M
 LD              =ld
 
 # flags for C++ compiler:
 CFLAGS		= -O2 -Wall -I$(XHOME)/include
-CXXFLAGS	= -O2 -Wall -Wno-return-type -I$(XHOME)/include
+CPPFLAGS	= -O2 -Wall -Wno-return-type -I$(XHOME)/include
 # if we don't define cppinclude, we don't want this -I$(cppinclude)
 
 # libraries to link with

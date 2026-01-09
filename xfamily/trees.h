@@ -3,10 +3,11 @@
 #ifndef trees_h
 #define trees_h
 
+#include "fixes.h"
+
 #include <stdio.h>
 
 #include "classes.h"
-#include "fixes.h"
 
 class treeinstance {
   treeinstance *next;
@@ -91,7 +92,7 @@ void remove_fam( GEDCOM_object* );
 
 // methods for traversing/maintaining GEDCOM structures
   GEDCOM_id* add_id( char* );    // it might help if this had a better name like create_id
-                                 // but .cxx says we should never use it, so perhaps check and remove ?
+                                 // but .cpp says we should never use it, so perhaps check and remove ?
   void add_id( GEDCOM_id* );
   void drop_id( GEDCOM_id* );
   int GEDCOM_objectforref( char*, GEDCOM_object* );

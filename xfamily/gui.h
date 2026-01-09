@@ -29,7 +29,6 @@
 
 #include "classes.h"
 #include "family.h"
-#include "fixes.h"
 
 ///////////////// menu structures used by the GUIs ///////////////
 
