@@ -1,0 +1,109 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html lang="en">
+<head>
+<title>The !Family Screenbook</title>
+<LINK rel="toc" title="Table of Contents" href="index.html">
+<META name="keywords" content="Family !Family GEDCOM Genealogy editor">
+<META HTTP-EQUIV="Content-Language" CONTENT="en">
+</head>
+ <body BGCOLOR="#FFFFFF" TEXT="#000000" STYLE="font-family: sans-serif;">
+
+<p>!Family at version 2.2.7 implements GEDCOM version 5.3, which is not the current
+standard. Whilst !Family will always preserve GEDCOM it cannot interpret, any new
+GEDCOM that it generates will conform to the 5.3 specification. Unfortunately, a
+number of the changes that were introduced by the GEDCOM developers at 5.3 have
+been removed again, and will not be understood by some systems that expect GEDCOM
+5.5. Work in the 2.3.x branch will aim to address this issue once the major UI
+changes have been made, but in the meantime, you should note the following:</p>
+
+<h2>Location over-structured in 5.3</h2>
+
+<p>The tag for specifying a location, PLAC had, in 5.3, a subsidiary tag
+SITE (or, in the specific case of a BURI event, a CEME tag with a further
+PLOT subobject). !Family implements these tags as providing a useful degree
+of structure, but in later versions of the GEDCOM specification, it was decided
+that these tags were unnecessary, and that structure within the PLAC object
+should be provided by simply adding delimiters to separate levels such as
+country, state, county, city .... If you export 5.3 GEDCOM from !Family to
+some other systems that expect strict 5.5 GEDCOM, you may lose the SITE,
+CEME and PLOT data. Furthermore, GEDCOM 5.5 provides a way to tell other
+systems what the exact structure of your location data is, in terms of
+what lies between each delimiter. This would be fine if every location
+had the same structure - the examples given in the GEDCOM Spec. are
+noticeably USA-o-centric, suggesting Country, state, county, city, zip.
+Unfortunately, anyone who has ancestors in more than one country will find
+that the same definition will not cover the structure of a location in
+different places. So that what we consider to be the PLAC may have two
+or more components before a smaller division is what we would consider
+the SITE. And obviously, most locations won't have something identifiable
+as a PLOT, since that is only relevant to a cemetery.</p>
+
+<p>It is intended to provide a method whereby !Family will display essentially
+the same structure as at present, but store everything in the one PLAC object
+with its own delimiter between the different levels. It will continue to
+understand the 5.3 location tags, but will always export GEDCOM in strict 5.5
+comformance. What we consider belongs in the PLAC is essentially an area down
+to township/parish sort of level, whilst SITE takes you down to a specific
+building, street address, or piece of land. PLOT is a location within a
+piece of land used as a burial ground. Neither versions 5.3 or 5.5 really
+support a geo-reference such as an Ordnance Survey grid reference or
+UTM coordinate.</p>
+
+<h2>Living tag</h2>
+
+<p>A number of genealogy packages have an option to flag a person as being
+living (at a particular datae) with the LVG tag, but this has never been
+part of the official GEDCOM spec. !Family chose to implement this tag when
+your author believed that it was a part of a GEDCOM version he had not managed
+to get hold of documentation for, but this proved to have been an error.</p>
+
+<p>There are two reasons for using this tag, one to provide evidence to
+prevent a later editor from accepting a date of death before the one
+recorded in the LVG object, and the other to withhold publication of data
+concerning a living person. The former need is still not really addressed
+by any official GEDCOM tag, but the latter is addressed by the RESN
+(restriction notice) tag. This latter tag is somewhat ill-defined in that
+one of its uses is to note that data have been withheld in a GEDCOM
+generated for transmission to another system, whilst another seems to
+be to indicate that data which are present in the current GEDCOM file
+are to be treated as confidential. A third use is to indicate that a
+particular group of data are to be 'locked' against change because of
+false evidence 'in the wild' that continually causes people to try to
+change a record which is already established by other, less widely
+known evidence. These three different uses for the same tag seem a bit
+ill-conceived and poorly thought out, but it is the intention that
+!Family will bow to the GEDCOM committee and replace the LVG tag with
+a restriction notice on output. This would be used (optionally) as the
+LVG tag is at present, to remove sensitive data about living persons
+from being put into the html pages which can be generated. By another
+option, these data could be withheld from a GEDCOM output file. The
+risk is that the data become lost from your main database, so the
+intention is that the "save" dialogue will save your full GEDCOM
+at all times, but that there will be a separate "export" dialogue
+in which a series of options will enable the user to restrict
+what data are retained in a GEDCOM file intended for transmission
+to a third party. I've since found some packages use a different
+way (using the EVEN tag) to include evidence that a person was
+alive on a particular date, which seems to fit better with the
+GEDCOM data model, so I'll try to add this to the existing codebase.</p>
+
+<h2>Title tag</h2>
+
+<p>GEDCOM has had a TITL tag for a long time, but in the GEDCOM 5.5
+Spec. it has been clarified as being intended purely for titles of
+nobility and not for such terms as "Doctor" or for military ranks.
+These latter are meant to go into "prefix name part" subobjects of
+the NAME object, which !Family does not currently implement (but it
+is on the road map). Care is needed if you (like me) have used TITL
+for these ranks and professional titles, as this will need a GEDCOM
+conversion process at some stage in the future. It should also be
+noted that all these titles (whether of nobility or profession)
+should support a DATE object, either for the date of granting the
+title, or a date range during which it was applicable. Given that
+titles and ranks change over time, GEDCOM allows for multiple
+TITL and PRFX objects, which !Family will preserve in imported
+GEDCOM, but could corrupt if you try to edit the title.</p>
+
+
+</body>
+</html>

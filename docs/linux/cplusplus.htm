@@ -1,0 +1,76 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html lang="en">
+<head>
+<title>Genealogy Software corner: X!Family</title>
+</head>
+<body>
+<h2>Pennine Software X!Family Genealogy Package</h2>
+
+<p>X!Family is a complete rewrite in C++ of the popular !Family Genealogy
+package on the Acorn RISC OS Platform. It is currently at early Alpha
+stage, with much of the user interface visible, but none of the functionality
+to actually edit GEDCOM files yet added. A few more features remain to be
+added to this "readonly" version, before I add editing functionality. I find
+it useful as a browser, especially given the ability to have different views
+on the same tree and to look at multiple sets of notes at once. My typical
+usage at present is to run X!Family on a 21" monitor on my Linux box, while
+running !Family in an emulated RISC PC (which runs a lot more slowly) to
+actually make changes.
+
+<h3>Significant advances from !Family 2.2x:</h3>
+
+<ul>
+<li>Platform portable: being developed on Linux using a toolkit which also
+runs on other platforms, including Windows.
+<li>Compiled code is much faster - loads a 2000-person tree in seconds rather
+than minutes, and updates to a new current person many times faster than the
+old package.
+<li>Supports multiple views on the same tree, each with a different "current"
+person.
+<li>Can have many edit windows open at once on different people, not just the
+"current" person.
+<li>Can open notes windows on any person, not just the "current" person, and
+can have as many as you like open at once.
+<li>Can open notes windows for families as well as individuals
+<li>Can cut and paste between different notes windows
+<li>Can change the language of all the messages dynamically while running -
+well, it could three years ago. With recent versions of the base libraries,
+this functionality seems to crash the program...
+<li>Can change (as a compilation option at present) the font size used on
+screen to support maximum usability - I use a small font to get a useful
+amount of tree on an 800x600 laptop and usually a bigger font for comfortable
+viewing on a 21" monitor, although the small font is also useful when viewing
+a particularly complex tree even at 1920x1440.
+
+</ul>
+
+<p><center><a href="xdoc/screenshot.png">
+<img alt="screenshot - click for 45k gif full-resolution version" width=307
+height=254 hspace=10 vspace=10 src="xdoc/screentiny.png"></a></center>
+
+<p>Further new features are planned:
+
+<ul>
+<li>Will deal with sources and repositories
+<li>Will allow more versatile wildcard searches in "Goto"
+<li>Will allow multiple people with the same name in the tree
+<li>Will support multiple documents (more than one GEDCOM in memory) and will
+allow merging trees
+</ul>
+
+<p>Some of these features won't be implemented until a full editing
+capability has been incorporated, but as much as possible will be added and
+tested <b>before</b> adding the capability to corrupt your GEDCOM.
+
+<p>Of course, the new package (currently under the "working" name of
+X!Family) will be open source, and distributed under the GNU General Public
+License. The current Alpha release is available as source (which is
+invariably likely to be more up-to-date) or as an i386 binary (updated rather
+less frequently) for Linux on the <a href="downloads.htm">downloads page</a>.
+There is a user-manual after the style of the KDE desktop ones, which is
+also being mirrored on the site as <a href="xdoc/index.htm">"The X!Family
+Screenbook".</a> A <a href="xfamdocs-014.zip">zip</a> of all the screenbook
+pages is also available for browsing offline.
+
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html lang="en">
+<head>
+<title>Genealogy Software corner</title>
+</head>
+<body>
+<h2>Pennine Software Genealogy: Downloads</h2>
+
+<h3>!Family Package for Acorn RISC OS</h3>
+
+<p>The latest stable release of this package is 2.2.7rc1, dated 2007-10-19 which
+comes as a <a href="family227.zip">zipped application,</a> currently 517k. This is
+a lot bigger than previous releases, despite a reduction in code size, owing mainly
+to improved documentation. The previous <b>stable</b> version was 2.24, 2000-09-18
+which is still available <a href="family224.zip">. There have been some major user
+interface revisions since 2.24</a>, and a slight incompatibility in the GEDCOM (that
+produced by versions 2.20 to 2.24 was slightly in error - 2.2.7 includes a small
+utility program to fix this).</p>
+
+<p>New features in 2.2.7 include:
+
+<ul>
+<li>Should not run low on memory - the heap is extended dynamically when
+needed. This avoids the need to set a Wimpslot appropriate to your tree
+size in the !Run file.
+<li>New tabbed dboxes for life and family events, eliminating a lot of the
+confusing aspects of the current interface.
+<li>Can now specify Gregorian or Julian calendar on all dates.
+<li>Early support for source citation via the SOUR tag on events.
+<li>A number of bug fixes, including a memory leak and an apparent memory
+leak if you believed the "free heap space" figure on the iconbar icon.
+<li>Lots of minor fixes correcting non-serious bugs or minor usage issues.
+<li>Some experimental Heap management libraries (not used by default).
+</ul>
+
+<h3>XFamily <b>Alpha</b> prerelease</h3>
+
+<p>Version 0.13 has been out for a while. Version 0.14 has been in
+development ever since I got feedback from a real user out there in
+internet land. As I'm not going to be able to do any work on it for
+a short while, I've tidied it up for a release. I'm no loner doing
+binary releases, as it really is too much to compile the stuff for
+several different versions of several different distributions. V 0.14
+has been tested on Mandrake 9.0 and Mandrake 9.2 Linux, both using
+version 1.1.4 of FLTK. I'd be pleased to hear of your success or
+failure to build it on any other systems.
+
+<p><b>WARNING:</b> you can put the binary anywhere you like (I just
+run it where the build step leaves it, in /usr/local/src/xfamily/v014/XFamily
+- there is no "make install" step as yet), but at the
+moment, the GEDCOM file which the program reads is compiled in at<br>
+/usr/local/src/xfamily/test/test2.ged for versions after v0.13<br>
+which is not terribly helpful. Similarly, the messages files are looked for
+at<br>
+/usr/local/src/xfamily/v014/messages/&lt;name&gt;<br>
+If you ask the program to write out its GEDCOM it will go to<br>
+/var/test.ged<br>
+Of course, you can use symbolic links to point these at any real file you
+like. <b>Warning</b> the software is still at the
+alpha stage (and may therefore crash unexpectedly) but now has some of the
+functionality to change your GEDCOM file rather than being purely a browser.
+You can save changed NOTEs back to the GEDCOM, so please take care if you
+symlink the write location to the same place as the read location.
+
+<p>Currently, emphasis is on writing the functionality to deal with GEDCOM
+and display multiple views of a family tree. It may be some time (and
+certainly not until a full editing capability has been added) until the
+file-chooser functionality is written. I dislike the Linux file-loading
+idioms (although the file-chooser in FLTK 1.1.4 is nicer), as compared
+to the RISC OS "drag the file to the directory of choice" one, so I'd
+hope to provide a choice of both idioms if possible.
+
+<p>The <a href="xfamily-v014-src.zip">source distribution</a> is zipped
+(currently 95k). It doesn't have anything like proper version numbers yet,
+and comes with no guarantees, other than that it won't corrupt your GEDCOM
+yet, as long as you don't put a symlink to make it overwrite its input. (This
+guarantee will be removed in future versions :-). As of 0.14, the build
+tools for the International messages have been rewritten in Python, instead
+of needing you to have an Acorn RISC OS system on your desk. This was only
+relevant to anyone who wanted to change code enough to need to add new
+messages, or for translators to new languages. You will need the FLTK package,
+which has its <a href="https://www.fltk.org/">own home page</a> and also comes
+bundled with some distributions (eg. SuSE). There is a line in X!Family's
+makefile which you may need to modify to tell it where to find FLTK if you
+install it somewhere other than the default or have a different version than
+the one I have (1.1.4). I think the code will no longer work with FLTK 1.0.x
+versions, but 1.1.&lt;anything&gt; should be fine.
+
+<p>You might also need to change paths to some C/C++ header files (at least
+one lot seemed to move when I upgraded Mandrake versions). If anyone changes
+things to use a ./configure script, I'd be really pleased to receive your
+changes :-)
+
+<p>If anyone compiles this under a system other than Linux, or with a
+compiler other than gcc, I'd love to hear from you about any changes you had
+to make to get it to work, or what problems you have that are stopping it
+from compiling. I presonally have no interest in seeing a Windows version,
+but if you want to build one and have to make changes, I'll incorporate
+them into the distributed sources. If anyone would like to port FLTK to RISC
+OS, I'd be overjoyed to hear from you too ! Unfortunately, I think the port
+would need an X server, and the only one I know of for RISC OS is a ludicrously
+expensive commercial offering (though I have heard that there are a couple of
+free ones of unknown quality and availability).
+
+<p>The user manual for xfamily lags slightly behind the actual code, and is
+now on the site as an archive <a href="xfamdocs-014.zip">xfamdocs-014.zip</a>.
+You can browse individual pages <a href="xdocs/index.html">on this site</a>,
+but these pages may lag slightly further behind and it is recommended that
+if you decide to download and build the software, you get the manual as a
+zip and unpack it into /usr/local/src/xfamily/html014. From there you can
+also browse it from the "Help" menu item within the program.
+
+</body>
+</html>

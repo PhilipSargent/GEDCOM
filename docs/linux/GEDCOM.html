@@ -1,0 +1,126 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html lang="en">
+<head>
+<title>The X!Family Screenbook</title>
+<LINK rel="next" title="" href="appc.html">
+<LINK rel="previous" title="" href="prefUI.html">
+<LINK rel="toc" title="Table of Contents" href="index.html">
+<META name="keywords" content="Family !Family X!Family X GEDCOM Genealogy editor">
+<META HTTP-EQUIV="Content-Language" CONTENT="en">
+</head>
+<body BGCOLOR="#FFFFFF" TEXT="#000000"
+STYLE="font-family: sans-serif;">
+<!-- include your neat logo here with a link to your website -->
+
+<HR WIDTH="100%" SIZE="2" ALIGN="CENTER" NOSHADE="NOSHADE">
+
+<P><A HREF="appc.html">Next</A> | <a href="prefUI.html">Prev</a> | <a href="index.html">Table of Contents</a></P>
+
+<h1><a name="">X!Family Appendix B.</a> GEDCOM files</h1>
+
+<p>The following description is adapted from Dennis Howes' original Help
+file for !Family:
+
+<p>GEDCOM (Genealogical Data Communication) is the de facto international
+standard for genealogical data, specified by Mormon church. Genealogical
+databases for personal computers use the "Lineage-linked form", though
+the basic grammar supports other forms. This is the form used as its native
+database by X!Family.
+
+<p>If you look up
+"Church of Jesus Christ of Latter-day Saints" in your 'phone book you may
+find a "Family History Centre" listed. There you can search gigabytes of
+genealogical data on CDROM, copy bits to a file in GEDCOM format, bring it
+home on floppy disc, and load it into X!Family. Some of this information
+(in particular, the International Genealogical Index) is also available
+online at <a href="http://www.familysearch.org/">www.familysearch.org,</a>
+the main LDS website, and can be downloaded in GEDCOM format.
+
+<p>GEDCOM files are actually plain ASCII. It is not necessary to understand
+their format but the following explanation is included for the curious.
+Each line describes an object and is of the form
+
+<pre>  level [@id@] tag value</pre>
+
+<p>where level is a number. Objects at level n are sub-objects of those at
+level n-1. The top-level (0) objects are things like individuals (tag =
+"INDI") and families (tag = "FAM"). Individuals have sub-objects with
+tags like NAME, BIRT, DEAT, FAMS and FAMC. A FAMS object has a value like
+@F12@ which is a cross-reference to a (level 0) FAM object with id = F12.
+This is a family in which the individual is a spouse (or parent). A FAMC
+object also has a cross-reference to a FAM object for a family in which the
+person is a child. FAM objects have HUSB, WIFE and CHIL sub-objects whose
+values are cross-references back to individuals. Here is an example. The
+comments after the semicolons ";" in the following are not part of the
+GEDCOM, and would not be in a real GEDCOM file:
+
+<pre>
+0 @I1@ INDI      ; An individual
+1 NAME John      ;  called John
+1 FAMC @F1@      ;  is a child in family F1
+0 @I2@ INDI
+1 NAME David     ; David
+1 FAMS @F1@      ;  is a parent in F1
+0 @I3@ INDI
+1 NAME Mary      ; Mary
+1 FAMS @F1@      ;  is a parent in F1
+0 @F1@ FAM       ; Family F1 includes
+1 HUSB @I2@      ;  David, the father
+1 WIFE @I3@      ;  Mary, the mother
+1 CHIL @I1@      ;  John, a child
+</pre>
+
+<p>The GEDCOM standard defines many more tags than are used by X!Family.
+Objects which are not recognised are not displayed but are preserved when
+the file is saved. For full details of GEDCOM, write to
+
+<pre>
+   <a href=mailto:gedcom@gedcom.org>gedcom@gedcom.org</a>
+
+   GEDCOM Coordinator
+   Family History Department
+   50 East North Temple
+   Salt Lake City UT 84150
+   USA
+</pre>
+
+<p>A technical description of the grammar of GEDCOM, along with all the
+tags defined in the current version is supposedly to be found among the
+official, current GEDCOM documents available by anonymous ftp at ftp.gedcom.org
+in the directory /pub/genealogy/gedcom. When I tried to get these documents,
+I got "domain name ftp.gedcom.org does not exist". However, a Google search
+for "GEDCOM standard tag" usually produces a number of useful documents.
+
+<p>Although GEDCOM files can be edited with an ordinary text editor, this
+requires considerable care not to create entries which are inconsistent with
+each other, particularly cross-references between families and their members.
+If you frequently find yourself editing a GEDCOM manually, please let the
+X!Family developer know at family-maint/at/nospam.pennine.demon.co.uk, and
+the features you need supported will be considered for inclusion in future
+releases.
+
+<p>Some PC programs (eg. Legacy and Win-Family) require GEDCOM lines to end
+with carriage return. Following the standard, X!Family writes them out with line
+feed and reads in any combination of CR and LF. Use a text editor or other
+tool to change LF to CR if you must use broken software.
+ 
+<p>X!Family understands the basic grammar of GEDCOM files, but only supports
+a subset of the tags. Anything it doesn't understand is preserved (unlike
+some genealogy software which simply discards those bits). If you import a
+GEDCOM file conforming to an old version, and modify it with X!Family, which
+is mainly based on the 5.3 revision (but uses some tags first defined at
+5.4), you may end up with a GEDCOM which contains a mix of features from
+recent versions, and old features no longer supported by some Genealogy
+programs. For example, Personal Ancestral File 4.03 will import GEDCOM 4.0
+files and GEDCOM 5.5 files, converting everything to 5.5, but doesn't
+understand some tags from the 5.3 version, which it simply moans about at
+length, then discards. Keeping your databases in X!Family will guarantee not
+to throw away any data, no matter what GEDCOM revision your base data
+conforms to, as long as it does indeed adhere to the correct grammar.
+
+<p>
+<A HREF="appc.html">Next</A> | <a href="prefUI.html">Prev</a> | <a href="index.html">Table of Contents</a></P>
+
+<HR WIDTH="100%" SIZE="2" ALIGN="CENTER" NOSHADE="NOSHADE">
+</body>
+</html>

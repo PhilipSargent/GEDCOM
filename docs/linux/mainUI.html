@@ -1,0 +1,175 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html lang="en">
+<head>
+<title>The X!Family Screenbook</title>
+<LINK rel="next" title="" href="indiUI.html">
+<LINK rel="previous" title="" href=".html">
+<LINK rel="toc" title="Table of Contents" href="index.html">
+<META name="keywords" content="Family !Family X!Family X GEDCOM Genealogy editor">
+<META HTTP-EQUIV="Content-Language" CONTENT="en">
+</head>
+<body BGCOLOR="#FFFFFF" TEXT="#000000"
+STYLE="font-family: sans-serif;">
+<!-- include your neat logo here with a link to your website -->
+
+<HR WIDTH="100%" SIZE="2" ALIGN="CENTER" NOSHADE="NOSHADE">
+
+<P><A HREF="indiUI.html">Next</A> | <a href="intro.html">Prev</a> | <a href="index.html">Table of Contents</a></P>
+
+<h1><a name="">X!Family Chapter 2.</a> The Main display window</h1>
+
+<p>When started, X!Family opens one window, showing the currently loaded
+tree (if any). If no tree was loaded, the window will be blank.
+
+<p><img alt="!!!" width=40 height=40 align="left" hspace=10 vspace=10
+src="roadwk.png">
+At the moment, it is not clear whether there will be a "master window" in
+which all views of all trees loaded will be listed. If that turns out to
+be the cleanest way of handling multiple trees, then it is this window
+that you will see when the program is started with no tree loaded. However,
+at present, the program automatically loads a tree on startup and this is
+what you will see.
+
+<p>The tree displayed is based on the concept of "the current person", and
+the current person is recorded whenever a file is saved from the program. The
+tree will ideally show the current person, his parents, siblings, and all
+descendants. If he exists in the database, the person at the "top" of the
+tree will be the current person's father. Failing that, it will be his
+mother, and if neither of these exist in the database, it will be the current
+person him- or herself. The title bar of the window shows the name of the
+GEDCOM file and the name of the current person.
+
+<p>If you left-click on a person, then that person will become the new
+current person, and the tree is redisplayed based on that person. So that
+as long as the current person has one or both parents in the database,
+you can keep on clicking on the top person to go back a generation. This
+soon makes the tree too big for the screen, and the window becomes scrollable
+to see all the people on display.
+
+<p>The display shows males in blue, females in red, and those whose gender
+is unknown in green. With the default options set, under each person will
+be a pair of dates representing birth and death. If a birth date is unknown,
+it is marked "?", but if a death date is unknown, it is simply left blank.
+The person may be still alive !
+
+<p>Husband and wife are shown one above the other, with at least an equals
+sign between them. If a marriage date is known (and the option to display
+these dates is set) then that date will be shown next to the equals sign.
+For multiple marriages by one person, each marriage is marked by either
+a date, or, if this is not known, or not being shown, then a sequence number.
+
+<p>If a person's spouse is unknown, but they have descendants, the equals
+sign is still shown, but there is a gap where the spouse would be. Below
+each married couple, their descendants are shown, linked by lines in the
+conventional manner. If the descendants are married, the process is
+repeated down to the most recent known issue.
+
+<p><!-- screenshot -->
+
+<h2>2.1 "Person" menu</h2>
+
+<p>If you right-click on a person shown on the tree, a small menu will pop up
+with the person's name as the title. The top two items, "Edit" and "Notes"
+open additional windows. "Edit" opens a tabbed dbox which enables you to edit
+the person's event details (Birth, Christening, Baptism, Death, Cremation,
+Burial) - see <a href="indiUI.html">Edit Person Dbox</a> for full details.
+"Notes" open a small text-editor window containing free-text notes about the
+person which can be edited, or cut-and-pasted to other applications.
+
+<p>The next group of items "Marry", "Older", "Child" and "Remove" are for
+manipulating the structure of the tree.
+
+<dl>
+<dt>Marry
+<dd>Will prompt for a name of a person to marry. That name may be one already
+in the database, in which case the two people will be connected, or it may be
+a name not in the database, in which case the individual will be created.
+This gives lots of scope for creating new people when you didn't mean to by
+misspelling the name slightly, or for marrying to someone with the same name
+as the spouse you wanted to create. The "name matching" feature is used to
+overcome these potential problems, but the implementation details have not
+yet been sorted, so the manual doesn't describe these details.
+<dt>Older
+<dd>Will only be available when a person has older siblings. Clicking this
+will make this person older than the sibling immediately to the left.
+[Technical note: Siblings are displayed in the order in which they are
+defined in the FAM object of the GEDCOM file, which is independant of the
+actual dates of birth which may be recorded. Clicking "older" swaps the
+order of the CHIL tags, it doesn't change any dates of birth.]
+<dt>Child
+<dd>This will pop up an Edit person dbox with the relevant parent filled
+in. For example, if you clicked on a male, and chose "Child", the Edit
+Person dbox would show a new person, with the "Father" field filled in
+with the name of the person you first clicked on. The mother field would
+be blank. If you fill this name in with one of the father's spouses in
+the database, then the child is added to that marriage. If you leave the
+field blank, a new family (with an unknown mother) will be created.
+<dt>Remove
+<dd>The person clicked on will be removed from the database, along with
+all his or her details. All references to the person will also be removed,
+which means that it can be quite a lot of work to add a person deleted in
+error back into the tree !
+</dl>
+
+<p>The final item on the pop-up menu is "Reports" which opens a submenu
+listing possible reports you can generate based on the person you clicked
+on. Currently the only item on this submenu is "Ancestors". It is intended
+that clicking this will generate a condensed ahnentafel showing all known
+direct ancestors of this person, and then prompt for a place to save the
+file. Currently, however, the code to do this is not yet implemented.
+
+<h2>2.2 Family menu</h2>
+
+<p>If you right-click on the equals sign, date or sequence number of a
+marriage, a small menu will pop up showing the id-number of the FAM
+object as title. [Aside: if you don't know the internals of GEDCOM
+files, think of this number as just a unique identifier for a particular
+family. To know more about the GEDCOM, see
+<a href="GEDCOM.html">Appendix B.</a>]
+
+<p>The first two items on this menu, "Edit" and "Notes" fulfill similar
+fucntions to the items of the same name on the Person menu. "Edit" opens a
+tabbed dbox which enables you to edit the event details associated with the
+family (currently Engagement, Marriage and Divorce) - see <a
+href="famUI.html">Family Events Dbox</a> for full details. "Notes" open a
+small text-editor window containing free-text notes about the family which
+can be edited, or cut-and-pasted to other applications.
+
+<p>The second group of menu items "Earlier", "Unmarry" and "Child" are again
+for manipulating the structure of the tree.
+
+<dl>
+<dt>Earlier
+<dd>Will only be available when a person is shown with more than one family
+on the current tree view, and marriage clicked on is not the earliest, as
+shown on the view. Clicking this item will swap the order of this family
+and the one immediately to its left. [Technical note: Families are displayed
+in the order in which they are defined in the INDI object of the GEDCOM file,
+which is independant of the actual dates of marriage which may be recorded.
+Clicking "earlier" swaps the order of the FAMS tags, it doesn't change any
+recorded dates.]
+<dt>Unmarry
+<dd>This is to remove the FAM object defining a marriage. If there are no
+descendants, this is straightforward. If descendants are listed for a
+family, the program will currently assume that they should remain
+connected to the father, which means that the mother is detached from
+the marriage, but the FAM object still exists. Children can be detached
+from a parent using the <a href="indiUI.html">Edit Person dbox.</a> It
+is recognised that this mechanism is a little cumbersome, but it should
+only be needed to correct major mistakes, and thus pretty rarely.
+<dt>Child
+<dd>This will pop up an Edit person dbox with both parents filled in, so that
+the new child whose details you enter will be added to the relevant family. A
+new child is always added to the right of existing siblings, as if the
+youngest. Normally this is OK, as you would add children in that order when
+putting data into the database. If you discover another child later, or
+discover that one originally added as the youngest needs to be moved up, you
+can use the "Older" item on the person menu as noted in section 2.1 above.
+
+</dl>
+
+<A HREF="indiUI.html">Next</A> | <a href="intro.html">Prev</a> | <a href="index.html">Table of Contents</a></P>
+
+<HR WIDTH="100%" SIZE="2" ALIGN="CENTER" NOSHADE="NOSHADE">
+</body>
+</html>

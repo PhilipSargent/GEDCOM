@@ -1,0 +1,90 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html lang="en">
+<head>
+<title>Genealogy Software corner</title>
+</head>
+<body>
+<h2>Pennine Software Genealogy corner</h2>
+
+<h2>!Family for RISC OS</h2>
+
+<p>!Family is a BASIC program to maintain a family tree database on an Acorn
+RISC OS platform (has been in frequent use on RO 3.1 and 3.5 - current
+versions are being developed on RISC OS 4 but will be tested on 3.1). It uses
+the worldwide standard GEDCOM file format to store its information, and can
+therefore exchange data with most genealogical packages in use today. The
+user interface is graphical through an on-screen family-tree in which members
+of a family can be seen in the context of their relationships. This makes it
+far easier to navigate than many genealogical packages whose interface is
+purely textual, or which show only a tiny part of a tree structure at one
+time.
+
+<p><center><a href="ascrn.gif"><img alt="screen shot - follow link for
+full-size version" width=482 height=339 src="ascrntiny.gif"></a></center>
+
+<p>The tree display can be sent to a printer, or a !Draw file, and a variety
+of reports can be generated. A complete website can also be created with a
+page for each person in the tree, showing two generations of ancestors,
+their marriage(s) and children and all relevant dates and notes.
+
+<p>!Family was developed over several years (up to version 2.18) by Denis
+Howe at Imperial College. Pennine Software added features for local
+needs and intended sending these to Denis for incorporation into the
+released version. Following Denis's desire to pass support of the program
+on to someone else, these updates are now being made available by Pennine
+Software and can be retrieved from the <a href="downloads.htm">downloads
+page</a>. There have been a number of user-interface changes, one or two of
+which seem to be causing some confusion, especially among users of earlier
+versions - a radical rethink of some aspects of the interface is currently
+in development which it is hoped will address all such confusion.
+Documentation is currently ahead of development (!), but if you use
+Acorn's interactive help program (!Help), the information it reports is
+almost up to the minute in 2.24 and way out of date in 2.25.
+
+<p>The current <b>stable</b> version is 2.24, while the development version
+is 2.25. Significant additions and changes to the user-interface are detailed
+inside the application in <b>!Family.Changes</b>. Noticeable bugs which have
+been fixed are similarly detailed in <b>!Family.BugsFixed</b> whilst known
+outstanding bugs (and a lot of wish-list items) are listed in
+<b>!Family.Bugs</b>. I have removed the original !Help file, since this is
+now quite confusing if used with the changes to user interface. New
+<a href="fdoc/index.html">documentation in html format</a> is in preparation,
+but relates to the new user interface style of the 2.25 development version.
+
+<p>!Family by no means deals with all possible events and tags defined in
+the GEDCOM standard, and lacks handling of that most important aspect of
+genealogy, documenting your sources ! Work is in progress to add handling
+for many extra tags without overwhelming the user interface in complex
+detail which is rarely, if ever, used. GEDCOM structures dealing with sources
+and their locations can become quite complex, and a major goal is to add
+support for these in an easily-understood form.
+
+<p>!Family produces GEDCOM which most closely corresponds with version
+5.3. The more recent GEDCOM 5.5 specification removes some useful structure
+which was present in 5.3 and which had recently been added into !Family.
+In particular, for events birth, christening, baptism, death, cremation and
+marriage, GEDCOM 5.3 split the location into "Place" and "Site" fields,
+whilst burials were split into "Place", "Cemetery" and "Plot". GEDCOM 5.5
+no longer supports this level of structure and work is in hand to provide
+a method for !Family to save its tree in accordance with this new version,
+whilst still preserving structured information.
+
+<p>Currently !Family 2.24 is out of step with the GEDCOM spec. (both 5.3 and
+5.5) in storing the TIME of an event at the same structural level as the
+DATE. The time should, in fact, be one level below the date, and this is how
+the development version 2.25 works. 2.25 comes with a small BASIC program to
+convert GEDCOMs produced by versions 2.20 to 2.24 to the correct format
+without losing all the times from existing files.
+
+<p>A compiled program is being developed for Linux on both Acorn and other
+platforms, and user-interface innovations from that code are providing
+useful inspiration for further changes to !Family. You can get an idea
+of how this work is progressing from the <a href="cplusplus.htm">X!Family
+page</a>.
+
+<p><b>Warning:</b> one new version of the code has been added to v
+2.24 since the original posting (in April 2000). This fixes a minor bug in
+provision of interactive help on the "Cremations" window.
+
+</body>
+</html>

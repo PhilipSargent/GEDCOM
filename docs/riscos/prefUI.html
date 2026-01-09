@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html lang="en">
+<head>
+<title>The !Family Screenbook</title>
+<LINK rel="next" title="" href="GEDCOM.html">
+<LINK rel="previous" title="" href="famUI.html">
+<LINK rel="toc" title="Table of Contents" href="index.html">
+<META name="keywords" content="Family !Family GEDCOM Genealogy editor">
+<META HTTP-EQUIV="Content-Language" CONTENT="en">
+</head>
+<body BGCOLOR="#FFFFFF" TEXT="#000000"
+STYLE="font-family: sans-serif;">
+<!-- include your neat logo here with a link to your website -->
+
+<HR WIDTH="100%" SIZE="2" ALIGN="CENTER" NOSHADE="NOSHADE">
+<A HREF="FAQ.html">Next</A> | <a href="noteUI.html">Prev</a> | <a href="index.html">Table of Contents</a></P>
+
+<h1><a name="prefs">!Family Chapter 6.</a> The preferences dbox</h1>
+
+<p>At present most of the configuration is done through menus. This will
+change to more resemble the dbox system used under Linux by XFamily. At
+present just one preferences dbox operates in !Family:</p>
+
+<p><img alt="Misc config tab" width=465 height=217 align=center hspace=10
+vspace=10 src="prefs.png"></p>
+
+<p>Below are XFamily screenshots, which show the general style towards which
+the !Family UI is moving. Proper ones and some explanation for the RISC OS
+!Family preferences will follow soon, but as the interface is shortly going
+to change, I'm waiting to write a manual page until the interface has
+stabilised.</p>
+
+<p>The first of the X!Family screenshots shows the tabbed version of the
+!Family miscellaneous preferences dbox. The !Family style will be tabbed
+like this, though the icons will be more as the RISC OS style above.</p>
+
+<p><img alt="Misc config tab" width=462 height=345 align=center hspace=10 vspace=10 src="prefs3.png"></p>
+
+<p>The Names config tab will control how names are displayed on the main
+window and on printed trees. The XFamily screenshot shows what fields will
+appear, but again the style will be more RISC OS in !Family.</p>
+
+<p><img alt="Names config tab" width=462 height=345 align=center hspace=10 vspace=10 src="prefs1.png"></p>
+
+<p>The dates config tab will control which dates are shown on the tree, and
+in which style.</p>
+
+<p><img alt="Dates config tab" width=462 height=345 align=center hspace=10 vspace=10 src="prefs2.png"></p>
+
+<p>At the moment in !Family, you can change most of these options from the iconbar menu which
+presents submenus from the Choices item. The one option that cannot be changed whilst the
+program is running is the option to display dates on the tree in either GEDCOM or ISO-8601
+format, as a different code library must be loaded for each option and these cannot be
+changed once loaded. To change this option (and others) you will need to edit the Choices
+file within the !Family application. A typical Choices file (in fact, the default, as
+the program is distributed) looks like:</p>
+
+<p><pre>
+Font:\FHomerton.Medium\ELatin1
+PointSize:10
+ScreenUseFont:0
+ShowFamilyName:-1
+ShowDates:-1
+SpouseDates:-1
+MarrDates:-1
+ShowYearOnly:0
+ShowTitle:-1
+Rotate:-1
+DrawScale:1
+DrawWidth:4
+BadXrefAction:3
+ReportDate:ISO
+DateLib:ISODateLib
+MaxComp:150
+</pre></p>
+
+<p>To change the way dates are displayed in the main window in !Family, change
+the DateLib: line to say DEFDateLib instead of ISODateLib, save the file and
+then run the program.</p>
+
+<p>
+<A HREF="FAQ.html">Next</A> | <a href="noteUI.html">Prev</a> | <a href="index.html">Table of Contents</a></p>
+
+<HR WIDTH="100%" SIZE="2" ALIGN="CENTER" NOSHADE="NOSHADE">
+</body>
+</html>
