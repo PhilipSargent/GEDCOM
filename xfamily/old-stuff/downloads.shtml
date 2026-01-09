@@ -1,0 +1,199 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html lang="en">
+<head>
+<title>Genealogy Software corner</title>
+</head>
+<body>
+<h2>Pennine Software Genealogy: Downloads</h2>
+
+<h3>!Family Package for Acorn RISC OS</h3>
+
+<p>Following the publication of some articles in Qercus, and lots
+of email between the author of those articles, the editor of Qercus
+and myself, I realised that it was unreasonable to continue to describe
+version 2.25 as beta, as it had been running stable for seven years !
+The exchange also prompted some code tidying (and a new stable release)
+and a great deal of new development work.</p>
+
+<p>Following widespread practice, I will now be having both a stable
+branch and a development branch of the code. 2.2.x versions derive fairly
+straightforwardly from the 2.25 code, and will be intended for production
+systems. The current stable version is now 2.2.7. The 2.3.x versions are
+for development, and involve some pretty radical code rewrites. Currently
+2.3.-1 is utterly broken with lots of untested and partially written
+code, lots of redundant old code, and the main code containing a mix of
+calls to both old and new routines. A lot of work is needed before a
+2.3.0 alpha release is suitable to even try to run.</p>
+
+<p>There is an "old stable" release, 2.24, dated 2000-09-18, which is the
+version most users have had for many years. This has a number of enhancements
+over the version 2.18 which was the last version from Denis Howes, including
+a number of new tags which are handled. Unfortunately, GEDCOM documentation
+is not brilliant, and one tag was put at the wrong level in the hierarchy.
+This was fixed in 2.25 and later versions, but a small conversion program must
+be run to correct the GEDCOM files produced by 2.24 before moving to more
+recent versions. GEDCOM has changed again recently, and some tags we
+carefully added at 2.24 have now been deprecated, so I will, at some stage
+soon, be finding an alternative way to implement the location structures.
+This should be transparent to users - hte new code will understanad both
+the old (5.3) and newer (5.5) versions of GEDCOM, and will convert on the
+fly to the newer standard, which should make transfer of your data to other
+genealogy software easier.</p>
+
+<p>The package comes as a <a href="family.zip">zipped application,</a>
+currently 115k. Current <b>stable</b> version is 2.24, 2000-09-18. Only minor
+new features have been added recently, and only one recent bug fix has
+changed any of the code which actually edits your GEDCOM.
+
+<p>Version 2.25 is currently considered <b>beta release</b>.
+I've used it for a couple of years without it bombing out, except where
+it has been fed a GEDCOM which is broken. However, if you accidentally
+connect someone up as an ancestor of themselves, it can get very confused,
+and trying to fix it without saving the GEDCOM somewhere safe can result in
+it bombing out later.
+
+<p>The current development version 2.26 is labelled "Alpha", and is possibly
+not as stable as 2.25, since it is being periodically changed, so should
+probably not be relied upon.
+ 
+<p>The GEDCOM produced by 2.25 and 2.26 is not backward compatible
+with the slightly erroneous output of versions 2.20-2.24, care should be
+taken not to move over until it has become much more stable. However,
+snapshots of the code are on the site for those who would like to try the new
+user interfaces and features.
+
+<p>New features in 2.2.7 include:
+
+<ul>
+<li>Should not run low on memory - the heap is extended dynamically when
+needed. This avoids the need to set a Wimpslot appropriate to your tree
+size in the !Run file.
+<li>New tabbed dboxes for life and family events, eliminating a lot of the
+confusing aspects of the &lt;=2.24 interface.
+<li>Can now specify Gregorian or Julian calendar on all dates.
+<li>Early support for source citation via the SOUR tag on events.
+<li>Generated web pages now use .png graphics rather than .gif
+<li>A number of bug fixes, including a memory leak and an apparent memory
+leak if you believed the "free heap space" figure on the iconbar icon.
+<li>A lot of code tidying to remove code no longer used after earlier changes
+and fixes.
+<li>Some changes towards making it possible to have different individuals
+with identical names in your tree.
+</ul>
+
+<p>The package comes <a href="family225.zip">as a zip</a>, somewhat larger
+than the normal release, as there is a quantity of redundant code and
+quite a lot of debugging in there.
+
+<p>Version 2.26 includes
+
+<ul>
+<li>Some experimental Heap management libraries
+<li>Some code hived off into libraries for dealing with the GEDCOM
+and with the Wimp routines. This work is incomplete and isn't run by
+default (see !RunImage230 and !Run230 inside the application)
+</ul>
+
+<p>This lot should be here as <a href="family226.zip">another zip</a>.
+
+<hr>
+
+<h3>XFamily <b>Alpha</b> prerelease</h3>
+
+<p>Version 0.14 has been released previously and I beleive a small number of
+people have compiled and used it. v 0.15 is the current stable version - this
+has some editing ability (it will change things in NOTE structures), but will
+not edit the main structure of your GEDCOM. v 0.16 is my current development
+version, which has changed little from 0.15 as yet, but current development
+work on the RISC OS version is prompting me to make a number of changes to
+XFamily too, and this is expected to occur quite rapidly after 2.3.0 of
+the RISC OS experimental branch becomes runnable. My principal concern is
+to remove the need for every individual to have a unique name, which
+should not be difficult internally, but some user interface changes are
+needed to make the identification of individuals with identical names
+unambiguous in various places where a user might, for example, make
+someone the parenet of soeone else who is really their great grandson.
+This was distressingly easy to do in !Family and it takes a long time
+to untangle the resulting broken GEDCOM.</p>
+
+<p>All these versions have been compiled against several versions of the FLTK
+toolkit, and on several different Linux releases, as well as on Solaris 10.
+My current testing environments include (K)Ubuntu, Debian and Solaris, on i86,
+x86_64 and Sparc architectures. Previously I had no difficulty in compiling
+on Mandrake/Mandriva Linux and I may find space to have a Mandriva installation
+on one of our i86 machines here once again. I would be pleased to hear from
+anyone reporting success (or indeed failure) to build on any system, but
+especially on other systems or architectures.</p>
+
+<p>The documentation for XFamily relates to the 0.14 version, but I don't
+think that much visible to the user has changed since then - it's just that
+a few more parts of the user interface now actually save data into the GEDCOM.</p>
+
+<p><b>WARNING:</b> you can put the binary anywhere you like (I just
+run it where the build step leaves it, in /usr/local/src/xfamily/v014/XFamily
+- there is no "make install" step as yet), but at the
+moment, the GEDCOM file which the program reads is compiled in at<br>
+/usr/local/src/xfamily/test/test2.ged for versions after v0.13<br>
+which is not terribly helpful. Similarly, the messages files are looked for
+at<br>
+/usr/local/src/xfamily/v014/messages/&lt;name&gt;<br>
+If you ask the program to write out its GEDCOM it will go to<br>
+/var/test.ged<br>
+Of course, you can use symbolic links to point these at any real file you
+like. <b>Warning</b> the software is still at the
+alpha stage (and may therefore crash unexpectedly) but now has some of the
+functionality to change your GEDCOM file rather than being purely a browser.
+You can save changed NOTEs back to the GEDCOM, so please take care if you
+symlink the write location to the same place as the read location.</p>
+
+<p>Currently, emphasis is on writing the functionality to deal with GEDCOM
+and display multiple views of a family tree. It may be some time (and
+certainly not until a full editing capability has been added) until the
+file-chooser functionality is written.</p>
+
+<p>The <a href="xfamily-v014-src.zip">source distribution</a> is zipped
+(currently 95k). It doesn't have anything like proper version numbers yet,
+and comes with no guarantees, other than that it won't corrupt your GEDCOM
+yet, as long as you don't put a symlink to make it overwrite its input. (This
+guarantee will be removed in future versions :-). As of 0.14, the build
+tools for the International messages have been rewritten in Python, instead
+of needing you to have an Acorn RISC OS system on your desk. This was only
+relevant to anyone who wanted to change code enough to need to add new
+messages, or for translators to new languages. You will need the FLTK package,
+which has its <a href="http://fltk.easysw.com/">own home page</a> and also comes
+bundled with some distributions (eg. SuSE). There is a line in XFamily's
+makefile which you may need to modify to tell it where to find FLTK if you
+install it somewhere other than the default or have a different version than
+the one I have (1.1.4). I think the code will no longer work with FLTK 1.0.x
+versions, but 1.1.&lt;anything&gt; should be fine.</p>
+
+<p>You might also need to change paths to some C/C++ header files (at least
+one lot seemed to move when I upgraded Mandrake versions). If anyone changes
+things to use a ./configure script, I'd be really pleased to receive your
+changes :-)</p>
+
+<p>If anyone compiles this under a system other than Linux, or with a
+compiler other than gcc, I'd love to hear from you about any changes you had
+to make to get it to work, or what problems you have that are stopping it
+from compiling. I presonally have no interest in seeing a Windows version,
+but if you want to build one and have to make changes, I'll incorporate
+them into the distributed sources. If anyone would like to port FLTK to RISC
+OS, I'd be overjoyed to hear from you too ! Unfortunately, I think the port
+would need an X server, and the only one I know of for RISC OS is a ludicrously
+expensive commercial offering (though I have heard that there are a couple of
+free ones of unknown quality and availability).</p>
+
+<p>The user manual for xfamily lags slightly behind the actual code, and is
+now on the site as an archive <a href="xfamdocs-014.zip">xfamdocs-014.zip</a>.
+You can browse individual pages <a href="html014/index.html">on this site</a>,
+but these pages may lag slightly further behind and it is recommended that
+if you decide to download and build the software, you get the manual as a
+zip and unpack it into /usr/local/src/xfamily/html014. From there you can
+also browse it from the "Help" menu item within the program.</p>
+
+<!-- there is an html015 docs directory, but it appears to be absolutely
+identical to the html014 one, so no new info there... Need to update that
+to be html016 and leapfrog to document the current devel version. -->
+
+</body>
+</html>

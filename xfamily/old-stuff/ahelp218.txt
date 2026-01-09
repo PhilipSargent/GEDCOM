@@ -1,0 +1,47 @@
+!Family existing help is divided:
+
+Intro
+Obtaining
+Getting Started
+Main Window
+Setting the current person
+Adding a new person
+Changing a person's details
+Name completion
+Naming Convention
+ Everyone must have a unique name
+Adding a spouse
+Removing a spouse
+Reordering spouses
+Adding a child
+Reordering children
+Removing people
+Notes window
+Editing notes
+Saving and loading files
+GEDCOM format
+Inspecting GEDCOM data
+Printing Trees
+Creating a report
+Making a Draw file
+Choices
+Quitting
+Memory
+Change History
+To Do
+Bugs
+
+-----------------------------------------------------
+
+Quite a lot of things have changed since that was written
+
+Suggested structure for new help, which will lead on to
+ the help for X!Family:
+
+index - includes an overview
+ obtaining
+creating a new tree (you may want to skip this if you are
+ importing an existing GEDCOM)
+main window
+ navigating
+ menus
