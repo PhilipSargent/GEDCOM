@@ -1,5 +1,61 @@
+Seem to have lost anything resembling a bugs file :-( So one job is to
+find what we had already documented to fix this. Then add these bugs:
+
+Actually, we seem to have v.021-Bugs as expected, why am I lying ?
+
+1) If you edit an INDI and put something in the PLOT field for a burial,
+it is not saved. [If we load a tree with PLOT tags, are we losing them
+on save ? I presume not or we have fucked the tree a long time ago.]
+So I hope this bug means we don't save from a newly populated PLOT into
+the GEDCOM, but that an existing PLOT which is in the structure is not
+lost (just not updated if we change it). "grep PLOT MainTree2021.ged"
+shows we have been saving PLOT subobjects with our edited tree. Need
+to test saving from indiUI. Believed FIXED 2022-02-20
+
+2) If you have an INDI, we seem to have no way to add parents - the idea
+was to have an "add" button as works for a spouse in the marriage edit
+dbox. This is becoming an urgent issue to fix. It is possibly enough new
+code that we should do it as a new code version Indeed, it is more complicated
+than the add spouse idiom in the famUI - part of this job was intended to be
+done by the indi menu "Attach" item to attach a person to an existing family.
+We probably want to avoid having a "Find" button to attach to a parent in
+an existing famliy because of the ambiguity and the complexity of a GUI to
+resolve that. Rather than two "Add" and two "Find" buttons, we should make it
+clear that "Add" will add a new person as one parent, but have a single "Find"
+button to go and find an existing FAM. That requires the implementation of a
+completions dbox to search for FAM objects similar to the one we have for
+INDI objects. This needs a new notes file to explore the ramifications.
+
+2022-02-20 The Add buttons are fully implemented. The FInd button exists but
+as yet has no supporting code. It is the family find UI that is now most urgent
+
+3) When a display gets fairly wide, spurious horizontal lines tend to appear
+on the left of the tree making it hard to read. This may be an FLTK issue
+with a bitmap which is bigger than it expects, but at least needs looking into.
+
+4) Number of INDI/FAM/SOUR/REPO not being maintained [2022-02-13] ah, v021-Bugs
+has already noted that the stats seem not to be updating.
+
+5) If you run the code with no tree, it barfs. Either it should not try to open
+a display, but instead open an open file dbox (but with a "create new tree"
+option somewhere), or, it should just create a new tree and open an INDI edit
+dbox, so that the tree display opens with one INDI "<unknown>". Hitting Cancel
+on the editINDI dbox should terminate the program cleanly or open an "Are you
+sure ?" dialogue (or the Cancel button should be inoperative). Note that we
+now treat creation and editing as separate things, so even if you did hit
+"Cancel" you would still get an INDI in the tree, just a very anonymous
+and minimal one.
+
+6) reports from new uses (!) indicate that multiple marriages with lots of
+offspring leave spouses floating in space with no obvious idea where the other
+one is. Ideally, we'd like to find space to draw some straight lines to connect
+these back (yes, it woud help me, too, I've just got a bit more used to it.
+
+------------------------------------------------------------------------------
+
 XFamily has now been built with several versions of FLTK and on several
-platforms. There are known porting issues and some significant bugs:
+platforms (all Linux distros). There are known porting issues and some significant
+bugs:
 
 Its a major hack to the Makefile and makeinclude to compile on a new distro.
 This should be automatically configured in some way - learn how ./configure
@@ -13,6 +69,13 @@ and port also to other platforms.
 On FLTK 1.1.x, we don't seem to have a maximise button on the main window.
 This has suddenly re-appeared without code change after I restarted X on
 wharfe, which is particularly wierd... now seems to come and go at a whim.
+We are now on FLTK 1.3, and I don't think we've see this.
+
+However, if we once maximise, then change curent person to make the displayed
+tree bigger, we can no longer make the window maximise - you have to revert
+it to small, then maximise again. What should happen is that a window which is
+maximised but still smaller than the desktop, should automatically increase in
+size to stay maximised.
 
 Aaargh - "make" doesn't have a target to make the messages, so if you don't
 copy the messages nor explicitly run the python scripts everything's blank
@@ -35,7 +98,10 @@ person somewhere in the middle of the Window. If the window is already the
 full height of the current display, we should make the window taller if
 necessary to maintain that status, up to the maximum size that will fit in
 the desktop. MOSTLY FIXED but if the window gets bigger, the canvas may be
-offset to one side or the other leaving a grey area.
+offset to one side or the other (or up/down) leaving a grey area. This also
+hapens if you resize the window manually - there's no check and internal
+scroll. This *ought* to be a simple fix, but possibly we need an event to
+a callback when the window is resized
 
 We need to read some coding standards and add a LOT more comments saying
 what each routine is for - it's hard to pick up after a year or ten's
@@ -63,29 +129,54 @@ may have side effects (a parent surname seemed to vanish - we may be passing
 something by pointer in a way that lets edits feed back - we probably need
 a strdup in there somewhere).
 
-We reserve the headers as read. Really, we should replace some of the stuff
-with details of X!Family rather than !Family 2.2.7.
+We preserve the headers as read. Really, we should replace some of the stuff
+with details of X!Family rather than !Family 2.2.7. This is particularly
+important in that we currently don't have a way to start a new tree from
+scratch so we always generate some initial GEDCOM by hand, or using !Family.
 
-FLTK supports UTF-8. We should ensure tha all our code is UTF-8 safe, and
-change the language in which hte GEDCOM is saved to indicate this (there has
+FLTK 1.3 supports UTF-8. We should ensure that all our code is UTF-8 safe, and
+change the language in which the GEDCOM is saved to indicate this (there has
 been UTF-8 text in the file for many years, and any accented characters that
 were in 8-bit Latin1 under RISCOS have been corrupted. We should have been
-using ANSEL (an escaped version of 7-bit ASCII).
+using ANSEL (an escaped version of 7-bit ASCII). Be aware that trying to use
+an XFamily GEDCOM in !Family will cause grief (but it will anyway, since
+!Family relies on names being unique in a way that was a nightmare. Since we
+fixed this major problem in XFamily, you can readily generate GEDCOM with
+which !Family won't cope well (as well any other code that generates GEDCOM,
+of course).
 
 Fix destructors to delete everything the constructors did new for. You can turn
-on logging to help se if we are doing OK here.
+on logging to help see if we are doing OK here.
 
 Write code for moving people in the tree - we have menu items for Detach
 (remove from a family), Attach (add as a child to a family) and Move (both).
 However, we need a search facility to find families on the same lines as
-the one for locating people.
+the one for locating people. It is likely that we will remove the Attach
+menu item in favour of the Find button in the indiUI to find a parental
+family. However, the code to actually do this is still needed.
 
-Implement file choosers for both load and save. DONE for save.
+Implement file choosers for both load and save. DONE for save. Note that
+if you save using the file chooser ("save as"), it saves. If you save by
+clicking the "save" menu item, it doesn't ! This was done to prevent us
+blindly saving over a known good GEDCOM with one which the code might
+have broken. As such it is still worthwhile precaution, but the way to
+address it is probably to move the file we loaded to a versioned backup
+(eg. Maintree.ged.1) and then write the save. That's particularly a good
+idea since "Save" was trying to save into /var/tmp and failing silently...
 
 Implement a generic class of "Are you sure?" UIs. Yeah, this is starting
 to get important as we now have editing functionality. More to the point
 we really could do with some sort of alert boxes as various things are
-prevented from happening, but with no useful error messages.
+prevented from happening, but with no useful error messages. We have
+done this for the process of quitting by closing views (or choosing
+quit in the File-> menu) but in that case don't have an indication of
+whether the tree has been edited (you'd need flag as part of the treeinstance
+class and in this case you'd need to check for every treeinstance. Since we
+really haven't implemented multiple trees, that's onky the one).
+
+One issue is the frequency with which I save INDIs without setting the gender.
+An "are you sure you don't know the gender ?" reminder would help. Very
+occasionally we don't, but 99%+ of the time it is just a slip-up.
 
 There are minor details
 
@@ -94,25 +185,23 @@ be nice for it to say "search for spouse for... person". This is not very
 critical as we only allow one such dbox at a time, so should be obvious
 what you are doing.
 
-If you create new family, don't fill in any details and hit cancel, the
-family is not backed out like an indi would be.
-
 
 ========== do a public release ============================
 
 Add a search facility - we have one to search for INDI names, we want something
 to search for things in notes and sources. We will need one to search for families
-to implement moving pepole frm one marriage to another.
+to implement moving people from one marriage to another (and for the Find parents
+button in indiUI).
 
 Add UIs for WILL and PROBate - these need to be read/write straight away.
-Currnetly we have dead buttons. Wills, I think, are like NOTEs, so implementation
+Currently we have dead buttons. Wills, I think, are like NOTEs, so implementation
 should be fairly easy. PROBate is like an event, so it should really be a tab
 on indiUI.
 
 Fix problem loading empty tree. Or indeed starting up with no tree (as you
 would to start from scratch). Can we load a GEDCOM with no INDIs ?
 
-File=>New View works, but if you close one view, the whole program stops.
+File=>New View works, but if you close one view, the whole program stops. FIXED.
 
 We don't load (or save) any choices/preferences. We don't have any code that
 takes any notice of the preferences either, so we always show all dates, as GEDCOM
@@ -125,12 +214,12 @@ None of the report-generating code is written.
 We don't implement the !Family print stuff. OK, so we don't want drawfiles, but
 postscript would be very useful, and a bitmap of the entire canvas ought to be
 straightforward... Are there libraries to generate PDFs ? Can we generate stuff
-in OO.o formats ?
+in OO.o formats (really - don't go there) ?
 
 The Goto box has a "help" button which tries to open up a help page concerned
 with the completions window. This is not yet written, nor added to the Help
 menu on the main window. There's no help for the edit notes dbox. Since the
-help is back at v 0.14 and we are now on v 0.20 with some significant new
+help is back at v 0.14 and we are now on v 0.21 with some significant new
 features to document, this needs a major rewrite.
 
 A problem arises in that FLTK doesn't
@@ -141,30 +230,21 @@ know, you can't just unset both buttons. You would need an explicit "unspecified
 button. If you add the full range of date escape specifiers, you would then need
 six (Gregorian, Julian, FrenchR, Roman, Hebrew and unspecified). This might be
 better implemented as a drop-down list... We added a "default" button as a
-stopgap.
+stopgap. That's really a misnomer - it should be "unspecified"
 
 Minor: Make 0 NOTE Person <name> become
             0 NOTE Person @indi-id@ <name>
 on output, and modify code to deal with both old and new forms on input.
 (We didn't do that - instead we kept 0 NOTE Person <name> unchanged for
 compatibility with older versions, but added 0 NOTE View @I1862@, which
-can occur multiple times if you have multiple views open. However we did
-NOT implement opening multiple views at load time, because we do not yet
-have a way of closing one view without terminating the whole program (which
-is a documented bug/wishlist).
+can occur multiple times if you have multiple views open.
 
 You probably need to reread and understand ../Display4
 Then try to figure out what of that we have already done - presumably none
 Well, that's out of date - we seem to have done almost all of it. The only
 area not dealt with is that of multiple trees in memory and a master window
-with a list of active (though possibly closed) views.
-
-Missing dboxes:
-
-  Marry (this is pointless until we can actually edit the tree !). This
-  won't work like the !Family one. You will do "New Family" and we will
-  create the FAM based on one spouse, then connect other individuals in
-  appropriate roles.
+with a list of active (though possibly closed) views. Just as well, since
+../Display4 doesn't seem to be around any more.
 
 Dboxes requiring a rework:
 
@@ -179,21 +259,6 @@ showing a list of sources associated with the place we clicked the button in,
 ie. the marriage, engagement or divorce events for the marriage dbox, or any of
 the six tabs on the person dbox, but also, in this case, we want a Sources button
 to apply sources to the whole INDI object. Well, v0.14 at least has the buttons :-)
-
-While you are there, a "notes" button on the whole event should be an alternate way into
-the existing notes editor for NOTE on the whole INDI or FAM, but you could also add a button
-to each tab to add NOTE for each event. In theory, you could do this for almost everything,
-because NOTE is the most general sort of free form text you can add to any object, and
-is always available as an alternative to more structured GEDCOM ways of adding info. OK,
-this is all done - you can open a NOTE window for an INDI or a FAM, or any *existing*
-BIRT, BAPM, CHR, DEAT, CREM, BURI, MARR, ENGA or DIV event. By existing, we mean that
-the event must have been given a date or place (or some subsidiary) and saved back to
-the tree. Ideally, we'd like to be able to add a note to any of these events, not just
-ones which already have a date or place. For example a note giving unreliable dates or
-places which we don't think should go in a proper GEDCOM field without confirmation,
-or a note saying that we have hearsay that the event is documented but don't yet have
-the date or place because we haven't seen the source ...
-
 
 We have defined a way we intend to structure things like a 1 CENS record for an individual,
 and things like PROB and WILL should work the same way. So we need to provide a way to get
@@ -215,10 +280,12 @@ do several things:
 bigger - that's what "maximised" means. And if the canvas is bigger than the desktop,
 then a maximised window should get bigger if the taskbar is hidden. KDE's window
 manager does this automatically for Qt-based windows - what message does it send when
-the desktop real estate changes, and does fltk trap it ?
+the desktop real estate changes, and does fltk trap it ? FLTK certainly provides a flag
+we can test...
 2) First, we have to find out what happened to the maximise button ... is it likely
 that fltk wants a call-back for us to handle a "maximise" event, and since we ain't
-got one, the button is no longer available ?
+got one, the button is no longer available ? But it is - this ust have been an older
+FLTK bug.
 
 ---------------
 
@@ -237,6 +304,13 @@ We possibly have a problem with:
 
 managing a display with no people at all in it (try loading an
  empty GEDCOM and see how spectacularly X!Family crashes :-)
+
+The (partial) solution is that if no tree is loaded, we immediately
+create a single INDI, add it into a base tree, display that and pop
+up an indiUI on that person. Probably "Cancel" should be blocked !
+At present, we cannot delete an isolated individual so we will not
+be able to delete the last person in a tree.However, we *do* need
+a way to delete an isolated individual and choose a new current person.
 
 ---------------
 
@@ -259,13 +333,17 @@ Alpha !Family on RISC OS at least shows Source references for events in Edit
 person dbox - these are also needed in X!Family
 
 !Family does completions by hotkey (F1, F2) on many input fields - searches
-would also be useful on Mother/Father fields in Edit person dbox. Usefulness
+would also be useful on Mother/Father fields in Edit person dbox (DONE). Usefulness
 is doubtful on the Name field, but might be some use when edit person has
 been opened in response to a "child" menu item. I would prefer that existing
 persons be connected as parent/child by doing edit person on the child and
 adding the parents (which you could do with a search, as above). No, this is
 not the approach we will take - once we have a facility to search for a family
 we will do this through menus. Drag'n'drop is a very distant dream...
+Drag'n'drop is indeed distant, but we did implement "Add" and "Find" buttons
+to create or connect to parents and this works quite well (as far as we have
+implemented it...) and I think is much easier than using menus as proposed
+above.
 
 Beware of overloading the neat dboxes for edit person and marriage !!
 

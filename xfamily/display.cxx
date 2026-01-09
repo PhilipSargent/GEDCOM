@@ -61,6 +61,7 @@ int            yoffset;
   y += yoffset;
   // both reference pointers should be NULL:
   printf("treedisplay::whoisat gets %ld, %ld\n",(long)indid,(long)famd);
+  if ((view->whattodraw())==NULL) return NULL;
   return view->whattodraw()->whoisat(x,y,indid,famd);
 }
 
@@ -200,7 +201,7 @@ indidisplay::indidisplay( GEDCOM_object *person ) :
     }
     /* end of if */
     obj = indi->subobject( NAME_tag );
-    if (obj==NULL) tempstring += msg_unnamed;
+    if (obj==NULL) tempstring += "<unnamed>";
       else tempstring += obj->value();
     showname = new GEDCOM_string( (char *)tempstring.c_str() );
 
@@ -244,7 +245,8 @@ indidisplay::indidisplay( GEDCOM_object *person ) :
     // when we implement configurability and it fails to work...
   } else {
     /* we should never get passed a NULL person, exept maybe when we call this code with an empty tree ? */
-    tempstring = msg_nullindi;
+    printf("indidisplay constructor called with NULL person\n");
+    tempstring = "<null>";
     showname = new GEDCOM_string( (char *)tempstring.c_str() );
     tempstring = " - ";
     dates = new GEDCOM_string( (char *)tempstring.c_str() );
@@ -252,6 +254,9 @@ indidisplay::indidisplay( GEDCOM_object *person ) :
   fl_font( FL_HELVETICA_BOLD , XF_FONT_SIZE );
   widthn = (int)(1+fl_width( showname->string() ));
   widthd = (int)(1+fl_width( dates->string() ));
+#ifdef debugging
+  printf("indidisplay constructor for '%s'\n",showname->string());
+#endif
 }
 
 indidisplay::~indidisplay() {
@@ -327,6 +332,10 @@ bool indidisplay::findfam( famdisplay* self, GEDCOM_object* fam ) const {
 // this case we won't want to display all the issue again.
 
 // WATCHIT ! the nature of our recursion means we may be called on a NULL
+// The C-compiler thinks we can never be called on NULL, so our check is
+// superfluous. In practice this means that, in fact, when we are called
+// on a NULL pointer, we get a segfault. I believe we are now checking
+// before calling, on every call to findfam().
 
 // hmmm, this is costly - it is order N squared for the number of famdislays
 // which becomes order N cubed over the number of times it is called
@@ -335,18 +344,22 @@ bool indidisplay::findfam( famdisplay* self, GEDCOM_object* fam ) const {
 
 famdisplay* check;
 
-  if (this==NULL) return false;
+  // C-compiler thinks this can never happen:
+  // if (this==NULL) return false;
 
   check = fams; // pointer to the famdisplay for the FAM object will be
   // NULL for unmarried individuals with no children
   while (check != NULL) {
     if (check != self) { // otherwise we will always find ourselves !
       if (fam == check->getfamily()) return true;}
-    if ( (check->getspouse())->findfam(self, fam) ) return true;
-    if ( (check->getissue())->findfam(self, fam) ) return true;
+    if ( (check->getspouse())!=NULL)
+      if ( (check->getspouse())->findfam(self, fam) ) return true;
+    if ( (check->getissue())!=NULL)
+      if ( (check->getissue())->findfam(self, fam) ) return true;
     check = check->nextfam(); // will become NULL for last family
   }
-  return (this->next)->findfam(self, fam);
+  if ((this->next)!=NULL) return (this->next)->findfam(self, fam);
+  else return NULL;
 }
 
 void indidisplay::displayindi( int h, int xoffset, int yoffset ) const {
@@ -402,7 +415,7 @@ GEDCOM_object *obj;
 indidisplay *indicheck;
 famdisplay  *famcheck;
 
-  if (this == NULL) return NULL;
+  // if (this == NULL) return NULL;
   // if this indidisplay encloses the point, return the pointer to the INDI
 #ifdef debugging
   printf("indidisplay::whoisat() testing on %s\n",this->name());
@@ -477,6 +490,9 @@ int i;
   // this was commented out, and things didn't seem to be changing ...
   fl_font( FL_HELVETICA_BOLD , XF_FONT_SIZE );
   width = (int)(1+fl_width( label->string() ));
+#ifdef debugging
+  printf("famdisplay constructor for %s\n",label->string());
+#endif
 }
 
 famdisplay::~famdisplay() {
@@ -501,6 +517,15 @@ indidisplay*   famdisplay::getissue() const { return issue; }
 void           famdisplay::setissue( indidisplay* child ) { issue = child; }
 bool           famdisplay::later_valid() { return (next!=NULL); }
 bool           famdisplay::earlier_valid() { return (fam!=(indi->subobject( FAMS_tag )->followxref())); }
+
+bool famdisplay::unmarry_valid() {
+  int count;
+  count = 0;
+  if ((fam->subobject(CHIL_tag))!=NULL) return false;
+  if ((fam->subobject(HUSB_tag))!=NULL) count++;
+  if ((fam->subobject(WIFE_tag))!=NULL) count++;
+  return (count==2);
+}
 
 void famdisplay::displayfam( int h, int xoffset, int yoffset ) const {
 
@@ -557,8 +582,12 @@ GEDCOM_object *obj;
     famd = (famdisplay*) this;
     return this->getfamily();
   }
-  if ((obj = (this->getspouse()->whoisat( h, x, y, indid, famd ))) != NULL) return obj;
-  if ((obj = (this->getissue()->whoisat( h, x, y, indid, famd ))) != NULL) return obj;
+  if ((this->getspouse()) != NULL) {
+    if((obj = (this->getspouse()->whoisat( h, x, y, indid, famd )))!=NULL) return obj;
+  }
+  if ((this->getissue()) != NULL) {
+    if((obj = (this->getissue()->whoisat( h, x, y, indid, famd )))!=NULL) return obj;
+  }
   return NULL;
 }
 
@@ -657,6 +686,9 @@ int famnumber = 0;      // zero if we don't need to sequence-number marriages, e
 
     spouse = family->thespouseof( person );
     if (spouse != NULL) {
+#ifdef debugging
+      printf("spouse %ld, let's create a new indidisplay\n",(long)spouse);
+#endif
       spousedisplay = new indidisplay( spouse );
       if (spousedisplay==NULL) printf("displaytree::addmarriages out of heap ?\n");
     } else spousedisplay = NULL;
@@ -665,6 +697,9 @@ int famnumber = 0;      // zero if we don't need to sequence-number marriages, e
     printf("Need new famdisplay for person %ld, family %ld, spousedisplay %ld, famnumber %d\n",(long)person,(long)family,(long)spousedisplay,famnumber);
 #endif
     newfam = new famdisplay( person, family, spousedisplay, famnumber );
+#ifdef debugging
+    printf("Returned new famdisplay %ld\n",(long)newfam);
+#endif
     if (newfam==NULL) printf("displaytree::addmarriages out of heap ?\n");
     if (oldfam == NULL) newdisplay->setfamily( newfam );
      else oldfam->setnext( newfam );
@@ -695,6 +730,9 @@ indidisplay   *oldersib;
    and the spouse's display object (if there is a spouse) */
 
   family = newdisplay->getfamily(); 
+#ifdef debugging
+    printf("displaytree::adddescendants treetop %ld, newdisplay %ld, family %ld\n",(long)treetop,(long)newdisplay,(long)family);
+#endif
 
   if ( treetop->findfam( newdisplay, family ) ) {
 #ifdef debugging
@@ -704,8 +742,11 @@ indidisplay   *oldersib;
             // we don't wish descendants to be shown twice
   // this does mean you'll have to find the earlier version of the marriage to add new issue
   // since bombing out here means we don't set famc which is tested by newfam_valid()
-  // that's not unreasonable,as they will only be shown in that other part of the display.
+  // that's not unreasonable, as they will only be shown in that other part of the display.
   }
+#ifdef debugging
+  printf("addescendants check for CHIL tag(s)\n");
+#endif
   chil = family->subobject( CHIL_tag );
 #ifdef debugging
   printf("addescendants new chil %ld\n",(long)chil);
@@ -910,6 +951,8 @@ void* displaytree::getevent() {
 GEDCOM_object *displaytree::whoisat( int x, int y, indidisplay*& indid, famdisplay*& famd ) const {
   // we're expecting to start with the reference pointers null:
   printf("displaytree::whoisat passed %ld, %ld\n",(long)indid,(long)famd);
+  // start some defensive coding for empty trees:
+  if (treetop==NULL) return NULL;
   return treetop->whoisat( lineheight, x, y, indid, famd );
 }
 

@@ -29,14 +29,13 @@
 
 #include "classes.h"
 #include "family.h"
-#include "languages.h"
 #include "fixes.h"
 
 ///////////////// menu structures used by the GUIs ///////////////
 
 class barmenu {
 public:
-  Fl_Menu_Item menu_data[35+language_count];
+  Fl_Menu_Item menu_data[33];
 
   barmenu( mainUI* );
 };
@@ -107,6 +106,7 @@ public: // this lot should become private v. soon !
   genpopupmenu   *genmenu;
 
   mainUI( treeinstance* ); // our constructor
+  ~mainUI(); // we need to have a destructor to get rid of the Window and the display structure
   void settitle();
   void show();
   void hide();
@@ -192,10 +192,13 @@ public:
   Fl_Light_Button *indi_male;
   Fl_Light_Button *indi_female;
   Fl_Light_Button *indi_unknown;
-  Fl_Input  *indi_ma;
   Fl_Output  *indi_ma_id;
-  Fl_Input  *indi_pa;
   Fl_Output  *indi_pa_id;
+  Fl_Output *indi_pa;
+  Fl_Output *indi_ma;
+  Fl_Button *indi_pa_add;
+  Fl_Button *indi_ma_add;
+  Fl_Button *indi_fam_find;
   Fl_Button *indi_notes;
   Fl_Button *indi_sources;
   Fl_Button *indi_will;
@@ -286,6 +289,7 @@ public:
   void setprevious( indiUI*);
   void clear_details();
   void insert_details(GEDCOM_object*);
+  void refresh_parents( );
   void setdatefields(GEDCOM_object*, Fl_Input*, Fl_Input*, Fl_Button*, Fl_Button* );
   void checknotes(GEDCOM_object*, bool);
   void settitle();
@@ -322,8 +326,10 @@ public:
   Fl_Output *wife_id;
   Fl_Button *husb_add;
   Fl_Button *husb_find;
+  Fl_Button *husb_remove;
   Fl_Button *wife_add;
   Fl_Button *wife_find;
+  Fl_Button *wife_remove;
   Fl_Button *fam_notes;
   Fl_Button *fam_sources;
   Fl_Tabs   *fam_events;
@@ -413,7 +419,7 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class findUI {
+class indifindUI {
 public:
   Fl_Window* findbox;
   Fl_Input* find_input;
@@ -428,10 +434,13 @@ public:
   void*    context;
   short strategy; // a bitfield restricting how to search and what to do with results
   // bits 0-1 left/right/fuzzy - gets set in response to which search button pressed
+  // in the long term, both bits zero might be used for regular expression search but
+  // most genealogists won't grok this.
   // bits 2-3 male/female/any  - gets set according to needs of caller
   // bits 4-...  0 make current, 16 spouse completion, 32 ...
+  // wishlist: a bit which asks to deduce and match on married name might be useful
 
-  findUI();
+  indifindUI();
   void setcontext( void* );
   void* getcontext() const;
   treeinstance* whichtree();
@@ -445,17 +454,17 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class completionsUI {
+class indicompletionsUI {
 public:
   Fl_Window* completionswin;
   Fl_Select_Browser* completions;
   treeinstance* scantree;
   char* searchfor;
   int searchmethod;
-  completion_item* first;
+  indicompletion_item* first;
   int widths[6];
 
-  completionsUI();
+  indicompletionsUI();
   void open( treeinstance*, char*, int, Fl_Callback*, /*void*,*/ short, short );
   void finish();
   GEDCOM_object* chosen_indi( int );
@@ -464,20 +473,96 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-class completion_item {
+class indicompletion_item {
 GEDCOM_object*    indiptr;
-completion_item*  nextptr;
+indicompletion_item*  nextptr;
 GEDCOM_string*    displayptr;
 int width[6];
 
 public:
-  completion_item( GEDCOM_object* );
-  ~completion_item();
+  indicompletion_item( GEDCOM_object* );
+  ~indicompletion_item();
   void setwidths( int[] );
   GEDCOM_object* indi() const;
-  completion_item* next() const;
-  void setnext( completion_item* );
+  indicompletion_item* next() const;
+  void setnext( indicompletion_item* );
   char* display() const;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+class famfindUI {
+public:
+  Fl_Window* findbox;
+  Fl_Input* find_input;
+  Fl_Output* find_id;
+  Fl_Output* spouse;
+  Fl_Output* spouse_id;
+  Fl_Output* fam_id;
+  // the searchfind_cb callback needs to be able to see the search buttons:
+  Fl_Button* find_fromright;
+  Fl_Button* find_fuzzy;
+  Fl_Button* find_fromleft;
+  Fl_Button* find_new;
+  Fl_Button* find_help;
+  Fl_Button* find_cancel;
+  Fl_Return_Button* find_ok;
+  void*    context;
+  GEDCOM_object* chosenfam;
+  short strategy; // a bitfield restricting how to search and what to do with results
+  // bits 0-1 left/right/fuzzy - gets set in response to which search button pressed
+
+  famfindUI();
+  void setcontext( void* );
+  void* getcontext() const;
+  treeinstance* whichtree();
+  void open( void*, short, short, short);
+  void searchfind(Fl_Button*);
+  // we want to list the matching person first, and the spouse secnd, so need some idea of gender found
+  // but we only get one thing back in userdata in the callback. How can we pass context ?
+  void setfam( famcompletion_item* );
+  short getstrategy();
+  void OK();
+  void finish();
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+class famcompletionsUI {
+public:
+  Fl_Window* completionswin;
+  Fl_Select_Browser* completions;
+  treeinstance* scantree;
+  char* searchfor;
+  int searchmethod;
+  famcompletion_item* first;
+  int widths[4];
+
+  famcompletionsUI();
+  void open( treeinstance*, char*, int, Fl_Callback*, /*void*,*/ short, short );
+  void finish();
+  famcompletion_item* chosen_fam( int );
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+class famcompletion_item {
+GEDCOM_object*    famptr;
+char* sex;
+famcompletion_item*  nextptr;
+GEDCOM_string*    displayptr;
+int width[4];
+
+public:
+  famcompletion_item( GEDCOM_object*, char* );
+  ~famcompletion_item();
+  void setwidths( int[] );
+  GEDCOM_object* fam() const;
+  famcompletion_item* next() const;
+  void setnext( famcompletion_item* );
+  char* display() const;
+  char* gender() const;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -561,3 +646,5 @@ public:
 };
 
 #endif
+
+

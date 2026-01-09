@@ -1,0 +1,111 @@
+FindUI for families
+
+It is clear that this will need a new completions window, which will
+show both spouses and a date (if FAM/MARR/DATE exists) as well as a
+family ID.
+
+But we ought to be able to search on just one spouse with exactly the
+same initial dbox as we use to find INDIs. However, the completions
+window will pass back a string representing the marriage and a FAM ID
+rather than an indi name and INDI ID.
+
+How does the INDI search proceed ?
+
+the inital callback just opens the search dbox
+
+gotobox->open( view, x+50, y+55, 12 );
+
+where 12 is a bitfield for the search strategy - that's how our gender
+restriction works.
+
+All the open does is set the fields blank and show the window. You then
+get callsback for the various buttons. All the three search-type buttons
+hit the same callback, searchfind_cb which just passes the button id to
+gui.cxx:void findUI::searchfind(Fl_Button* button) {
+
+This clears relevant strategy bits, then sets bits 0 and 1 as:
+
+  if (button==find_fromright) strategy |= 1;
+  if (button==find_fromleft)  strategy |= 2;
+  if (button==find_fuzzy)     strategy |= 3;
+
+  completionsbox->open( this->whichtree(),
+                        (char*)find_input->value(),
+                        strategy,
+                        (Fl_Callback*) chosenfind_cb,
+                        //(void*) searchfrom->getview(),
+                        x+65, y+55 );
+
+  switch (strategy&3) {
+    case 1: found_indi = scantree->INDI_fromright( found_indi, searchfor ); break;
+    case 2: found_indi = scantree->INDI_fromleft( found_indi, searchfor ); break;
+    case 3: found_indi = scantree->INDI_fuzzymatch( found_indi, searchfor ); break;
+
+we find the first matching INDI, apply more bits from our strategy to decide how
+we filter the results (eg. only males, only females) and add matches to the
+completions window
+
+which is the same search we want for the family search except we will then filter
+differently. We ought to be passed bits to accept both genders, but there should
+now be a new bit in the bitfield which indicates that we will lookup *every* FAMS
+for a matching INDI and add a line to the completions window for each FAM to which
+they point.
+
+We add lines to the completions dbox with
+
+      item = new completion_item( found_indi );
+      item->setwidths( widths );
+      completions->add(item->display(), (void*)0);
+
+completion_item::completion_item( GEDCOM_object* found_indi ):
+
+is the guts of the thing and builds lines which FLTK knows how to display, which
+have tabs and escape sequences to set colour. As each line is added, the width of
+the text in each column is calculated and a maximum value kept. As always
+completion_items form a linked list... Each line looks like (I'm using | to
+stand in for a \t which is what is used to feed FLTK)
+
+Rev. | Arthur Wilmot /Welch/ | 1 AUG 1848 | - | APR 1929 | I2802
+
+For families we will want
+
+Urwick Cooke | 14 APR 1869 | Jessie Harbottle /Guenett/ | F281
+Urwick Cooke | 8 AUG 1884  | Anne /Pilling/             | F282
+
+for example
+
+The existing completion_item::completion_item( GEDCOM_object* found_indi ) constructor
+is sufficientely complex that it is going to be more sensible to have separate classes
+for INDI and FAM completion items, so a bit of renaming would make sense. Since the
+completion_items so built are just lines of text, it looks as though the same window
+can be used to display these as for the INDI search.
+
+completionsUI::open( definitely is INDI specific in that it sets up six columns for
+tabs to pass to completions->column_widths( widths );
+
+completions is a public member of the completionsUI class (of which only one instance
+ever exists) Fl_Select_Browser* o = completions = new Fl_Select_Browser( 0, 0, 400, 500);
+
+which we create anew each time we call open. There is no destructor on the class,
+as the completions window is persistent (but not shown much of the time)
+
+------------------------------------------------------------------------------------------------
+
+Simplest strategy is to build a whole new edifice for FAM completions which mirrors
+the INDI edifice. A bit of renaming to make clear which is which will help. However,
+the risk is that you get a lot of duplicated (boilerplate) code which is undesirable
+as it makes maintenance harder and the code bigger. It might make the code a little
+easier to understand, though.
+
+One issue with this approach is that we tend to want to limit things to just one
+find/completions window open at any one time. Having separate classes means we
+can potentially have one of each open. At the simplest, they will look remarkably
+similar, if not identical, which is a bit of an issue.
+
+In practice, this looks like an obvious case for subclassing, which I ought to
+get my head round. Initially, however, I want to keep the code which searches for
+an INDI working with minimal change, then create code for the FAM search and
+test it independently. Only then will we look at how easy it would be to refactor
+to eliminate duplication.
+
+

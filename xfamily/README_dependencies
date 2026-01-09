@@ -4,11 +4,15 @@ build-essential
 libfltk-images1.3  (pulls in other fltk stuff)
 libfltk1.3-dev     (pulls in tons of other stuff)
 
--lpng -ljpeg -lz
-apt-get install libpng12-dev libjpeg62-dev zlib1g-dev
+-lpng -ljpeg -lz -lXext
+apt-get install libpng-dev libjpeg62-dev zlib1g-dev libxext-dev
 
-That was all needed to make it build fine on Precise Pangolin, but when
-run without a filename it just segfaults - we don't seem to be able to find
+On debian 11 arm64, we needed libjpeg62-turbo-dev rather than libjpeg62-dev 
+
+That was all that we needed to make it build fine from Precise Pangolin to
+Jammy on Ubuntu, and on Debian Bullseye.
+
+When run without a filename it just segfaults - we don't seem to be able to find
 a way to get a valid pointer to a static string for the default filename.
 
 The workaround is not not use a hard-wired default filename (the final
@@ -17,4 +21,10 @@ other static strings that we are using that cause null pointers to be
 floating round. The first time we try to use one, we will crash ...
 Need to learn how modern C++ does default strings like this. Think you
 need to do strdup("string") which just seems to waste a bit of extra space :-(
+
+In practice, we really have not solved the issue of running the program without
+any tree to display, and the codebase now includes a default tree with just one
+person named "unknown", but we still need to store the filename if we want to load
+this by default. What would be better would be to create this minimal tree when
+called with no tree to load.
 

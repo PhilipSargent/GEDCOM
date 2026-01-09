@@ -24,17 +24,16 @@
 #include <FL/Fl_Text_Buffer.H>
 #include <FL/Fl_Text_Display.H>
 #include <FL/Fl_Text_Editor.H>
+#include <FL/fl_ask.H>
 
 #include "menucodes.h"
 #include "classes.h"
-#include "languages.h"
 #include "gui.h"
 #include "structure.h"
 #include "trees.h"
 #include "callback.h"
 #include "display.h"
 #include "objects.h"
-#include "strings.h"
 #include "tags.h"
 
 ///////////////////////////////////////////////////////////////////////////
@@ -56,45 +55,43 @@
 // cast with (Fl_Menu_Item*) to use with ->menu(thing)
 
 barmenu::barmenu(mainUI* view) {
-  menu_data[0] = (Fl_Menu_Item){msg_menu_file,     0, 0, 0,  64, 0, 0, 14, 0 };
-  menu_data[1] = (Fl_Menu_Item){msg_menu_load,     0, 0, 0,   0, 0, 0, 14, 0 };
-  menu_data[2] = (Fl_Menu_Item){msg_menu_save,     0, (Fl_Callback*)save_cb, (void*)(view),   0, 0, 0, 14, 0 };
-  menu_data[3] = (Fl_Menu_Item){msg_menu_saveas,   0, (Fl_Callback*)saveas_cb, (void*)(view),   0, 0, 0, 14, 0 };
-  menu_data[4] = (Fl_Menu_Item){msg_menu_print,    0, 0, 0, 128, 0, 0, 14, 0 };
-  menu_data[5] = (Fl_Menu_Item){msg_menu_newview,  0, (Fl_Callback*)newview_cb, (void*)(view),   0, 0, 0, 14, 0 };
-  menu_data[6] = (Fl_Menu_Item){msg_menu_discard,  0, 0, 0,   0, 0, 0, 14, 0 };
-  menu_data[7] = (Fl_Menu_Item){msg_menu_stats,    0, (Fl_Callback*)stats_cb, (void*)(view),   0, 0, 0, 14, 0 };
-  menu_data[8] = (Fl_Menu_Item){msg_menu_quit,     0, (Fl_Callback*)quit_cb, 0,   0, 0, 0, 14, 0 };
+  menu_data[0] = (Fl_Menu_Item){"File",           0, 0, 0,  64, 0, 0, 14, 0 };
+  menu_data[1] = (Fl_Menu_Item){"Load",           0, 0, 0,   0, 0, 0, 14, 0 };
+  menu_data[2] = (Fl_Menu_Item){"Save",           0, (Fl_Callback*)save_cb, (void*)(view),   0, 0, 0, 14, 0 };
+  menu_data[3] = (Fl_Menu_Item){"Save as ...",    0, (Fl_Callback*)saveas_cb, (void*)(view),   0, 0, 0, 14, 0 };
+  menu_data[4] = (Fl_Menu_Item){"Print",          0, 0, 0, 128, 0, 0, 14, 0 };
+  menu_data[5] = (Fl_Menu_Item){"New View",       0, (Fl_Callback*)newview_cb, (void*)(view),   0, 0, 0, 14, 0 };
+  menu_data[6] = (Fl_Menu_Item){"Discard",        0, 0, 0,   0, 0, 0, 14, 0 };
+  menu_data[7] = (Fl_Menu_Item){"Statistics",     0, (Fl_Callback*)stats_cb, (void*)(view),   0, 0, 0, 14, 0 };
+  menu_data[8] = (Fl_Menu_Item){"Quit",           0, (Fl_Callback*)quit_cb, 0,   0, 0, 0, 14, 0 };
   menu_data[9] = (Fl_Menu_Item){ 0 };
-  menu_data[10] = (Fl_Menu_Item){msg_menu_folk,     0, 0, 0,  64, 0, 0, 14, 0 };
-  menu_data[11] = (Fl_Menu_Item){msg_menu_add,      0, 0, 0,   0, 0, 0, 14, 0 };
-  menu_data[12] = (Fl_Menu_Item){msg_menu_goto,     0, (Fl_Callback*)find_cb, (void*)(view),   0, 0, 0, 14, 0 };
+  menu_data[10] = (Fl_Menu_Item){"People",        0, 0, 0,  64, 0, 0, 14, 0 };
+  menu_data[11] = (Fl_Menu_Item){"New ...",       0, 0, 0,   0, 0, 0, 14, 0 };
+  menu_data[12] = (Fl_Menu_Item){"Find ...",      0, (Fl_Callback*)indifind_cb, (void*)(view),   0, 0, 0, 14, 0 };
   menu_data[13] = (Fl_Menu_Item){ 0 };
-  menu_data[14] = (Fl_Menu_Item){msg_menu_reports,  0, 0, 0,  64, 0, 0, 14, 0 };
-  menu_data[15] = (Fl_Menu_Item){msg_menu_repstd,   0, 0, 0,   0, 0, 0, 14, 0 };
-  menu_data[16] = (Fl_Menu_Item){msg_menu_repfam,   0, 0, 0,   0, 0, 0, 14, 0 };
-  menu_data[17] = (Fl_Menu_Item){msg_menu_repweb,   0, 0, 0,   0, 0, 0, 14, 0 };
+  menu_data[14] = (Fl_Menu_Item){"Reports",       0, 0, 0,  64, 0, 0, 14, 0 };
+  menu_data[15] = (Fl_Menu_Item){"Standard",      0, 0, 0,   0, 0, 0, 14, 0 };
+  menu_data[16] = (Fl_Menu_Item){"Family Groups", 0, 0, 0,   0, 0, 0, 14, 0 };
+  menu_data[17] = (Fl_Menu_Item){"Web pages ...", 0, 0, 0,   0, 0, 0, 14, 0 };
   menu_data[18] = (Fl_Menu_Item){ 0 };
-  menu_data[19] = (Fl_Menu_Item){msg_menu_settings, 0, 0, 0,  64, 0, 0, 14, 0 };
-  menu_data[20] = (Fl_Menu_Item){msg_menu_lang,     0, 0, 0,  64, 0, 0, 14, 0 };
-  #define next_menu_index 21
-  #include "languages.cxx"
-  #undef next_menu_index
-  menu_data[21+language_count] = (Fl_Menu_Item){ 0 };
-  menu_data[22+language_count] = (Fl_Menu_Item){msg_menu_choices,  0, (Fl_Callback*)choices_cb, 0,   0, 0, 0, 14, 0 };
-  menu_data[23+language_count] = (Fl_Menu_Item){msg_menu_savech,   0, 0, 0,   0, 0, 0, 14, 0 };
-  menu_data[24+language_count] = (Fl_Menu_Item){ 0 };
-  menu_data[25+language_count] = (Fl_Menu_Item){msg_help,          0, 0, 0,  64, 0, 0, 14, 0 };
+  menu_data[19] = (Fl_Menu_Item){"Settings",      0, 0, 0,  64, 0, 0, 14, 0 };
+// this needs to go away somehow
+//  menu_data[20] = (Fl_Menu_Item){"Language",      0, 0, 0,  64, 0, 0, 14, 0 };
+//  menu_data[20] = (Fl_Menu_Item){ 0 };
+  menu_data[20] = (Fl_Menu_Item){"Choices ...",        0, (Fl_Callback*)choices_cb, 0,   0, 0, 0, 14, 0 };
+  menu_data[21] = (Fl_Menu_Item){"Save Choices",       0, 0, 0,   0, 0, 0, 14, 0 };
+  menu_data[22] = (Fl_Menu_Item){ 0 };
+  menu_data[23] = (Fl_Menu_Item){"Help",               0, 0, 0,  64, 0, 0, 14, 0 };
 // menu captions need translating but help filenames don't
-  menu_data[26+language_count] = (Fl_Menu_Item){msg_menu_intro,    0, (Fl_Callback*)help_cb, (void*)("intro.html"),  0, 0, 0, 14, 0 };
-  menu_data[27+language_count] = (Fl_Menu_Item){msg_menu_mainUI,   0, (Fl_Callback*)help_cb, (void*)("mainUI.html"), 0, 0, 0, 14, 0 };
-  menu_data[28+language_count] = (Fl_Menu_Item){msg_menu_indiUI,   0, (Fl_Callback*)help_cb, (void*)("indiUI.html"), 0, 0, 0, 14, 0 };
-  menu_data[29+language_count] = (Fl_Menu_Item){msg_menu_famUI,    0, (Fl_Callback*)help_cb, (void*)("famUI.html"),  0, 0, 0, 14, 0 };
-  menu_data[30+language_count] = (Fl_Menu_Item){msg_menu_prefUI,   0, (Fl_Callback*)help_cb, (void*)("prefUI.html"), 0, 0, 0, 14, 0 };
-  menu_data[31+language_count] = (Fl_Menu_Item){msg_menu_GEDCOM,   0, (Fl_Callback*)help_cb, (void*)("GEDCOM.html"), 128, 0, 0, 14, 0 };
-  menu_data[32+language_count] = (Fl_Menu_Item){msg_menu_about,    0, (Fl_Callback*)info_cb, 0,   0, 0, 0, 14, 0 };
-  menu_data[33+language_count] = (Fl_Menu_Item){ 0 };
-  menu_data[34+language_count] = (Fl_Menu_Item){ 0 };
+  menu_data[24] = (Fl_Menu_Item){"Introduction",       0, (Fl_Callback*)help_cb, (void*)("intro.html"),  0, 0, 0, 14, 0 };
+  menu_data[25] = (Fl_Menu_Item){"Main window",        0, (Fl_Callback*)help_cb, (void*)("mainUI.html"), 0, 0, 0, 14, 0 };
+  menu_data[26] = (Fl_Menu_Item){"Person dbox",        0, (Fl_Callback*)help_cb, (void*)("indiUI.html"), 0, 0, 0, 14, 0 };
+  menu_data[27] = (Fl_Menu_Item){"Family events dbox", 0, (Fl_Callback*)help_cb, (void*)("famUI.html"),  0, 0, 0, 14, 0 };
+  menu_data[28] = (Fl_Menu_Item){"Choices dbox",       0, (Fl_Callback*)help_cb, (void*)("prefUI.html"), 0, 0, 0, 14, 0 };
+  menu_data[29] = (Fl_Menu_Item){"GEDCOM files",       0, (Fl_Callback*)help_cb, (void*)("GEDCOM.html"), 128, 0, 0, 14, 0 };
+  menu_data[30] = (Fl_Menu_Item){"About",              0, (Fl_Callback*)info_cb, 0,   0, 0, 0, 14, 0 };
+  menu_data[31] = (Fl_Menu_Item){ 0 };
+  menu_data[32] = (Fl_Menu_Item){ 0 };
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -106,19 +103,19 @@ barmenu::barmenu(mainUI* view) {
 // gets set by the popup callback before it calls the callbacks in the menu
 
 indipopupmenu::indipopupmenu(mainUI* view) {
-  popup_data[imenubase]    = (Fl_Menu_Item){msg_menu_edit,      0, (Fl_Callback*)edit_cb,             (void*)(view),              0,0,0,14,0 };
-  popup_data[imenunotes]   = (Fl_Menu_Item){msg_menu_notes,     0, (Fl_Callback*)menuopennotes_cb,    (void*)(view), 0,0,0,14,0 };
-  popup_data[imenuyounger] = (Fl_Menu_Item){msg_menu_younger,   0, (Fl_Callback*)menu_younger_cb, (void*)(view),   0, 0, 0, 14, 0 };
-  popup_data[imenuolder]   = (Fl_Menu_Item){msg_menu_older,     0, (Fl_Callback*)menu_older_cb, (void*)(view),   0, 0, 0, 14, 0 };
-  popup_data[imenunewfam]  = (Fl_Menu_Item){msg_menu_newfam,    0, (Fl_Callback*)famnew_cb, (void*)(view),   0, 0, 0, 14, 0 };
-  popup_data[imenustructure]=(Fl_Menu_Item){msg_menu_structure, 0, 0, 0, 192, 0, 0, 14, 0 };
-  popup_data[imenuremove]  = (Fl_Menu_Item){msg_menu_remove,    0, (Fl_Callback*)deleteindi_cb, (void*)(view),   0, 0, 0, 14, 0 };
-  popup_data[imenudetach]  = (Fl_Menu_Item){msg_menu_detach,    0, 0, 0,   0, 0, 0, 14, 0 };
-  popup_data[imenumove]    = (Fl_Menu_Item){msg_menu_move,      0, 0, 0,   0, 0, 0, 14, 0 };
-  popup_data[imenuattach]  = (Fl_Menu_Item){msg_menu_attach,    0, 0, 0,   0, 0, 0, 14, 0 };
+  popup_data[imenubase]    = (Fl_Menu_Item){"Edit",      0, (Fl_Callback*)edit_cb,         (void*)(view), 0,0,0,14,0 };
+  popup_data[imenunotes]   = (Fl_Menu_Item){"Notes",     0, (Fl_Callback*)menuopennotes_cb,(void*)(view), 0,0,0,14,0 };
+  popup_data[imenuyounger] = (Fl_Menu_Item){"Younger",   0, (Fl_Callback*)menu_younger_cb, (void*)(view), 0, 0, 0, 14, 0 };
+  popup_data[imenuolder]   = (Fl_Menu_Item){"Older",     0, (Fl_Callback*)menu_older_cb,   (void*)(view), 0, 0, 0, 14, 0 };
+  popup_data[imenunewfam]  = (Fl_Menu_Item){"New family",0, (Fl_Callback*)famnew_cb,       (void*)(view), 0, 0, 0, 14, 0 };
+  popup_data[imenustructure]=(Fl_Menu_Item){"Structure", 0, 0, 0, 192, 0, 0, 14, 0 };
+  popup_data[imenuremove]  = (Fl_Menu_Item){"Delete",    0, (Fl_Callback*)deleteindi_cb,   (void*)(view), 0, 0, 0, 14, 0 };
+  popup_data[imenudetach]  = (Fl_Menu_Item){"Detach",    0, 0, 0,   0, 0, 0, 14, 0 };
+  popup_data[imenumove]    = (Fl_Menu_Item){"Move",      0, 0, 0,   0, 0, 0, 14, 0 };
+  popup_data[imenuattach]  = (Fl_Menu_Item){"Attach",    0, 0, 0,   0, 0, 0, 14, 0 };
   popup_data[imenuendstruct] = (Fl_Menu_Item){ 0 };
-  popup_data[imenuindreps] = (Fl_Menu_Item){msg_menu_indreps,   0, 0, 0,  64, 0, 0, 14, 0 };
-  popup_data[imenuancs]    = (Fl_Menu_Item){msg_menu_ancs,      0, 0, 0,   0, 0, 0, 14, 0 };
+  popup_data[imenuindreps] = (Fl_Menu_Item){"Reports",   0, 0, 0,  64, 0, 0, 14, 0 };
+  popup_data[imenuancs]    = (Fl_Menu_Item){"Ancestors", 0, 0, 0,   0, 0, 0, 14, 0 };
   popup_data[imenuendreps] = (Fl_Menu_Item){ 0 };
   popup_data[imenuend]     = (Fl_Menu_Item){ 0 };
 }
@@ -142,16 +139,12 @@ void indipopupmenu::black( int n ) {
 // gets set by the popup callback before it calls the callbacks in the menu
 
 fampopupmenu::fampopupmenu(mainUI* view) {
-  popup_data[fmenubase]    = (Fl_Menu_Item){msg_menu_edit,      0, (Fl_Callback*)famed_cb, (void*)(view),         0,0,0,14,0 };
-  popup_data[fmenunotes]   = (Fl_Menu_Item){msg_menu_notes,     0, (Fl_Callback*)menuopennotes_cb, (void*)(view), 0,0,0,14,0 };
-  popup_data[fmenulater]   = (Fl_Menu_Item){msg_menu_later,     0, (Fl_Callback*)menu_later_cb, (void*)(view),    0,0,0,14,0 };
-  popup_data[fmenuearlier] = (Fl_Menu_Item){msg_menu_earlier,   0, (Fl_Callback*)menu_earlier_cb, (void*)(view),  0,0,0,14,0 };
-#ifdef fix0026
-  popup_data[fmenuchild]   = (Fl_Menu_Item){msg_menu_child,     0, (Fl_Callback*)newchild_cb, (void*)(view), 0, 0, 0, 14, 0 };
-#else
-  popup_data[fmenuchild]   = (Fl_Menu_Item){msg_menu_child,     0, 0, 0,   0, 0, 0, 14, 0 };
-#endif
-  popup_data[fmenuunmarry] = (Fl_Menu_Item){msg_menu_unmarry,   0, (Fl_Callback*)unmarry_cb, (void*)(view), 128, 0, 0, 14, 0 };
+  popup_data[fmenubase]    = (Fl_Menu_Item){"Edit",      0, (Fl_Callback*)famed_cb, (void*)(view),         0,0,0,14,0 };
+  popup_data[fmenunotes]   = (Fl_Menu_Item){"Notes",     0, (Fl_Callback*)menuopennotes_cb, (void*)(view), 0,0,0,14,0 };
+  popup_data[fmenulater]   = (Fl_Menu_Item){"Later",     0, (Fl_Callback*)menu_later_cb, (void*)(view),    0,0,0,14,0 };
+  popup_data[fmenuearlier] = (Fl_Menu_Item){"Earlier",   0, (Fl_Callback*)menu_earlier_cb, (void*)(view),  0,0,0,14,0 };
+  popup_data[fmenuchild]   = (Fl_Menu_Item){"New child", 0, (Fl_Callback*)newchild_cb, (void*)(view), 0, 0, 0, 14, 0 };
+  popup_data[fmenuunmarry] = (Fl_Menu_Item){"Unmarry",   0, (Fl_Callback*)unmarry_cb, (void*)(view), 128, 0, 0, 14, 0 };
   // unmarry is to remove the FAM object entirely. Divorce is a tab in the
   // FAM edit box, and no longer a menu item as it was in !Family
   popup_data[fmenuend]     = (Fl_Menu_Item){ 0 };
@@ -171,7 +164,7 @@ void fampopupmenu::black( int n ) {
 // cast with (Fl_Menu_Item*) to use with ->menu(thing)
 
 genpopupmenu::genpopupmenu(mainUI* view) {
-  popup_data[0] = (Fl_Menu_Item){msg_menu_savescr,  0, (Fl_Callback*)savescr_cb, (void*)(view),   0, 0, 0, 14, 0 };
+  popup_data[0] = (Fl_Menu_Item){"Save window as graphic",  0, (Fl_Callback*)savescr_cb, (void*)(view),   0, 0, 0, 14, 0 };
   popup_data[1] = (Fl_Menu_Item){ 0 };
 }
 
@@ -179,11 +172,11 @@ genpopupmenu::genpopupmenu(mainUI* view) {
 // class notesmenu:
 
 notesmenu::notesmenu( notesUI* notesui ) {
-  menu_data[0] = (Fl_Menu_Item){msg_cancel, 0, (Fl_Callback*)cancelnotes_cb, (void*)notesui, 0, 0, 0, 14, 0 };
-  menu_data[1] = (Fl_Menu_Item){msg_clear,  0, (Fl_Callback*)clearnotes_cb,  (void*)notesui, 0, 0, 0, 14, 0 };
-  menu_data[2] = (Fl_Menu_Item){msg_restore, 0, (Fl_Callback*)restorenotes_cb, (void*)notesui, 0, 0, 0, 14, 0 };
-  menu_data[3] = (Fl_Menu_Item){msg_saveto, 0, (Fl_Callback*)savenotes_cb,   (void*)notesui, 0, 0, 0, 14, 0 };
-  menu_data[4] = (Fl_Menu_Item){msg_oksave, 0, (Fl_Callback*)oknotes_cb,     (void*)notesui, 0, 0, 0, 14, 0 };
+  menu_data[0] = (Fl_Menu_Item){"Cancel",             0, (Fl_Callback*)cancelnotes_cb, (void*)notesui, 0, 0, 0, 14, 0 };
+  menu_data[1] = (Fl_Menu_Item){"Clear",              0, (Fl_Callback*)clearnotes_cb,  (void*)notesui, 0, 0, 0, 14, 0 };
+  menu_data[2] = (Fl_Menu_Item){"Restore",            0, (Fl_Callback*)restorenotes_cb, (void*)notesui, 0, 0, 0, 14, 0 };
+  menu_data[3] = (Fl_Menu_Item){"Save back to GEDCOM",0, (Fl_Callback*)savenotes_cb,   (void*)notesui, 0, 0, 0, 14, 0 };
+  menu_data[4] = (Fl_Menu_Item){"OK (Save and close)",0, (Fl_Callback*)oknotes_cb,     (void*)notesui, 0, 0, 0, 14, 0 };
   menu_data[5] = (Fl_Menu_Item){ 0 };
 }
 
@@ -248,9 +241,14 @@ mainUI::mainUI( treeinstance* which ):
 #endif
 }
 
+mainUI::~mainUI() {
+  delete window;
+  delete display;
+}
+
 void mainUI::settitle() {
 GEDCOM_string* oldtitle;
-std::string newtitle(msg_window_title);
+std::string newtitle("X!Family");
   newtitle+=" ";
   newtitle+=tree->getfilename();
   GEDCOM_object *thing = this->getcurrent();
@@ -259,6 +257,8 @@ std::string newtitle(msg_window_title);
     if (thing != NULL) {
       newtitle+=" : ";
       newtitle+=thing->value();
+    } else {
+      newtitle+=" : <unnamed>";
     }
   }
   oldtitle = title;
@@ -351,15 +351,18 @@ GEDCOM_object* mainUI::getcurrent() const { return person; }
 
 void mainUI::setcurrent( GEDCOM_object* newperson ) {
 bool redraw;
+bool scroll;
+  scroll = true;
   // we may want to set the current person unchanged if we have deleted the top
   // person in the tree and want to force mainUI to choose a new treeroot
+  // or have added a parent, and also want a new treeroot, so don't reject that call
   // if (person == newperson) return;
   if (newperson == NULL ) {
     // we should never let that happen for a real tree, but when we start with an
     // empty tree, or load a GEDCOM with no INDI objects, it IS going to happen.
     // also, if we delete the current person, we either need a methond of choosing
     // a new current person to maintain the display, or (like !Family) we have no current person
-    printf("mainUI::setcurrent called with null person, we are going to barf\n");
+    fl_alert("mainUI::setcurrent called with null person, we are going to barf\n");
     // in the event that we did have a current person, this is our only survival
     // route. If there really are no INDIs, we will need some more code ...
     return;
@@ -369,9 +372,10 @@ bool redraw;
 #ifdef debugging
   printf("attempting to set current to this object %ld:\n",(long)newperson);
   newperson->outline( stdout, 0 );
-  newperson->subobject( NAME_tag )->print( 1 ); // diagnose
+//  newperson->subobject( NAME_tag )->print( 1 ); // diagnose
+  if ((newperson->subobject( NAME_tag ))!=NULL) newperson->subobject( NAME_tag )->print( 1 );
 #endif
-
+  if (person==newperson) scroll=false;
   person = newperson;
 // I'm sure this is bad news. "hide"ing a window seems to allow the
 // window manager free rein to move it about when we show it again,
@@ -387,7 +391,7 @@ bool redraw;
   printf("mainUI::setcurrent set new current person OK\n");
 #endif
   this->newdisplay();
-  this->centre_current();
+  if (scroll) this->centre_current();
 #ifdef debugging
   printf("mainUI::setcurrent created new display structure OK\n");
 #endif
@@ -398,10 +402,13 @@ bool redraw;
 }
 
 void mainUI::newdisplay() {
+  if (display != NULL)
+  {
 #ifdef debugging
-  printf("mainUI::newdisplay - destroying old at %ld\n", (long)display);
+    printf("mainUI::newdisplay - destroying old at %ld\n", (long)display);
 #endif
-  if (display != NULL) delete display;
+    delete display;
+  }
 #ifdef debugging
   printf("mainUI::newdisplay Now start new tree from %ld with current %ld\n", (long)topind, (long)person);
 #endif
@@ -440,6 +447,10 @@ void mainUI::centre_current() {
 void mainUI::settop() {
   GEDCOM_object *fam;
   printf("settop person %ld or parent\n",(long)person);
+  if (person==NULL) {
+    printf("mainUI::settop() called with NULL person, giving up....\n");
+    return;
+  }
   fam = person->parental_family();
   printf("Found fam %ld\n",(long)fam);
   if (fam == NULL) { topind = person; return; }
@@ -477,7 +488,7 @@ void mainUI::cleardisplay() {
 // class infoUI constructor: build About box - only one instanciation
 
 infoUI::infoUI() {
-  Fl_Window* w = info_panel = new Fl_Window( 520, 210, msg_info_title );
+  Fl_Window* w = info_panel = new Fl_Window( 520, 210, "About this program" );
   w->labeltype(FL_NORMAL_LABEL);
   w->user_data((void*)(this));
   // all the members of this class are static, because there is only ever one window
@@ -485,44 +496,44 @@ infoUI::infoUI() {
   // (info_group = etc.) generates an undefined reference at link time. Why ?
   { Fl_Group* o = info_group = new Fl_Group( 0, 0, 520, 210);
     o->labeltype(FL_NO_LABEL);
-    { Fl_Box* o = info_name = new Fl_Box( 5, 10, 100, 40, msg_info_name );
+    { Fl_Box* o = info_name = new Fl_Box( 5, 10, 100, 40, "Name" );
       o->labelsize(18);
       o->labelfont(1);
       o->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
     }
-    { Fl_Box* o = author = new Fl_Box(5, 60, 100, 40, msg_info_author);
+    { Fl_Box* o = author = new Fl_Box(5, 60, 100, 40, "Author");
       o->labelsize(18);
       o->labelfont(1);
       o->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
     }
-    { Fl_Box* o = version = new Fl_Box(5, 110, 100, 40, msg_info_version);
+    { Fl_Box* o = version = new Fl_Box(5, 110, 100, 40, "Version");
       o->labelsize(18);
       o->labelfont(1);
       o->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
     }
-    { Fl_Box* o = purpose = new Fl_Box(5, 160, 100, 40, msg_info_purpose);
+    { Fl_Box* o = purpose = new Fl_Box(5, 160, 100, 40, "Purpose");
       o->labelsize(18);
       o->labelfont(1);
       o->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
     }
-    { Fl_Box* o = name_l = new Fl_Box(110, 10, 330, 40, msg_appname);
+    { Fl_Box* o = name_l = new Fl_Box(110, 10, 330, 40, "X!Family");
       o->labelsize(18);
       o->labelfont(1);
       o->box(FL_DOWN_BOX);
       o->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
     }
-    { Fl_Box* o = author_l = new Fl_Box(110, 60, 405, 40, msg_author);
+    { Fl_Box* o = author_l = new Fl_Box(110, 60, 405, 40, "© A.E.R.Waddington, 2023");
       o->labelsize(18);
       o->labelfont(1);
       o->box(FL_DOWN_BOX);
       o->align(FL_ALIGN_CENTER|FL_ALIGN_INSIDE);
     }
-    { Fl_Box* o = version_l = new Fl_Box(110, 110, 405, 40, msg_version);
+    { Fl_Box* o = version_l = new Fl_Box(110, 110, 405, 40, "v 0.22 alpha 2020-03-26 en-gb");
       o->labelsize(18);
       o->labelfont(1);
       o->box(FL_DOWN_BOX);
     }
-    { Fl_Box* o = purpose_l = new Fl_Box(110, 160, 330, 40, msg_purpose);
+    { Fl_Box* o = purpose_l = new Fl_Box(110, 160, 330, 40, "Family Tree Editor");
       o->labelsize(18);
       o->labelfont(1);
       o->box(FL_DOWN_BOX);
@@ -537,7 +548,8 @@ infoUI::infoUI() {
     }
     o->end();
   }
-  { Fl_Box* o = gpl_box = new Fl_Box(0, 0, 520, 210, msg_gpl_box);
+  { Fl_Box* o = gpl_box = new Fl_Box(0, 0, 520, 210,
+    "The X!Family Genealogical Package version 0.22 Copyright © 2023 by Andy Waddington.\nBased loosely on !Family for RISC OS originally developed by Denis Howe.\n\nThis package is free software: you can redistribute it and/or modify it under the terms of\nthe GNU General Public License as published by the Free Software Foundation; either\nversion 3 of the license, or (at your option) any later version.\n\nThis software is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;\nwithout even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR\nPURPOSE. See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License\nalong with this software: if not, write to the Free Software Foundation, Inc.,\n59 Temple Place, Suite 330, Boston. MA 02111-1307 USA\nPlease report faults to family-maint@pennine.ddns.me.uk");
     o->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
     o->labelsize(12);
     o->labelcolor(92);
@@ -545,7 +557,7 @@ infoUI::infoUI() {
     o->color(0);
     o->hide();
   }
-  { Fl_Return_Button* o = info_ok = new Fl_Return_Button(445, 160, 70, 40, msg_ok);
+  { Fl_Return_Button* o = info_ok = new Fl_Return_Button(445, 160, 70, 40, "OK");
       o->labelsize(18);
       o->labelfont(1);
     o->down_box(FL_DOWN_BOX);
@@ -570,7 +582,7 @@ infoUI::infoUI() {
 // more thought to make it work without ID conflicts...]
 
 indiUI::indiUI( treeinstance* thistree, GEDCOM_object* whofor ):
-  // fix0004 should be redundant and will be turned off, but we think we should retain these pointers
+  // fix0004 was redundant and removed, but we think we should retain these pointers
   mum (NULL),
   dad (NULL),
   fam (NULL),
@@ -583,21 +595,26 @@ printf("new indiUI on treeinstance %ld\n",(long)which);
 #define col0 0
 #define col1 75
 #define normh 25
+#define doubleh 55
 #define row 30
 #define bigh 30
 #define bigrow 35
 #define smallh 24
 #define fullw 390
 #define dboxwidth col1+fullw+15
-#define smallw 255
-#define redw 310
+#define smallw 200
+#define redw 280
 #define datew 130
 #define timew 90
 #define agew 50
 #define deathgap 60
 #define buttonw 110
 #define fbw 25
-#define idw 75
+#define idw 105
+#define addcol col1+redw+5
+#define addw  50
+#define findcol col1+redw+5+addw+5
+#define findw 50
 #define biggap 25
 #define smallgap 5
 #define fb3l col1+redw+5
@@ -629,52 +646,72 @@ printf("new indiUI on treeinstance %ld\n",(long)which);
 #define sourcerow causrow+row
 #define tabheight row+row+bigrow+row+row+row+bigrow+5
 #define tileheight row+bigrow+row+row+row+bigrow+5
-#define revrow sourcerow+row+15
 #define helprow sourcerow+row+15
-#define okrow revrow+row+15
-#define canrow revrow+row+15
-#define approw revrow+row+15
+#define okrow helprow+row+15
+#define canrow helprow+row+15
+#define approw helprow+row+15
 #define cancol 45
 #define okcol 335
-#define helpcol 335
+#define helpcol 190
 #define appcol 190
-#define revcol 45
 #define dboxheight okrow+row+5
-// don't seem to use:   Fl_Window* w;
   { Fl_Window* o = indi_dbox = new Fl_Window( dboxwidth, dboxheight, buf_indi_title ); // *not* msg_indi_title :-)
-// don't seem to use:     w = o;
     o->callback((Fl_Callback*)canceledit_cb);
     o->user_data((void*)(this));
-    indi_name = new Fl_Input(col1, namerow, redw, normh, msg_name);
-    // shouldn't be input - how do I do a read-only text field ?
-    indi_id = new Fl_Output(fb3l, namerow, idw, normh, "");
-    indi_title = new Fl_Input(col1, titlerow, smallw, normh, msg_title);
-    { Fl_Box* o = new Fl_Box(col0+5, gendertop, col0-5, smallh, msg_gender);
+    indi_name = new Fl_Input(col1, namerow, fullw, normh, "Name");
+    indi_id = new Fl_Output(fb3l, titlerow, idw, normh, "ID");
+    indi_title = new Fl_Input(col1, titlerow, smallw, normh, "Title");
+    { Fl_Box* o = new Fl_Box(col0+5, gendertop, col0-5, smallh, "Gender");
       o->align(FL_ALIGN_RIGHT|FL_ALIGN_INSIDE);
     }
     { Fl_Group* o = new Fl_Group(col1, genderrow, fullw, bigh);
       o->box(FL_EMBOSSED_BOX);
-      { Fl_Light_Button* o = indi_male = new Fl_Light_Button(b3l, gendertop, buttonw, smallh, msg_male);
+      { Fl_Light_Button* o = indi_male = new Fl_Light_Button(b3l, gendertop, buttonw, smallh, "Male");
         o->type(102); /* radio button */
         o->selection_color(FL_RED);
       }
-      { Fl_Light_Button* o = indi_female = new Fl_Light_Button(b3m, gendertop, buttonw, smallh, msg_female);
+      { Fl_Light_Button* o = indi_female = new Fl_Light_Button(b3m, gendertop, buttonw, smallh, "Female");
         o->type(102); /* radio button */
         o->selection_color(FL_RED);
       }
-      { Fl_Light_Button* o = indi_unknown = new Fl_Light_Button(b3r, gendertop, buttonw, smallh, msg_unknown);
+      { Fl_Light_Button* o = indi_unknown = new Fl_Light_Button(b3r, gendertop, buttonw, smallh, "Unknown");
         o->type(102); /* radio button */
         o->selection_color(FL_RED);
       }
       o->end();
     }
-    indi_ma = new Fl_Output(col1, marow, redw, normh, msg_indi_ma);
+    indi_ma = new Fl_Output(col1, marow, redw, normh, "Mother");
     indi_ma_id = new Fl_Output(fb3l, marow, idw, normh, "" );
-    indi_pa = new Fl_Output(col1, parow, redw, normh, msg_indi_pa);
+    indi_pa = new Fl_Output(col1, parow, redw, normh, "Father");
     indi_pa_id = new Fl_Output(fb3l, parow, idw, normh, "" );
+// add buttons (in same place as the ID fields) to Add/Find a parent
+    indi_pa_add = new Fl_Button(addcol, parow, addw, normh, "Add");
+        indi_pa_add->down_box(FL_DOWN_BOX);
+        indi_pa_add->type(0);
+        indi_pa_add->selection_color(FL_BLACK);
+        indi_pa_add->labelfont(1);
+        indi_pa_add->callback((Fl_Callback*)buttonaddindi_pa_cb);
+        indi_pa_add->user_data((void*)(this));
+        indi_pa_add->hide();
+    indi_ma_add = new Fl_Button(addcol, marow, addw, normh, "Add");
+        indi_ma_add->down_box(FL_DOWN_BOX);
+        indi_ma_add->type(0);
+        indi_ma_add->selection_color(FL_BLACK);
+        indi_ma_add->labelfont(1);
+        indi_ma_add->callback((Fl_Callback*)buttonaddindi_ma_cb);
+        indi_ma_add->user_data((void*)(this));
+        indi_ma_add->hide();
+    indi_fam_find = new Fl_Button(findcol, parow, findw, doubleh, "Find");
+        indi_fam_find->down_box(FL_DOWN_BOX);
+        indi_fam_find->type(0);
+        indi_fam_find->selection_color(FL_BLACK);
+        indi_fam_find->labelfont(1);
+        indi_fam_find->callback((Fl_Callback*)buttonfindindi_fam_cb);
+        indi_fam_find->user_data((void*)(this));
+        indi_fam_find->hide();
     { Fl_Group* o = new Fl_Group(col0+5, notesrow, dboxwidth-15, bigh);
       o->box(FL_EMBOSSED_BOX);
-      { Fl_Button* o = indi_notes = new Fl_Light_Button(b41, notestop, buttonw, smallh, msg_notes);
+      { Fl_Button* o = indi_notes = new Fl_Light_Button(b41, notestop, buttonw, smallh, "Notes");
         o->type(0); // this stops FLTK from toggling the light on the button itself
         o->selection_color(FL_BLACK);
         o->down_box(FL_DOWN_BOX);
@@ -682,19 +719,19 @@ printf("new indiUI on treeinstance %ld\n",(long)which);
         o->callback((Fl_Callback*)buttonopennotes_cb);
         o->user_data((void*)(who));
       }
-      { Fl_Button* o = indi_sources = new Fl_Button(b42, notestop, buttonw, smallh, msg_sources);
+      { Fl_Button* o = indi_sources = new Fl_Button(b42, notestop, buttonw, smallh, "Sources");
         o->down_box(FL_DOWN_BOX);
         o->labelfont(1);
         o->callback((Fl_Callback*)buttonopensourceui_cb);
         o->user_data((void*)(who));
       }
-      { Fl_Button* o = indi_will = new Fl_Button(b43, notestop, buttonw, smallh, msg_will);
+      { Fl_Button* o = indi_will = new Fl_Button(b43, notestop, buttonw, smallh, "Will");
         o->down_box(FL_DOWN_BOX);
         o->labelfont(1);
         o->callback((Fl_Callback*)deadbutton_cb);
         o->user_data((void*)(who));
       }
-      { Fl_Button* o = indi_probate = new Fl_Button(b44, notestop, buttonw, smallh, msg_probate);
+      { Fl_Button* o = indi_probate = new Fl_Button(b44, notestop, buttonw, smallh, "Probate");
         o->down_box(FL_DOWN_BOX);
         o->labelfont(1);
         o->callback((Fl_Callback*)deadbutton_cb);
@@ -704,275 +741,259 @@ printf("new indiUI on treeinstance %ld\n",(long)which);
     }
     { Fl_Tabs* o = indi_events = new Fl_Tabs(col0, tabsrow, dboxwidth, tabheight);
       o->labeltype(FL_NO_LABEL);
-      { Fl_Tile* o = indi_birth = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, msg_birth);
+      { Fl_Tile* o = indi_birth = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, "Birth");
         o->color(214);
         o->selection_color(214);
-        indi_birthdate = new Fl_Input(col1, daterow, datew, normh, msg_event_date);
-        indi_birthtime = new Fl_Input(col1+fullw-timew, daterow, timew, normh, msg_event_time);
-        { Fl_Box* o = new Fl_Box(col0+5, caltop, col1-5, normh, msg_calendar);
+        indi_birthdate = new Fl_Input(col1, daterow, datew, normh, "Date");
+        indi_birthtime = new Fl_Input(col1+fullw-timew, daterow, timew, normh, "Time");
+        { Fl_Box* o = new Fl_Box(col0+5, caltop, col1-5, normh, "Calendar");
           o->align(FL_ALIGN_RIGHT|FL_ALIGN_INSIDE);
         }
         { Fl_Group* o = new Fl_Group(col1, calrow, fullw, bigh);
           o->box(FL_EMBOSSED_BOX);
           o->color(214);
-          { Fl_Light_Button* o = indi_birthgreg = new Fl_Light_Button(b3l, caltop, buttonw, smallh, msg_gregorian);
+          { Fl_Light_Button* o = indi_birthgreg = new Fl_Light_Button(b3l, caltop, buttonw, smallh, "Gregorian");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
-          { Fl_Light_Button* o = indi_birthjul = new Fl_Light_Button(b3m, caltop, buttonw, smallh, msg_julian);
+          { Fl_Light_Button* o = indi_birthjul = new Fl_Light_Button(b3m, caltop, buttonw, smallh, "Julian");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
-          { Fl_Light_Button* o = indi_birthdef = new Fl_Light_Button(b3r, caltop, buttonw, smallh, msg_default);
+          { Fl_Light_Button* o = indi_birthdef = new Fl_Light_Button(b3r, caltop, buttonw, smallh, "default");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
           o->end();
         }
-        indi_birthplace = new Fl_Input(col1, placerow, fullw, normh, msg_event_place);
-        indi_birthsite = new Fl_Input(col1, siterow, fullw, normh, msg_event_site);
-	indi_birthnotes = new Fl_Light_Button(b42, sourcerow, buttonw, normh, msg_notes);
+        indi_birthplace = new Fl_Input(col1, placerow, fullw, normh, "Place");
+        indi_birthsite = new Fl_Input(col1, siterow, fullw, normh, "Site");
+	indi_birthnotes = new Fl_Light_Button(b42, sourcerow, buttonw, normh, "Notes");
 	indi_birthnotes->selection_color(FL_BLACK);
         indi_birthnotes->type(0);
 	indi_birthnotes->color(214);
         indi_birthnotes->down_box(FL_DOWN_BOX);
         indi_birthnotes->callback((Fl_Callback*)buttonopennotes_cb);
-	indi_birthsources = new Fl_Button(b43, sourcerow, buttonw, normh, msg_sources);
+	indi_birthsources = new Fl_Button(b43, sourcerow, buttonw, normh, "Sources");
 	indi_birthsources->color(214);
 	indi_birthsources->callback((Fl_Callback*)buttonopensourceui_cb);
-//        indi_birthsrc = new Fl_Output(col1, 390, 390, normh, msg_event_src);
         o->end();
       }
-      { Fl_Tile* o = indi_chr = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, msg_chr);
+      { Fl_Tile* o = indi_chr = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, "Christening");
         o->color(246);
         o->selection_color(246);
-        indi_chrdate = new Fl_Input(col1, daterow, datew, normh, msg_event_date);
-        indi_chrtime = new Fl_Input(col1+fullw-timew, daterow, timew, normh, msg_event_time);
-        { Fl_Box* o = new Fl_Box(col0+5, caltop, col1-5, smallh, msg_calendar);
+        indi_chrdate = new Fl_Input(col1, daterow, datew, normh, "Date");
+        indi_chrtime = new Fl_Input(col1+fullw-timew, daterow, timew, normh, "Time");
+        { Fl_Box* o = new Fl_Box(col0+5, caltop, col1-5, smallh, "Calendar");
           o->align(FL_ALIGN_RIGHT|FL_ALIGN_INSIDE);
         }
         { Fl_Group* o = new Fl_Group(col1, calrow, fullw, bigh);
           o->box(FL_EMBOSSED_BOX);
           o->color(246);
-          { Fl_Light_Button* o = indi_chrgreg = new Fl_Light_Button(b3l, caltop, buttonw, smallh, msg_gregorian);
+          { Fl_Light_Button* o = indi_chrgreg = new Fl_Light_Button(b3l, caltop, buttonw, smallh, "Gregorian");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
-          { Fl_Light_Button* o = indi_chrjul = new Fl_Light_Button(b3m, caltop, buttonw, smallh, msg_julian);
+          { Fl_Light_Button* o = indi_chrjul = new Fl_Light_Button(b3m, caltop, buttonw, smallh, "Julian");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
-          { Fl_Light_Button* o = indi_chrdef = new Fl_Light_Button(b3r, caltop, buttonw, smallh, msg_default);
+          { Fl_Light_Button* o = indi_chrdef = new Fl_Light_Button(b3r, caltop, buttonw, smallh, "default");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
           o->end();
         }
-        indi_chrplace = new Fl_Input(col1, placerow, fullw, normh, msg_event_place);
-        indi_chrsite = new Fl_Input(col1, siterow, fullw, normh, msg_event_site);
-        indi_chrnotes = new Fl_Light_Button(b42, sourcerow, buttonw, normh, msg_notes);
+        indi_chrplace = new Fl_Input(col1, placerow, fullw, normh, "Place");
+        indi_chrsite = new Fl_Input(col1, siterow, fullw, normh, "Site");
+        indi_chrnotes = new Fl_Light_Button(b42, sourcerow, buttonw, normh, "Notes");
         indi_chrnotes->selection_color(FL_BLACK);
         indi_chrnotes->color(246);
         indi_chrnotes->type(0);
         indi_chrnotes->down_box(FL_DOWN_BOX);
         indi_chrnotes->callback((Fl_Callback*)buttonopennotes_cb);
-        indi_chrsources = new Fl_Button(b43, sourcerow, buttonw, normh, msg_sources);
+        indi_chrsources = new Fl_Button(b43, sourcerow, buttonw, normh, "Sources");
 	indi_chrsources->color(246);
 	indi_chrsources->callback((Fl_Callback*)buttonopensourceui_cb);
-//        indi_chrsrc = new Fl_Output(col1, 390, 390, normh, msg_event_src);
         //o->hide();
         o->end();
       }
-      { Fl_Tile* o = indi_bapm = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, msg_bapm);
+      { Fl_Tile* o = indi_bapm = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, "Baptism");
         o->color(207);
         o->selection_color(207);
-        indi_bapmdate = new Fl_Input(col1, daterow, datew, normh, msg_event_date);
-        indi_bapmtime = new Fl_Input(col1+fullw-timew, daterow, timew, normh, msg_event_time);
-        { Fl_Box* o = new Fl_Box(col0+5, caltop, col1-5, smallh, msg_calendar);
+        indi_bapmdate = new Fl_Input(col1, daterow, datew, normh, "Date");
+        indi_bapmtime = new Fl_Input(col1+fullw-timew, daterow, timew, normh, "Time");
+        { Fl_Box* o = new Fl_Box(col0+5, caltop, col1-5, smallh, "Calendar");
           o->align(FL_ALIGN_RIGHT|FL_ALIGN_INSIDE);
         }
         { Fl_Group* o = new Fl_Group(col1, calrow, fullw, bigh);
           o->box(FL_EMBOSSED_BOX);
           o->color(207);
-          { Fl_Light_Button* o = indi_bapmgreg = new Fl_Light_Button(b3l, caltop, buttonw, smallh, msg_gregorian);
+          { Fl_Light_Button* o = indi_bapmgreg = new Fl_Light_Button(b3l, caltop, buttonw, smallh, "Gregorian");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
-          { Fl_Light_Button* o = indi_bapmjul = new Fl_Light_Button(b3m, caltop, buttonw, smallh, msg_julian);
+          { Fl_Light_Button* o = indi_bapmjul = new Fl_Light_Button(b3m, caltop, buttonw, smallh, "Julian");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
-          { Fl_Light_Button* o = indi_bapmdef = new Fl_Light_Button(b3r, caltop, buttonw, smallh, msg_default);
+          { Fl_Light_Button* o = indi_bapmdef = new Fl_Light_Button(b3r, caltop, buttonw, smallh, "default");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
           o->end();
         }
-        indi_bapmplace = new Fl_Input(col1, placerow, fullw, normh, msg_event_place);
-        indi_bapmsite = new Fl_Input(col1, siterow, fullw, normh, msg_event_site);
-        indi_bapmnotes = new Fl_Light_Button(b42, sourcerow, buttonw, normh, msg_notes);
+        indi_bapmplace = new Fl_Input(col1, placerow, fullw, normh, "Place");
+        indi_bapmsite = new Fl_Input(col1, siterow, fullw, normh, "Site");
+        indi_bapmnotes = new Fl_Light_Button(b42, sourcerow, buttonw, normh, "Notes");
 	indi_bapmnotes->selection_color(FL_BLACK);
 	indi_bapmnotes->color(207);
         indi_bapmnotes->type(0);
         indi_bapmnotes->down_box(FL_DOWN_BOX);
 	indi_bapmnotes->callback((Fl_Callback*)buttonopennotes_cb);
-	indi_bapmsources = new Fl_Button(b43, sourcerow, buttonw, normh, msg_sources);
+	indi_bapmsources = new Fl_Button(b43, sourcerow, buttonw, normh, "Sources");
 	indi_bapmsources->color(207);
 	indi_bapmsources->callback((Fl_Callback*)buttonopensourceui_cb);
-//        indi_bapmsrc = new Fl_Output(col1, 390, 390, normh, msg_event_src);
-        //o->hide();
         o->end();
       }
-      { Fl_Tile* o = indi_death = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, msg_death);
+      { Fl_Tile* o = indi_death = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, "Death");
         o->color(175);
         o->selection_color(175);
-        indi_deathdate = new Fl_Input(col1, daterow, datew, normh, msg_event_date);
-        indi_deathtime = new Fl_Input(col1+datew+deathgap, daterow, timew, normh, msg_event_time);
-        indi_deathage = new Fl_Input(col1+fullw-agew, daterow, agew, normh, msg_event_age);
-        { Fl_Box* o = new Fl_Box(col0+5, caltop, col1-1, smallh, msg_calendar);
+        indi_deathdate = new Fl_Input(col1, daterow, datew, normh, "Date");
+        indi_deathtime = new Fl_Input(col1+datew+deathgap, daterow, timew, normh, "Time");
+        indi_deathage = new Fl_Input(col1+fullw-agew, daterow, agew, normh, "Age");
+        { Fl_Box* o = new Fl_Box(col0+5, caltop, col1-1, smallh, "Calendar");
           o->align(FL_ALIGN_RIGHT|FL_ALIGN_INSIDE);
         }
         { Fl_Group* o = new Fl_Group(col1, calrow, fullw, bigh);
           o->box(FL_EMBOSSED_BOX);
           o->color(175);
-          { Fl_Light_Button* o = indi_deathgreg = new Fl_Light_Button(b3l, caltop, buttonw, smallh, msg_gregorian);
+          { Fl_Light_Button* o = indi_deathgreg = new Fl_Light_Button(b3l, caltop, buttonw, smallh, "Gregorian");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
-          { Fl_Light_Button* o = indi_deathjul = new Fl_Light_Button(b3m, caltop, buttonw, smallh, msg_julian);
+          { Fl_Light_Button* o = indi_deathjul = new Fl_Light_Button(b3m, caltop, buttonw, smallh, "Julian");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
-          { Fl_Light_Button* o = indi_deathdef = new Fl_Light_Button(b3r, caltop, buttonw, smallh, msg_default);
+          { Fl_Light_Button* o = indi_deathdef = new Fl_Light_Button(b3r, caltop, buttonw, smallh, "default");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
           o->end();
         }
-        indi_deathplace = new Fl_Input(col1, placerow, fullw, normh, msg_event_place);
-        indi_deathsite = new Fl_Input(col1, siterow, fullw, normh, msg_event_site);
-        indi_deathcause = new Fl_Input(col1, causrow, fullw, normh, msg_event_cause);
-        indi_deathnotes = new Fl_Light_Button(b42, sourcerow, buttonw, normh, msg_notes);
+        indi_deathplace = new Fl_Input(col1, placerow, fullw, normh, "Place");
+        indi_deathsite = new Fl_Input(col1, siterow, fullw, normh, "Site");
+        indi_deathcause = new Fl_Input(col1, causrow, fullw, normh, "Cause");
+        indi_deathnotes = new Fl_Light_Button(b42, sourcerow, buttonw, normh, "Notes");
 	indi_deathnotes->selection_color(FL_BLACK);
 	indi_deathnotes->color(175);
         indi_deathnotes->type(0);
         indi_deathnotes->down_box(FL_DOWN_BOX);
 	indi_deathnotes->callback((Fl_Callback*)buttonopennotes_cb);
-	indi_deathsources = new Fl_Button(b43, sourcerow, buttonw, normh, msg_sources);
+	indi_deathsources = new Fl_Button(b43, sourcerow, buttonw, normh, "Sources");
 	indi_deathsources->color(175);
 	indi_deathsources->callback((Fl_Callback*)buttonopensourceui_cb);
-//        indi_deathsrc = new Fl_Output(col1, 390, 390, normh, msg_event_src);
-        //o->hide();
         o->end();
       }
-      { Fl_Tile* o = indi_crem = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, msg_crem);
+      { Fl_Tile* o = indi_crem = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, "Cremation");
         o->color(174);
         o->selection_color(174);
-        indi_cremdate = new Fl_Input(col1, daterow, datew, normh, msg_event_date);
-        indi_cremtime = new Fl_Input(col1+fullw-timew, daterow, timew, normh, msg_event_time);
-        { Fl_Box* o = new Fl_Box(col0+5, caltop, col1-5, smallh, msg_calendar);
+        indi_cremdate = new Fl_Input(col1, daterow, datew, normh, "Date");
+        indi_cremtime = new Fl_Input(col1+fullw-timew, daterow, timew, normh, "Time");
+        { Fl_Box* o = new Fl_Box(col0+5, caltop, col1-5, smallh, "Calendar");
           o->align(FL_ALIGN_RIGHT|FL_ALIGN_INSIDE);
         }
         { Fl_Group* o = new Fl_Group(col1, calrow, fullw, bigh);
           o->box(FL_EMBOSSED_BOX);
           o->color(174);
-          { Fl_Light_Button* o = indi_cremgreg = new Fl_Light_Button(b3l, caltop, buttonw, smallh, msg_gregorian);
+          { Fl_Light_Button* o = indi_cremgreg = new Fl_Light_Button(b3l, caltop, buttonw, smallh, "Gregorian");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
-          { Fl_Light_Button* o = indi_cremjul = new Fl_Light_Button(b3m, caltop, buttonw, smallh, msg_julian);
+          { Fl_Light_Button* o = indi_cremjul = new Fl_Light_Button(b3m, caltop, buttonw, smallh, "Julian");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
-          { Fl_Light_Button* o = indi_cremdef = new Fl_Light_Button(b3r, caltop, buttonw, smallh, msg_default);
+          { Fl_Light_Button* o = indi_cremdef = new Fl_Light_Button(b3r, caltop, buttonw, smallh, "default");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
           o->end();
         }
-        indi_cremplace = new Fl_Input(col1, placerow, fullw, normh, msg_event_place);
-        indi_cremsite = new Fl_Input(col1, siterow, fullw, normh, msg_event_site);
-        indi_cremnotes = new Fl_Light_Button(b42, sourcerow, buttonw, normh, msg_notes);
+        indi_cremplace = new Fl_Input(col1, placerow, fullw, normh, "Place");
+        indi_cremsite = new Fl_Input(col1, siterow, fullw, normh, "Site");
+        indi_cremnotes = new Fl_Light_Button(b42, sourcerow, buttonw, normh, "Notes");
 	indi_cremnotes->selection_color(FL_BLACK);
 	indi_cremnotes->color(174);
         indi_cremnotes->type(0);
         indi_cremnotes->down_box(FL_DOWN_BOX);
 	indi_cremnotes->callback((Fl_Callback*)buttonopennotes_cb);
-	indi_cremsources = new Fl_Button(b43, sourcerow, buttonw, normh, msg_sources);
+	indi_cremsources = new Fl_Button(b43, sourcerow, buttonw, normh, "Sources");
 	indi_cremsources->color(174);
 	indi_cremsources->callback((Fl_Callback*)buttonopensourceui_cb);
-//        indi_cremsrc = new Fl_Output(75, 390, 390, 25, msg_event_src);
-        //o->hide();
         o->end();
       }
-      { Fl_Tile* o = indi_buri = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, msg_buri);
+      { Fl_Tile* o = indi_buri = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, "Burial");
         o->color(254);
         o->selection_color(254);
-        indi_buridate = new Fl_Input(col1, daterow, datew, normh, msg_event_date);
-        indi_buritime = new Fl_Input(col1+fullw-timew, daterow, timew, normh, msg_event_time);
-        { Fl_Box* o = new Fl_Box(col0+5, caltop, col1-5, smallh, msg_calendar);
+        indi_buridate = new Fl_Input(col1, daterow, datew, normh, "Date");
+        indi_buritime = new Fl_Input(col1+fullw-timew, daterow, timew, normh, "Time");
+        { Fl_Box* o = new Fl_Box(col0+5, caltop, col1-5, smallh, "Calendar");
           o->align(FL_ALIGN_RIGHT|FL_ALIGN_INSIDE);
         }
         { Fl_Group* o = new Fl_Group(col1, calrow, fullw, bigh);
           o->box(FL_EMBOSSED_BOX);
           o->color(254);
-          { Fl_Light_Button* o = indi_burigreg = new Fl_Light_Button(b3l, caltop, buttonw, smallh, msg_gregorian);
+          { Fl_Light_Button* o = indi_burigreg = new Fl_Light_Button(b3l, caltop, buttonw, smallh, "Gregorian");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
-          { Fl_Light_Button* o = indi_burijul = new Fl_Light_Button(b3m, caltop, buttonw, smallh, msg_julian);
+          { Fl_Light_Button* o = indi_burijul = new Fl_Light_Button(b3m, caltop, buttonw, smallh, "Julian");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
-          { Fl_Light_Button* o = indi_buridef = new Fl_Light_Button(b3r, caltop, buttonw, smallh, msg_default);
+          { Fl_Light_Button* o = indi_buridef = new Fl_Light_Button(b3r, caltop, buttonw, smallh, "default");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
           o->end();
         }
-        indi_buriplace = new Fl_Input(col1, placerow, fullw, normh, msg_event_place);
-        indi_burisite = new Fl_Input(col1, siterow, fullw, normh, msg_event_site);
-        indi_buriplot = new Fl_Input(col1, causrow, fullw, normh, msg_event_plot);
-        indi_burinotes = new Fl_Light_Button(b42, sourcerow, buttonw, normh, msg_notes);
+        indi_buriplace = new Fl_Input(col1, placerow, fullw, normh, "Place");
+        indi_burisite = new Fl_Input(col1, siterow, fullw, normh, "Site");
+        indi_buriplot = new Fl_Input(col1, causrow, fullw, normh, "Plot");
+        indi_burinotes = new Fl_Light_Button(b42, sourcerow, buttonw, normh, "Notes");
 	indi_burinotes->selection_color(FL_BLACK);
 	indi_burinotes->color(254);
         indi_burinotes->type(0);
         indi_burinotes->down_box(FL_DOWN_BOX);
 	indi_burinotes->callback((Fl_Callback*)buttonopennotes_cb);
-	indi_burisources = new Fl_Button(b43, sourcerow, buttonw, normh, msg_sources);
+	indi_burisources = new Fl_Button(b43, sourcerow, buttonw, normh, "Sources");
 	indi_burisources->color(254);
 	indi_burisources->callback((Fl_Callback*)buttonopensourceui_cb);
-//        indi_burisrc = new Fl_Output(col1, 390, 390, normh, msg_event_src);
-        //o->hide();
         o->end();
       }
       o->end();
     }
-    { Fl_Button* o = indi_cancel = new Fl_Button(cancol, canrow, buttonw, normh, msg_cancel);
+    { Fl_Button* o = indi_cancel = new Fl_Button(cancol, canrow, buttonw, normh, "Cancel");
       o->down_box(FL_DOWN_BOX);
       o->labelfont(1);
       o->callback((Fl_Callback*)canceledit_cb);
       o->user_data((void*)(this));
     }
-    { Fl_Return_Button* o = indi_ok = new Fl_Return_Button(okcol, okrow, buttonw, normh, msg_ok);
+    { Fl_Return_Button* o = indi_ok = new Fl_Return_Button(okcol, okrow, buttonw, normh, "OK");
       o->down_box(FL_DOWN_BOX);
       o->labelfont(1);
       o->callback((Fl_Callback*)okedit_cb);
       o->user_data((void*)(this));
     }
-    { Fl_Button* o = indi_help = new Fl_Button(helpcol, helprow, buttonw, normh, msg_help);
+    { Fl_Button* o = indi_help = new Fl_Button(helpcol, helprow, buttonw, normh, "Help");
       o->down_box(FL_DOWN_BOX);
       o->labelfont(1);
-      o->callback((Fl_Callback*)helpedit_cb);
+      o->callback((Fl_Callback*)help_cb);
       o->user_data((void*)("indiUI.html"));
     }
-    { Fl_Button* o = indi_restore = new Fl_Button(revcol, revrow, buttonw, normh, msg_revert);
-      o->down_box(FL_DOWN_BOX);
-      o->labelfont(1);
-      o->callback((Fl_Callback*)restoreedit_cb);
-      o->user_data((void*)(this));
-    }
-    { Fl_Button* o = indi_commit = new Fl_Button(appcol, approw, buttonw, normh, msg_apply);
+    { Fl_Button* o = indi_commit = new Fl_Button(appcol, approw, buttonw, normh, "Apply");
     // may want a separate msg_commit - but what's the French ?
       o->down_box(FL_DOWN_BOX);
       o->labelfont(1);
@@ -1145,22 +1166,20 @@ void indiUI::clear_details() {
 
 void indiUI::insert_details( GEDCOM_object* thisindi ) {
 GEDCOM_object *event;
-GEDCOM_object *thing; // deeper subobjects
+GEDCOM_object *thing; // deeper subobjects - this can get set as a side-effect of the fillin( ... ) macro which is non-obvious
 GEDCOM_object *parent;
 GEDCOM_object *fam=NULL;
 char *val;
 
+// As of v 0.20 we should never be called for a NULL indi.
+
+  if (thisindi==NULL) {
+    fl_alert("indiUI::insert_details() called on NULL indi\n");
+    return;
+  }
   this->clear_details();
   who = thisindi;
   printf("indiUI::insert_details started\n");
-
-// if who is NULL No - we can't call this on NULL - even for a new person we will
-// need to know if there is already a parent (or both) defined, and we have no way
-// to get to those if we aren't being passed a kosher GEDCOM_object*.
-// We will need to code a new way to create the indiUI for new person - one into
-// which we can explicitly pass GEDCOM_objects (which could be NULL) for parents
-// and parents are going to be ALWAYS immutable in this dbox.
-// So, as of v 0.20 we should never be called for a NULL who
 
 #define fillin( field, object, tag ) if ((thing=(object->subobject(tag)))!=NULL) field->value( thing->value() )
 
@@ -1183,39 +1202,56 @@ char *val;
   // need convenience functions for some things like mother: to find
   // mother we need to look for a FAMC, follow it to a FAM, and look for
   // a WIFE, which points to an INDI, for which we can look up the NAME !
+  // Be aware that there is a risk of problems here for same sex marriages
 
   fam = thisindi->parental_family();
-  printf("insert_details found fam %ld/mum/dad:\n",fam);
+  printf("insert_details found fam %ld/mum/dad:\n",(long)fam);
   if (fam!=NULL) {
     fam->print( 0 );
 
     parent =  fam->thewife();
     mum = parent;
     if (mum!=NULL) mum->print( 0 );
-    printf("insert_details found fam/mum %ld/dad:\n",mum);
+    printf("insert_details found fam/mum %ld/dad:\n",(long)mum);
 
     if (parent != NULL ) {
       fillin( indi_ma, parent, NAME_tag );
       indi_ma_id->value(parent->getidname());
     }
     else {
-      printf("insert_details finds thewife is NULL\n");
+      printf("insert_details finds the mother is NULL\n");
+      // 2022-12-14 added these two lines to fix bug found by code inspection
+      indi_ma_id->hide();
+      indi_ma_add->show();
     }
     parent = fam->thehusband();
     dad = parent;
 
-    printf("insert_details found fam/mum/dad %ld:\n",dad);
+    printf("insert_details found fam/mum/dad %ld:\n",(long)dad);
     if (dad!=NULL) dad->print( 0 );
 
     if (parent != NULL ) {
       fillin( indi_pa, parent, NAME_tag );
       indi_pa_id->value(parent->getidname());
     } else {
-      printf("insert_details finds thehusband is NULL\n");
+      printf("insert_details finds the father is NULL\n");
+      // 2022-12-14 added these two lines to fix bug found by code inspection
+      indi_pa_id->hide();
+      indi_pa_add->show();
     }
+    // note that it may not be an error for both parents to be null when a FAM exists, since the
+    // FAM object may exist to group known siblings, even if both parents are unknown
+  } else {
+    indi_ma_id->hide();
+    indi_pa_id->hide();
+    indi_pa_add->show();
+    indi_ma_add->show();
+    indi_fam_find->show();
   }
   thing = thisindi->subobject( NOTE_tag );
   if (thing!=NULL) {
+    // we test both subobject and value because a NOTE object may contain a single line of
+    // text, or no text, but have CONT/CONC subobjects.
     if ((thing->subobject()!=NULL)||(thing->value()!=NULL)) indi_notes->value(1);
   }
   indi_notes->user_data((void*)thisindi);
@@ -1325,8 +1361,11 @@ char *val;
   if (event!=NULL) {
     this->setdatefields( event, indi_buridate, indi_buritime, indi_burigreg, indi_burijul );
     fillin( indi_buriplace, event, PLAC_tag);
-    if (thing!=NULL) fillin( indi_burisite, thing, CEME_tag);
-    if (thing!=NULL) fillin( indi_buriplot, thing, PLOT_tag);
+    if (thing!=NULL) {
+      fillin( indi_burisite, thing, CEME_tag);
+      // 2022-12-14 we should not have a PLOT if CEME is not defined (even if a bug in GEDCOM means it exists...)
+      if (thing!=NULL) fillin( indi_buriplot, thing, PLOT_tag);
+    }
 //    if ((thing=(event->subobject(SOUR_tag)))!=NULL) indi_burisrc->value( thing->getxref()->GEDCOM_idname() );
   } else {
     event = new GEDCOM_object( BURI_tag );
@@ -1340,6 +1379,39 @@ char *val;
   indi_burisources->user_data((void*)event);
   indi_events->value(indi_birth);
   printf("indiUI::insert_details finished\n");
+}
+
+void indiUI::refresh_parents( ) {
+GEDCOM_object *thing; // deeper subobjects
+GEDCOM_object *parent;
+  GEDCOM_object* fam = who->parental_family();
+  // we should never be called on an indibox with no parents because we are called from a
+  // FAM which has a CHIL pointing to our indi... but test anyway
+  if (fam!=NULL) {
+    parent =  fam->thewife();
+    if (parent != NULL ) {
+      fillin( indi_ma, parent, NAME_tag );
+      indi_ma_id->value(parent->getidname());
+      indi_ma_add->hide();
+      //indi_pa_add->hide();
+      indi_fam_find->hide();
+      indi_ma_id->show();
+      //indi_pa_id->show();
+    }
+    parent = fam->thehusband();
+    if (parent != NULL ) {
+      fillin( indi_pa, parent, NAME_tag );
+      indi_pa_id->value(parent->getidname());
+      //indi_ma_add->hide();
+      indi_pa_add->hide();
+      indi_fam_find->hide();
+      //indi_ma_id->show();
+      indi_pa_id->show();
+    }
+  }
+  else {
+    fl_alert("fam should never be null in refresh_parents() - it was \n");
+  }
 }
 #undef fillin
 
@@ -1424,7 +1496,7 @@ void indiUI::settitle() {
 // ensure caller has called insert_details first for a real indi, or you
 // will get an "edit <new person>" title.
 
-  std::string title(msg_indi_title);
+  std::string title("X!Family edit");
 
   title += " : ";
   title += which->getfilename();
@@ -1433,18 +1505,18 @@ void indiUI::settitle() {
   if (who==NULL) {
     // edit window for new person - no object yet
     printf("In v 0.20 we were not expecting to be called to settitle with NULL who\n");
-    title += msg_newperson;
+    title += "<new person>";
   } else {
     printf("indiUI::settitle wants idname for %ld\n",(long)who);
     title += who->getidname();
 /*    GEDCOM_object* name = who->subobject( NAME_tag );
     if ( name == NULL ) {
       // edit window for existing person with no name
-      title += msg_anonymous;
+      title += "<unnamed>";
     } else {
       // edit window for a person with a NAME tag
       char *namestring = name->value();
-      if (namestring == NULL) title += msg_anonymous;
+      if (namestring == NULL) title += "<unnamed>";
       else title += namestring;
       } */
   }
@@ -1462,18 +1534,18 @@ void indiUI::update() {
   if ((indi_female->value())==1) gender = strdup("F");
   if ((indi_unknown->value())==1) gender = strdup("");
   who->update(SEX_tag,gender);
-  who->update_event(BIRT_tag, (char*)(indi_birthdate->value()), (char*)(indi_birthtime->value()),
-    (char*)(indi_birthplace->value()), (char*)(indi_birthsite->value()), NULL, NULL );
-  who->update_event(CHR_tag, (char*)(indi_chrdate->value()), (char*)(indi_chrtime->value()),
-    (char*)(indi_chrplace->value()), (char*)(indi_chrsite->value()), NULL, NULL );
-  who->update_event(BAPM_tag, (char*)(indi_bapmdate->value()), (char*)(indi_bapmtime->value()),
-    (char*)(indi_bapmplace->value()), (char*)(indi_bapmsite->value()), NULL, NULL );
-  who->update_event(DEAT_tag, (char*)(indi_deathdate->value()), (char*)(indi_deathtime->value()),
-    (char*)(indi_deathplace->value()), (char*)(indi_deathsite->value()), (char*)(indi_deathage->value()), (char*)(indi_deathcause->value()) );
-  who->update_event(CREM_tag, (char*)(indi_cremdate->value()), (char*)(indi_cremtime->value()),
-    (char*)(indi_cremplace->value()), (char*)(indi_cremsite->value()), NULL, NULL );
-  who->update_event(BURI_tag, (char*)(indi_buridate->value()), (char*)(indi_buritime->value()),
-    (char*)(indi_buriplace->value()), (char*)(indi_burisite->value()), NULL, NULL );
+  who->update_event(BIRT_tag, (char*)(indi_birthdate->value()), (char*)(indi_birthtime->value()),  (char*)(indi_birthplace->value()),
+                              (char*)(indi_birthsite->value()), NULL, NULL, NULL );
+  who->update_event(CHR_tag,  (char*)(indi_chrdate->value()),   (char*)(indi_chrtime->value()),    (char*)(indi_chrplace->value()),
+                              (char*)(indi_chrsite->value()),   NULL, NULL, NULL );
+  who->update_event(BAPM_tag, (char*)(indi_bapmdate->value()),  (char*)(indi_bapmtime->value()),   (char*)(indi_bapmplace->value()),
+                              (char*)(indi_bapmsite->value()),  NULL, NULL, NULL );
+  who->update_event(DEAT_tag, (char*)(indi_deathdate->value()), (char*)(indi_deathtime->value()),  (char*)(indi_deathplace->value()),
+                              (char*)(indi_deathsite->value()), NULL, (char*)(indi_deathcause->value()), (char*)(indi_deathage->value()) );
+  who->update_event(CREM_tag, (char*)(indi_cremdate->value()),  (char*)(indi_cremtime->value()),   (char*)(indi_cremplace->value()),
+                              (char*)(indi_cremsite->value()),  NULL, NULL, NULL );
+  who->update_event(BURI_tag, (char*)(indi_buridate->value()),  (char*)(indi_buritime->value()),   (char*)(indi_buriplace->value()),
+                              (char*)(indi_burisite->value()),  (char*)(indi_buriplot->value()), NULL, NULL );
 }
 
 void indiUI::show() const {
@@ -1508,14 +1580,16 @@ printf("new famUI on treeinstance %ld\n",(long)which);
 #define smallh 24
 #define fullw 390
 //#define redw 310
-#define redw 280
+#define redw 260
 #define idcol col1+redw+5
 //#define idw 75
-#define idw 105
+#define idw 55
 #define addcol col1+redw+5
-#define addw  50
-#define findcol col1+redw+5+addw+5
-#define findw 50
+#define addw  55
+#define findcol col1+redw+5+addw+10
+#define remcol col1+redw+5+addw+5
+#define findw 60
+#define remw 65
 #define dboxwidth col1+fullw+15
 #define datew 200
 #define timew 130
@@ -1543,27 +1617,28 @@ printf("new famUI on treeinstance %ld\n",(long)which);
 #define sourcerow siterow+row
 #define tabheight row+row+bigrow+row+row+bigrow+5
 #define tileheight row+bigrow+row+row+bigrow+5
-#define revrow sourcerow+row+15
+//#define revrow sourcerow+row+15
 #define helprow sourcerow+row+15
-#define okrow revrow+row+15
-#define canrow revrow+row+15
-#define approw revrow+row+15
+#define okrow helprow+row+15
+#define canrow helprow+row+15
+#define approw helprow+row+15
 #define cancol 45
 #define okcol 335
-#define helpcol 335
+//#define helpcol 335
+#define helpcol 190
 #define appcol 190
-#define revcol 45
+//#define revcol 45
 #define dboxheight okrow+row+5
 // don't seem to use:   Fl_Window* w;
   { Fl_Window* o = fam_dbox = new Fl_Window( dboxwidth, dboxheight, buf_fam_title ); // *not* msg_fam_title :-)
 // don't seem to use:     w = o;
     o->callback((Fl_Callback*)cancelfam_cb);
     o->user_data((void*)(this));
-    husb_name = new Fl_Output(col1, husbrow, redw, normh, msg_husband);
+    husb_name = new Fl_Output(col1, husbrow, redw, normh, "Husband");
     husb_id = new Fl_Output(idcol, husbrow, idw, normh, "");
-    wife_name = new Fl_Output(col1, wiferow, redw, normh, msg_wife);
+    wife_name = new Fl_Output(col1, wiferow, redw, normh, "Wife");
     wife_id = new Fl_Output(idcol, wiferow, idw, normh, "");
-    husb_add = new Fl_Button(addcol,husbrow,addw,normh,msg_add);
+    husb_add = new Fl_Button(addcol,husbrow,addw,normh,"Add");
         husb_add->down_box(FL_DOWN_BOX);
         husb_add->type(0);
         husb_add->selection_color(FL_BLACK);
@@ -1571,7 +1646,7 @@ printf("new famUI on treeinstance %ld\n",(long)which);
         husb_add->callback((Fl_Callback*)buttonaddhusb_cb);
         husb_add->user_data((void*)(this));
         husb_add->hide();
-    husb_find = new Fl_Button(findcol,husbrow,findw,normh,msg_findspouse);
+    husb_find = new Fl_Button(findcol,husbrow,findw,normh,"Find");
         husb_find->down_box(FL_DOWN_BOX);
         husb_find->type(0);
         husb_find->selection_color(FL_BLACK);
@@ -1579,7 +1654,15 @@ printf("new famUI on treeinstance %ld\n",(long)which);
         husb_find->callback((Fl_Callback*)buttonfindhusb_cb);
         husb_find->user_data((void*)(this));
         husb_find->hide();
-    wife_add = new Fl_Button(addcol,wiferow,addw,normh,msg_add);
+    husb_remove = new Fl_Button(remcol,husbrow,remw,normh,"Remove");
+        husb_remove->down_box(FL_DOWN_BOX);
+        husb_remove->type(0);
+        husb_remove->selection_color(FL_BLACK);
+        husb_remove->labelfont(1);
+        husb_remove->callback((Fl_Callback*)buttonremovehusb_cb);
+        husb_remove->user_data((void*)(this));
+        husb_remove->hide();
+    wife_add = new Fl_Button(addcol,wiferow,addw,normh,"Add");
         wife_add->down_box(FL_DOWN_BOX);
         wife_add->type(0);
         wife_add->selection_color(FL_BLACK);
@@ -1587,7 +1670,7 @@ printf("new famUI on treeinstance %ld\n",(long)which);
         wife_add->callback((Fl_Callback*)buttonaddwife_cb);
         wife_add->user_data((void*)(this));
         wife_add->hide();
-    wife_find = new Fl_Button(findcol,wiferow,findw,normh,msg_findspouse);
+    wife_find = new Fl_Button(findcol,wiferow,findw,normh,"Find");
         wife_find->down_box(FL_DOWN_BOX);
         wife_find->type(0);
         wife_find->selection_color(FL_BLACK);
@@ -1595,10 +1678,18 @@ printf("new famUI on treeinstance %ld\n",(long)which);
         wife_find->callback((Fl_Callback*)buttonfindwife_cb);
         wife_find->user_data((void*)(this));
         wife_find->hide();
+    wife_remove = new Fl_Button(remcol,wiferow,remw,normh,"Remove");
+        wife_remove->down_box(FL_DOWN_BOX);
+        wife_remove->type(0);
+        wife_remove->selection_color(FL_BLACK);
+        wife_remove->labelfont(1);
+        wife_remove->callback((Fl_Callback*)buttonremovewife_cb);
+        wife_remove->user_data((void*)(this));
+        wife_remove->hide();
 
     { Fl_Group* o = new Fl_Group(col1, notesrow, fullw, bigh);
       o->box(FL_EMBOSSED_BOX);
-      { Fl_Button* o = fam_notes = new Fl_Light_Button(b42, notestop, buttonw, smallh, msg_notes);
+      { Fl_Button* o = fam_notes = new Fl_Light_Button(b42, notestop, buttonw, smallh, "Notes");
         o->down_box(FL_DOWN_BOX);
         o->type(0);
         o->selection_color(FL_BLACK);
@@ -1606,7 +1697,7 @@ printf("new famUI on treeinstance %ld\n",(long)which);
         o->callback((Fl_Callback*)buttonopennotes_cb);
         o->user_data((void*)(fam));
       }
-      { Fl_Button* o = fam_sources = new Fl_Button(b43, notestop, buttonw, smallh, msg_sources);
+      { Fl_Button* o = fam_sources = new Fl_Button(b43, notestop, buttonw, smallh, "Sources");
         o->down_box(FL_DOWN_BOX);
         o->labelfont(1);
         o->callback((Fl_Callback*)buttonopensourceui_cb);
@@ -1616,119 +1707,119 @@ printf("new famUI on treeinstance %ld\n",(long)which);
     }
     { Fl_Tabs* o = fam_events = new Fl_Tabs(col0, tabsrow, dboxwidth, tabheight);
       o->labeltype(FL_NO_LABEL);
-      { Fl_Tile* o = fam_marry = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, msg_marry);
+      { Fl_Tile* o = fam_marry = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, "Marriage");
         o->color(246);
         o->selection_color(246);
-        fam_marrydate = new Fl_Input(col1, daterow, datew, normh, msg_event_date);
-        fam_marrytime = new Fl_Input(col1+fullw-timew, daterow, timew, normh, msg_event_time);
-        { Fl_Box* o = new Fl_Box(col0+5, caltop, col1-5, smallh, msg_calendar);
+        fam_marrydate = new Fl_Input(col1, daterow, datew, normh, "Date");
+        fam_marrytime = new Fl_Input(col1+fullw-timew, daterow, timew, normh, "Time");
+        { Fl_Box* o = new Fl_Box(col0+5, caltop, col1-5, smallh, "Calendar");
           o->align(FL_ALIGN_RIGHT|FL_ALIGN_INSIDE);
         }
         { Fl_Group* o = new Fl_Group(col1, calrow, fullw, bigh);
           o->box(FL_EMBOSSED_BOX);
           o->color(246);
-          { Fl_Light_Button* o = fam_marrygreg = new Fl_Light_Button(b3l, caltop, buttonw, smallh, msg_gregorian);
+          { Fl_Light_Button* o = fam_marrygreg = new Fl_Light_Button(b3l, caltop, buttonw, smallh, "Gregorian");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
-          { Fl_Light_Button* o = fam_marryjul = new Fl_Light_Button(b3m, caltop, buttonw, smallh, msg_julian);
+          { Fl_Light_Button* o = fam_marryjul = new Fl_Light_Button(b3m, caltop, buttonw, smallh, "Julian");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
-          { Fl_Light_Button* o = fam_marrydef = new Fl_Light_Button(b3r, caltop, buttonw, smallh, msg_default);
+          { Fl_Light_Button* o = fam_marrydef = new Fl_Light_Button(b3r, caltop, buttonw, smallh, "default");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
           o->end();
         }
-        fam_marryplace = new Fl_Input(col1, placerow, fullw, normh, msg_event_place);
-        fam_marrysite = new Fl_Input(col1, siterow, fullw, normh, msg_event_site);
-        fam_marrynotes = new Fl_Light_Button(b42, sourcerow, buttonw, normh, msg_notes);
+        fam_marryplace = new Fl_Input(col1, placerow, fullw, normh, "Place");
+        fam_marrysite = new Fl_Input(col1, siterow, fullw, normh, "Site");
+        fam_marrynotes = new Fl_Light_Button(b42, sourcerow, buttonw, normh, "Notes");
         fam_marrynotes->selection_color(FL_BLACK);
 	fam_marrynotes->color(246);
         fam_marrynotes->type(0);
         fam_marrynotes->down_box(FL_DOWN_BOX);
 	fam_marrynotes->callback((Fl_Callback*)buttonopennotes_cb);
-	fam_marrysources = new Fl_Button(b43, sourcerow, buttonw, normh, msg_sources);
+	fam_marrysources = new Fl_Button(b43, sourcerow, buttonw, normh, "Sources");
 	fam_marrysources->color(246);
 	fam_marrysources->callback((Fl_Callback*)buttonopensourceui_cb);
 //        fam_marrysrc = new Fl_Output(75, 230, 390, 25, msg_event_src);
         //o->hide();
         o->end();
       }
-      { Fl_Tile* o = fam_engage = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, msg_engage);
+      { Fl_Tile* o = fam_engage = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, "Engagement");
         o->color(214);
         o->selection_color(214);
-        fam_engagedate = new Fl_Input(col1, daterow, datew, normh, msg_event_date);
-        fam_engagetime = new Fl_Input(col1+fullw-timew, daterow, timew, normh, msg_event_time);
-        { Fl_Box* o = new Fl_Box(col0+5, caltop, col1-5, smallh, msg_calendar);
+        fam_engagedate = new Fl_Input(col1, daterow, datew, normh, "Date");
+        fam_engagetime = new Fl_Input(col1+fullw-timew, daterow, timew, normh, "Time");
+        { Fl_Box* o = new Fl_Box(col0+5, caltop, col1-5, smallh, "Calendar");
           o->align(FL_ALIGN_RIGHT|FL_ALIGN_INSIDE);
         }
         { Fl_Group* o = new Fl_Group(col1, calrow, fullw, bigh);
           o->box(FL_EMBOSSED_BOX);
           o->color(214);
-          { Fl_Light_Button* o = fam_engagegreg = new Fl_Light_Button(b3l, caltop, buttonw, smallh, msg_gregorian);
+          { Fl_Light_Button* o = fam_engagegreg = new Fl_Light_Button(b3l, caltop, buttonw, smallh, "Gregorian");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
-          { Fl_Light_Button* o = fam_engagejul = new Fl_Light_Button(b3m, caltop, buttonw, smallh, msg_julian);
+          { Fl_Light_Button* o = fam_engagejul = new Fl_Light_Button(b3m, caltop, buttonw, smallh, "Julian");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
-          { Fl_Light_Button* o = fam_engagedef = new Fl_Light_Button(b3r, caltop, buttonw, smallh, msg_default);
+          { Fl_Light_Button* o = fam_engagedef = new Fl_Light_Button(b3r, caltop, buttonw, smallh, "default");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
           o->end();
         }
-        fam_engageplace = new Fl_Input(col1, placerow, fullw, normh, msg_event_place);
-        fam_engagesite = new Fl_Input(col1, siterow, fullw, normh, msg_event_site);
-        fam_engagenotes = new Fl_Light_Button(b42, sourcerow, buttonw, normh, msg_notes);
+        fam_engageplace = new Fl_Input(col1, placerow, fullw, normh, "Place");
+        fam_engagesite = new Fl_Input(col1, siterow, fullw, normh, "Site");
+        fam_engagenotes = new Fl_Light_Button(b42, sourcerow, buttonw, normh, "Notes");
         fam_engagenotes->selection_color(FL_BLACK);
 	fam_engagenotes->color(214);
         fam_engagenotes->type(0);
         fam_engagenotes->down_box(FL_DOWN_BOX);
 	fam_engagenotes->callback((Fl_Callback*)buttonopennotes_cb);
-	fam_engagesources = new Fl_Button(b43, sourcerow, buttonw, normh, msg_sources);
+	fam_engagesources = new Fl_Button(b43, sourcerow, buttonw, normh, "Sources");
 	fam_engagesources->color(214);
 	fam_engagesources->callback((Fl_Callback*)buttonopensourceui_cb);
 //        fam_engagesrc = new Fl_Output(75, 230, 390, 25, msg_event_src);
         o->end();
       }
-      { Fl_Tile* o = fam_divorce = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, msg_divorce);
+      { Fl_Tile* o = fam_divorce = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, "Divorce");
         o->color(207);
         o->selection_color(207);
-        fam_divorcedate = new Fl_Input(col1, daterow, datew, normh, msg_event_date);
-        fam_divorcetime = new Fl_Input(col1+fullw-timew, daterow, timew, normh, msg_event_time);
-        { Fl_Box* o = new Fl_Box(col0+5, caltop, col1-5, smallh, msg_calendar);
+        fam_divorcedate = new Fl_Input(col1, daterow, datew, normh, "Date");
+        fam_divorcetime = new Fl_Input(col1+fullw-timew, daterow, timew, normh, "Time");
+        { Fl_Box* o = new Fl_Box(col0+5, caltop, col1-5, smallh, "Calendar");
           o->align(FL_ALIGN_RIGHT|FL_ALIGN_INSIDE);
         }
         { Fl_Group* o = new Fl_Group(col1, calrow, fullw, bigh);
           o->box(FL_EMBOSSED_BOX);
           o->color(207);
-          { Fl_Light_Button* o = fam_divorcegreg = new Fl_Light_Button(b3l, caltop, buttonw, smallh, msg_gregorian);
+          { Fl_Light_Button* o = fam_divorcegreg = new Fl_Light_Button(b3l, caltop, buttonw, smallh, "Gregorian");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
-          { Fl_Light_Button* o = fam_divorcejul = new Fl_Light_Button(b3m, caltop, buttonw, smallh, msg_julian);
+          { Fl_Light_Button* o = fam_divorcejul = new Fl_Light_Button(b3m, caltop, buttonw, smallh, "Julian");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
-          { Fl_Light_Button* o = fam_divorcedef = new Fl_Light_Button(b3r, caltop, buttonw, smallh, msg_default);
+          { Fl_Light_Button* o = fam_divorcedef = new Fl_Light_Button(b3r, caltop, buttonw, smallh, "default");
             o->type(102); /* radio button */
             o->selection_color(FL_RED);
           }
           o->end();
         }
-        fam_divorceplace = new Fl_Input(col1, placerow, fullw, normh, msg_event_place);
-        fam_divorcesite = new Fl_Input(col1, siterow, fullw, normh, msg_event_site);
-        fam_divorcenotes = new Fl_Light_Button(b42, sourcerow, buttonw, normh, msg_notes);
+        fam_divorceplace = new Fl_Input(col1, placerow, fullw, normh, "Place");
+        fam_divorcesite = new Fl_Input(col1, siterow, fullw, normh, "Site");
+        fam_divorcenotes = new Fl_Light_Button(b42, sourcerow, buttonw, normh, "Notes");
         fam_divorcenotes->selection_color(FL_BLACK);
 	fam_divorcenotes->color(207);
         fam_divorcenotes->type(0);
         fam_divorcenotes->down_box(FL_DOWN_BOX);
 	fam_divorcenotes->callback((Fl_Callback*)buttonopennotes_cb);
-	fam_divorcesources = new Fl_Button(b43, sourcerow, buttonw, normh, msg_sources);
+	fam_divorcesources = new Fl_Button(b43, sourcerow, buttonw, normh, "Sources");
 	fam_divorcesources->color(207);
 	fam_divorcesources->callback((Fl_Callback*)buttonopensourceui_cb);
 //        fam_divorcesrc = new Fl_Output(75, 230, 390, 25, msg_event_src);
@@ -1737,31 +1828,31 @@ printf("new famUI on treeinstance %ld\n",(long)which);
       }
       o->end();
     }
-    { Fl_Button* o = fam_cancel = new Fl_Button(cancol, canrow, buttonw, normh, msg_cancel);
+    { Fl_Button* o = fam_cancel = new Fl_Button(cancol, canrow, buttonw, normh, "Cancel");
       o->down_box(FL_DOWN_BOX);
       o->labelfont(1);
       o->callback((Fl_Callback*)cancelfam_cb);
       o->user_data((void*)(this));
     }
-    { Fl_Return_Button* o = fam_ok = new Fl_Return_Button(okcol, okrow, buttonw, normh, msg_ok);
+    { Fl_Return_Button* o = fam_ok = new Fl_Return_Button(okcol, okrow, buttonw, normh, "OK");
       o->down_box(FL_DOWN_BOX);
       o->labelfont(1);
       o->callback((Fl_Callback*)okfam_cb);
       o->user_data((void*)(this));
     }
-    { Fl_Button* o = fam_help = new Fl_Button(helpcol, helprow, buttonw, normh, msg_help);
+    { Fl_Button* o = fam_help = new Fl_Button(helpcol, helprow, buttonw, normh, "Help");
       o->down_box(FL_DOWN_BOX);
       o->labelfont(1);
-      o->callback((Fl_Callback*)helpfam_cb);
+      o->callback((Fl_Callback*)help_cb);
       o->user_data((void*)("famUI.html"));
     }
-    { Fl_Button* o = fam_restore = new Fl_Button(revcol, revrow, buttonw, normh, msg_revert);
+/*    { Fl_Button* o = fam_restore = new Fl_Button(revcol, revrow, buttonw, normh, "Revert");
       o->down_box(FL_DOWN_BOX);
       o->labelfont(1);
       o->callback((Fl_Callback*)restorefam_cb);
       o->user_data((void*)(this));
-    }
-    { Fl_Button* o = fam_commit = new Fl_Button(appcol, approw, buttonw, normh, msg_apply);
+    } */
+    { Fl_Button* o = fam_commit = new Fl_Button(appcol, approw, buttonw, normh, "Apply");
       o->down_box(FL_DOWN_BOX);
       o->labelfont(1);
       o->callback((Fl_Callback*)commitfam_cb);
@@ -1880,6 +1971,7 @@ void famUI::insert_details( GEDCOM_object* thisfam ) {
 GEDCOM_object *event;
 GEDCOM_object *thing;
 GEDCOM_object *indi;
+int check;
 
   this->clear_details();
 
@@ -1889,9 +1981,11 @@ GEDCOM_object *indi;
 // to dereference the HUSB and WIFE pointers to get to the relevant INDI
 // objects
 
+  check = 0;
   // dereference to husb indi - there is no guarantee that there is one !
   thing = thisfam->subobject( HUSB_tag );
   if (thing!=NULL) {
+    check++;
     // then thing->ref is a GEDCOM_id which will lead to the right INDI
     indi = thing->followxref();
     if (indi!=NULL) fillin( husb_name, indi, NAME_tag );
@@ -1908,6 +2002,7 @@ GEDCOM_object *indi;
   // dereference to WIFE INDI
   thing = thisfam->subobject( WIFE_tag );
   if (thing!=NULL) {
+    check++;
     indi = thing->followxref();
     if (indi!=NULL) fillin( wife_name, indi, NAME_tag );
     wife_id->value( indi->getidname());
@@ -1916,6 +2011,11 @@ GEDCOM_object *indi;
     wife_id->hide();
     wife_add->show();
     wife_find->show();
+  }
+
+  if (check==2) {
+    wife_remove->show();
+    husb_remove->show();
   }
 
   // we do not in practice expect that thing would have been null for both
@@ -1943,6 +2043,7 @@ GEDCOM_object *indi;
     event = new GEDCOM_object( MARR_tag );
     thisfam->add_subobject(event);
   }
+// we should only make the effort to look for a NOTE if the MARR object already existed FIXME
   thing = event->subobject( NOTE_tag );
   if (thing!=NULL) {
     if ((thing->subobject()!=NULL)||(thing->value()!=NULL)) fam_marrynotes->value(1);
@@ -2098,17 +2199,22 @@ void famUI::settitle() {
 // ensure caller has called insert_details first for a real indi, or you
 // will get an "edit <new person>" title.
 
-  std::string title(msg_fam_title);
+  printf("Starting settitle on new famUI %ld\n",(long)fam);
 
+  std::string title("X!Family family events");
+
+  printf("basic title for new famUI %ld as %s\n", (long)fam,title.c_str());
   title += " : ";
   title += which->getfilename();
   title += " : ";
+  printf("Added filename to title for new famUI %ld as %s\n", (long)fam,title.c_str());
 
   if (fam==NULL) {
     // edit window for new family (shouldn't happen) - no object yet
-    title += msg_newfamily;
+    title += "<new family>";
   } else {
     title += fam->getidname();
+    printf("Setting title for new famUI %ld to %s\n", (long)fam,title.c_str());
   }
   // now put the title somewhere it won't evaporate as title goes out of scope:
   strncpy(buf_fam_title, title.c_str(), MAX_famtitle);
@@ -2117,13 +2223,13 @@ void famUI::settitle() {
 
 void famUI::update() {
   fam->update_event(MARR_tag, (char*)(fam_marrydate->value()), (char*)(fam_marrytime->value()),
-    (char*)(fam_marryplace->value()), (char*)(fam_marrysite->value()), NULL, NULL );
+    (char*)(fam_marryplace->value()), (char*)(fam_marrysite->value()), NULL, NULL, NULL );
   printf("Updated MARR and returned\n");
   fam->update_event(ENGA_tag, (char*)(fam_engagedate->value()), (char*)(fam_engagetime->value()),
-    (char*)(fam_engageplace->value()), (char*)(fam_engagesite->value()), NULL, NULL );
+    (char*)(fam_engageplace->value()), (char*)(fam_engagesite->value()), NULL, NULL, NULL );
   printf("Updated ENGA and returned\n");
   fam->update_event(DIV_tag, (char*)(fam_divorcedate->value()), (char*)(fam_divorcetime->value()),
-    (char*)(fam_divorceplace->value()), (char*)(fam_divorcesite->value()), NULL, NULL );
+    (char*)(fam_divorceplace->value()), (char*)(fam_divorcesite->value()), NULL, NULL, NULL );
   printf("Updated DIV and returned\n");
 }
 
@@ -2144,36 +2250,36 @@ statsUI::statsUI( treeinstance* instanciation ):
   which (instanciation)
 {
 // don't seem to use:   Fl_Window* w;
-  { Fl_Window* o = statsdbox = new Fl_Window(520, 165, msg_stats_title);
+  { Fl_Window* o = statsdbox = new Fl_Window(520, 165, "X!Family Statistics");
 // don't seem to use:     w = o;
     o->user_data((void*)(this));
-    { Fl_Output* o = statsfile = new Fl_Output(140, 10, 380, 25, msg_stats_file);
+    { Fl_Output* o = statsfile = new Fl_Output(140, 10, 380, 25, "GEDCOM File");
       o->box(FL_RFLAT_BOX);
       o->color(49);
       o->textfont(1);
     }
-    { Fl_Output* o = indicount = new Fl_Output(165, 45, 95, 25, msg_stats_indis);
+    { Fl_Output* o = indicount = new Fl_Output(165, 45, 95, 25, "Individuals");
       o->color(49);
     }
-    { Fl_Output* o = indimax = new Fl_Output(400, 45, 110, 25, msg_stats_max_indi);
+    { Fl_Output* o = indimax = new Fl_Output(400, 45, 110, 25, "Maximum INDI Id");
       o->color(49);
     }
-    { Fl_Output* o = famcount = new Fl_Output(165, 75, 95, 25, msg_stats_fams);
+    { Fl_Output* o = famcount = new Fl_Output(165, 75, 95, 25, "Families");
       o->color(49);
     }
-    { Fl_Output* o = fammax = new Fl_Output(400, 75, 110, 25, msg_stats_maxfam);
+    { Fl_Output* o = fammax = new Fl_Output(400, 75, 110, 25, "Maximum FAM Id");
       o->color(49);
     }
-    { Fl_Output* o = srccount = new Fl_Output(165, 105, 95, 25, msg_stats_srcs);
+    { Fl_Output* o = srccount = new Fl_Output(165, 105, 95, 25, "Information Sources");
       o->color(49);
     }
-    { Fl_Output* o = srcmax = new Fl_Output(400, 105, 110, 25, msg_stats_max_src);
+    { Fl_Output* o = srcmax = new Fl_Output(400, 105, 110, 25, "Maximum SOUR Id");
       o->color(49);
     }
-    { Fl_Output* o = repocount = new Fl_Output(165, 135, 95, 25, msg_stats_repos);
+    { Fl_Output* o = repocount = new Fl_Output(165, 135, 95, 25, "Information Repositories");
       o->color(49);
     }
-    { Fl_Output* o = repomax = new Fl_Output(400, 135, 110, 25, msg_stats_max_repo);
+    { Fl_Output* o = repomax = new Fl_Output(400, 135, 110, 25, "Maximum REPO Id");
       o->color(49);
     }
     o->end();
@@ -2220,7 +2326,7 @@ void statsUI::show() const {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// class findUI controls find person window - only one instance of the window
+// class indifindUI controls find person window - only one instance of the window
 // as it is a short-lived transient sort of thing. It will search the tree of
 // the window it was raised on, and pass the handle of that window to its OK
 // callback, so the current person can be set *for that window*.
@@ -2228,57 +2334,59 @@ void statsUI::show() const {
 // name there will pass the handle of *this* window to *it's* OK callback, so
 // we can find out the name that was chosen (or wasn't, if it was Cancel)
 
-findUI::findUI() {
-  { Fl_Window* o = findbox = new Fl_Window(500, 65, msg_find_title);
+indifindUI::indifindUI() {
+  { Fl_Window* o = findbox = new Fl_Window(500, 65, "X!Family Search tree for person");
     o->labeltype(FL_NO_LABEL);
     o->user_data((void*)(this));
-    find_input = new Fl_Input( 65, 5, 305, 25, msg_find );
+    find_input = new Fl_Input( 65, 5, 305, 25, "Goto" );
     find_id = new Fl_Output( 375, 5, 40, 25, "");
     { Fl_Button* o = find_fromright = new Fl_Button( 420, 5, 25, 25, "@<");
       o->labeltype(FL_SYMBOL_LABEL);
-      o->callback((Fl_Callback*)searchfind_cb);
+      o->callback((Fl_Callback*)searchindifind_cb);
     }
     { Fl_Button* o = find_fuzzy = new Fl_Button( 445, 5, 25, 25, "@<->");
       o->labeltype(FL_SYMBOL_LABEL);
-      o->callback((Fl_Callback*)searchfind_cb);
+      o->callback((Fl_Callback*)searchindifind_cb);
     }
     { Fl_Button* o = find_fromleft = new Fl_Button( 470, 5, 25, 25, "@>");
       o->labeltype(FL_SYMBOL_LABEL);
-      o->callback((Fl_Callback*)searchfind_cb);
+      o->callback((Fl_Callback*)searchindifind_cb);
     }
-    { Fl_Button* o = find_help = new Fl_Button(65, 35, 100, 25, msg_help);
+    { Fl_Button* o = find_help = new Fl_Button(65, 35, 100, 25, "Help");
       o->down_box(FL_DOWN_BOX);
       o->labelfont(1);
+      o->callback((Fl_Callback*)help_cb);
+      o->user_data((void*)("indifindUI.html"));
     }
-    { Fl_Button* o = find_cancel = new Fl_Button(190, 35, 100, 25, msg_cancel);
+    { Fl_Button* o = find_cancel = new Fl_Button(190, 35, 100, 25, "Cancel");
       o->down_box(FL_DOWN_BOX);
       o->labelfont(1);
-      o->callback((Fl_Callback*)binnedfind_cb);
+      o->callback((Fl_Callback*)binnedindifind_cb);
     }
-    { Fl_Return_Button* o = find_ok = new Fl_Return_Button( 320, 35, 100, 25, msg_ok );
+    { Fl_Return_Button* o = find_ok = new Fl_Return_Button( 320, 35, 100, 25, "OK" );
       o->down_box(FL_DOWN_BOX);
       o->labelfont(1);
-      o->callback((Fl_Callback*)okfind_cb);
+      o->callback((Fl_Callback*)okindifind_cb);
     }
     o->hotspot( find_ok, 0);
     o->end();
   }
 }
 
-void findUI::setcontext( void* raisedon ) {
+void indifindUI::setcontext( void* raisedon ) {
   find_ok->user_data( (void*)this );
   find_fromleft->user_data((void*)this);
   find_fromright->user_data((void*)this);
   find_fuzzy->user_data((void*)this);
 }
 
-void* findUI::getcontext() const {
+void* indifindUI::getcontext() const {
   return context;
 }
 
-treeinstance* findUI::whichtree() {
-  printf("Attempting to get treeinstance for findUI %ld, via context %ld\n",(long)this,(long)context);
-  switch (strategy>>4) {
+treeinstance* indifindUI::whichtree() {
+  printf("Attempting to get treeinstance for indifindUI %ld, via context %ld\n",(long)this,(long)context);
+  switch ((strategy>>4)&1) {
     case 0:
       // for People->Find... context was the view
       return ((mainUI*)context)->whichtree();
@@ -2290,7 +2398,7 @@ treeinstance* findUI::whichtree() {
   }
 }
 
-void findUI::open( void* raisedon, short suggestedx, short suggestedy, short callerstrategy ) {
+void indifindUI::open( void* raisedon, short suggestedx, short suggestedy, short callerstrategy ) {
   strategy = callerstrategy;
   context = raisedon;
   find_input->value("");
@@ -2301,7 +2409,7 @@ void findUI::open( void* raisedon, short suggestedx, short suggestedy, short cal
   find_input->take_focus();
 }
 
-void findUI::searchfind(Fl_Button* button) {
+void indifindUI::searchfind(Fl_Button* button) {
   short x,y;
   x = findbox->x();
   y = findbox->y();
@@ -2309,15 +2417,16 @@ void findUI::searchfind(Fl_Button* button) {
   if (button==find_fromright) strategy |= 1;
   if (button==find_fromleft)  strategy |= 2;
   if (button==find_fuzzy)     strategy |= 3;
-  completionsbox->open( this->whichtree(),
+  // indicompletionsbox is a global
+  indicompletionsbox->open( this->whichtree(),
                         (char*)find_input->value(),
                         strategy,
-                        (Fl_Callback*) chosenfind_cb,
+                        (Fl_Callback*) chosenindifind_cb,
                         //(void*) searchfrom->getview(),
                         x+65, y+55 );
 }
 
-void findUI::setperson( GEDCOM_object* person ) {
+void indifindUI::setperson( GEDCOM_object* person ) {
   if (person!=NULL) {
     GEDCOM_object* name = person->subobject(NAME_tag);
     if (name!=NULL) find_input->value( name->value() );
@@ -2325,22 +2434,20 @@ void findUI::setperson( GEDCOM_object* person ) {
   }
 }
 
-short findUI::getstrategy() {
+short indifindUI::getstrategy() {
   return strategy;
 }
 
-void findUI::OK() {
-  printf("findUI::OK()\n");
-  // when this no longer barfs utterly, we should move for checking multiple matches and opening a
-  // completions box to choose.
-  printf("So the indi we want to lookup is %s\n",(char *)gotobox->find_input->value());
+void indifindUI::OK() {
+  printf("indifindUI::OK()\n");
+  printf("So the indi we want to lookup is %s\n",(char *)indigotobox->find_input->value());
   printf("and we are trying to look it up in this treeinstace %ld\n",(long)this->whichtree());
-  GEDCOM_object* newperson = this->whichtree()->Lookup_INDI( (char *)gotobox->find_input->value());
+  GEDCOM_object* newperson = this->whichtree()->Lookup_INDI( (char *)indigotobox->find_input->value());
   printf("got a newperson %ld\n",(long)newperson);
   if (newperson != NULL) {
     // make sure we didn't leave a completions window lying around
-    completionsbox->finish();
-    switch (strategy>>4) {
+    indicompletionsbox->finish();
+    switch ((strategy>>4)&1) {
       case 0: {
         findbox->hide();
         // for People->Find... context was the view
@@ -2381,44 +2488,37 @@ void findUI::OK() {
   }
 }
 
-void findUI::finish( ) {
+void indifindUI::finish( ) {
   findbox->hide();
 }
 
-
-
 ///////////////////////////////////////////////////////////////////////////////
-// class completionsUI controls name completion window - only one instance of
+// class indicompletionsUI controls find completion window - only one instance of
 // the window as it is a short-lived transient sort of thing.
 // It will search the tree of the window it was raised on, and display matching
 // names. When one is selected it will pass the GEDCOM object back to its caller
 // so the name chosen can be set *for that window*.
 
-// it is the intention to generalise this code so that instead of raising a window,
-// it raises a canvas within a pre-existing window (which may resize). This means
-// it will be usuable *within* other UI classes, and such classes will be built
-// for the Goto/FindPerson interface and also for spouse connection in the famUI
-
-completionsUI::completionsUI() {
+indicompletionsUI::indicompletionsUI() {
 // the constructor does *not* set up and fill in a window/browser, just creates
 // the class - which means we do nothing explicit here
   completionswin = (Fl_Window*) NULL;
   completions = (Fl_Select_Browser*) NULL;
-  first = (completion_item*) NULL;
+  first = (indicompletion_item*) NULL;
 }
 
-void completionsUI::open( treeinstance* tree,
+void indicompletionsUI::open( treeinstance* tree,
                           char* partialname,
                           int strategy,
-                          Fl_Callback* completionok_cb,
+                          Fl_Callback* indicompletionok_cb,
                           //void* raisedon,
                           short suggestedx, short suggestedy ) {
 GEDCOM_object* found_indi;
 GEDCOM_object* thing;
 bool accept_indi;
 char* gender;
-completion_item* item;
-completion_item* last;
+indicompletion_item* item;
+indicompletion_item* last;
 int openheight; openheight = 0;
 // initial widths for columns - will be incremented as text is found
   widths[0] = 1;
@@ -2431,21 +2531,21 @@ int openheight; openheight = 0;
   // when we are already open, we must first close:
   if (completionswin != (Fl_Window*) NULL) this->finish();
   scantree = tree;
-  if (scantree==NULL) printf("blew it - NULL treeinstance to search\n");
+  if (scantree==NULL) fl_alert("Blew it - NULL treeinstance to search\n");
   searchfor = partialname;
   searchmethod = strategy;
-  { Fl_Window* o = completionswin = new Fl_Window( 400, 500, msg_completions_title );
+  { Fl_Window* o = completionswin = new Fl_Window( 400, 500, "X!Family matching names" );
     o->labeltype(FL_NO_LABEL);
     { Fl_Select_Browser* o = completions = new Fl_Select_Browser( 0, 0, 400, 500);
       // fluid says o->type(1); but this isn't very documented. Why ?
       o->labeltype(FL_NO_LABEL);
       // the callback on the Select_Browser is called when user chooses
-      o->callback(completionok_cb);
+      o->callback(indicompletionok_cb);
       //o->user_data(raisedon);
       Fl_Group::current()->resizable(o);
     }
     // the callback on the Fl_Window is called if the user closes it
-    o->callback((Fl_Callback*)completionbinned_cb);
+    o->callback((Fl_Callback*)indicompletionbinned_cb);
     o->end();
   }
   found_indi = (GEDCOM_object*) NULL;
@@ -2469,9 +2569,9 @@ int openheight; openheight = 0;
       if ((strategy&8)==8) if (*gender=='F') accept_indi = true;
     }
     if (accept_indi) {  
-      item = new completion_item( found_indi );
+      item = new indicompletion_item( found_indi );
       openheight++;
-      if (last == (completion_item*) NULL) first=item; else last->setnext( item );
+      if (last == (indicompletion_item*) NULL) first=item; else last->setnext( item );
       item->setwidths( widths );
       last=item;
       completions->add(item->display(), (void*)0);
@@ -2494,19 +2594,15 @@ int openheight; openheight = 0;
   openheight *= fl_height();
   openheight += 5;
   if (openheight>500) openheight=500;
-#ifdef fix0016
   completionswin->size(widths[0]+widths[1]+widths[2]+widths[3]+widths[4]+widths[5]+25,openheight);
-#else
-  completionswin->size(widths[0]+widths[1]+widths[2]+widths[3]+widths[4]+25,openheight);
-#endif
   completionswin->show();
 }
 
-void completionsUI::finish() {
-completion_item* destroyme;
+void indicompletionsUI::finish() {
+indicompletion_item* destroyme;
 // since open does very little, there is not much to undo. Yet.
   if (completionswin == (Fl_Window*) NULL) return;
-  delete completionswin; // does this automatically lose completions ?
+  delete completionswin; // does this automatically lose completions ? well, does your destructor do so ?
   completions = (Fl_Select_Browser*) NULL;
   completionswin = (Fl_Window*) NULL;
   while (first != NULL) {
@@ -2516,9 +2612,9 @@ completion_item* destroyme;
   }
 }
 
-GEDCOM_object* completionsUI::chosen_indi( int chosen ) {
+GEDCOM_object* indicompletionsUI::chosen_indi( int chosen ) {
 int count=0;
-completion_item* item=first;
+indicompletion_item* item=first;
 
   while (item!=NULL) {
     count++;
@@ -2535,24 +2631,20 @@ completion_item* item=first;
 // It knows about internal representations in FLTK Browsers, so it probably
 // should not be in object.cxx. In fact, it probably belongs in gui.cxx
 //
-// fix0016 is the first step of our generalisation work, and will add the
-// GEDCOM id to the displayed information.
 
-completion_item::completion_item( GEDCOM_object* found_indi ):
+indicompletion_item::indicompletion_item( GEDCOM_object* found_indi ):
   indiptr (found_indi)
 {
   std::string displayline; displayline="";
   char * rawdate; int i;
   GEDCOM_object* subitem;
-#ifdef fix0016
   GEDCOM_id* identifier;
   char * idname;
-#endif
   GEDCOM_object* thing; thing = (GEDCOM_object*) NULL;
   char* val;
 
   if (indiptr == NULL) {
-    printf("Bombing out with null pointer passed to completion_item()\n");
+    fl_alert("Bombing out with null pointer passed to indicompletion_item()\n");
     exit(0);
   }
 //  printf("Trying to set up new completion_item for %s\n", indiptr->subobject( NAME_tag )->value());
@@ -2642,7 +2734,6 @@ completion_item::completion_item( GEDCOM_object* found_indi ):
   }
   width[4] = 10 + (int) fl_width( rawdate );
   displayline += rawdate;
-#ifdef fix0016
   displayline += '\t';
   identifier = indiptr->getid();
   if (identifier != NULL) {
@@ -2652,41 +2743,490 @@ completion_item::completion_item( GEDCOM_object* found_indi ):
     displayline += idname;
   }
   /* else bombsville - should never have an INDI with no ID ! */
-#endif
   displayptr = new GEDCOM_string( (char*)displayline.c_str() );
-  nextptr = (completion_item*) NULL;
+  nextptr = (indicompletion_item*) NULL;
 }
 
-completion_item::~completion_item() {
+indicompletion_item::~indicompletion_item() {
   delete displayptr;
 }
 
-void completion_item::setwidths( int widths[] ) {
+void indicompletion_item::setwidths( int widths[] ) {
 // we can do this 'cos arrays are passed by address, so get returned
   if (widths[0]<width[0]) widths[0] = width[0];
   if (widths[1]<width[1]) widths[1] = width[1];
   if (widths[2]<width[2]) widths[2] = width[2];
   if (widths[4]<width[4]) widths[4] = width[4];
-#ifdef fix0016
   if (widths[5]<width[5]) widths[5] = width[5];
-#endif
 //  printf("Widths: %d, %d, %d, %d, %d\n", widths[0], widths[1], widths[2], widths[3], widths[4], widths[5]);
 }
 
-GEDCOM_object* completion_item::indi() const {
+GEDCOM_object* indicompletion_item::indi() const {
   return indiptr;
 }
 
-completion_item* completion_item::next() const {
+indicompletion_item* indicompletion_item::next() const {
   return nextptr;
 }
 
-void completion_item::setnext( completion_item* newitem ) {
+void indicompletion_item::setnext( indicompletion_item* newitem ) {
   nextptr = newitem;
 }
 
-char* completion_item::display() const {
+char* indicompletion_item::display() const {
   return displayptr->string();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// class famfindUI controls find family window - only one instance of the window
+// as it is a short-lived transient sort of thing. It will search the tree of
+// the window it was raised on, and pass the handle of that window to its OK
+// callback
+// Similarly, if it raises a completions window, the callback from choosing a
+// name there will pass the handle of *this* window to *it's* OK callback, so
+// we can find out the family that was chosen (or wasn't, if it was Cancel)
+
+famfindUI::famfindUI() {
+  { Fl_Window* o = findbox = new Fl_Window(515, 100, "X!Family Search tree for family");
+    o->labeltype(FL_NO_LABEL);
+    o->user_data((void*)(this));
+    find_input = new Fl_Input( 65, 5, 305, 25, "Goto" );
+    find_id = new Fl_Output( 375, 5, 50, 25, "");
+    { Fl_Button* o = find_fromright = new Fl_Button( 435, 5, 25, 25, "@<");
+      o->labeltype(FL_SYMBOL_LABEL);
+      o->callback((Fl_Callback*)searchfamfind_cb);
+      o->user_data((void*)this);
+    }
+    { Fl_Button* o = find_fuzzy = new Fl_Button( 460, 5, 25, 25, "@<->");
+      o->labeltype(FL_SYMBOL_LABEL);
+      o->callback((Fl_Callback*)searchfamfind_cb);
+      o->user_data((void*)this);
+    }
+    { Fl_Button* o = find_fromleft = new Fl_Button( 485, 5, 25, 25, "@>");
+      o->labeltype(FL_SYMBOL_LABEL);
+      o->callback((Fl_Callback*)searchfamfind_cb);
+      o->user_data((void*)this);
+    }
+    spouse = new Fl_Output( 65, 35, 305, 25, "Spouse" );
+    spouse_id = new Fl_Output( 375, 35, 50, 25, "");
+    fam_id = new Fl_Output( 435, 35, 50, 25, "");
+    { Fl_Button* o = find_new = new Fl_Button(65, 65, 100, 25, "New");
+      o->down_box(FL_DOWN_BOX);
+      o->labelfont(1);
+    }
+    { Fl_Button* o = find_help = new Fl_Button(180, 65, 100, 25, "Help");
+      o->down_box(FL_DOWN_BOX);
+      o->labelfont(1);
+      // FIXME need a callback and code to deal with it
+      // 2022-03-04 the plan is to have a single callback routine to deal with all
+      // the help buttons, but the userdata should point to the URL leafname for the
+      // relevant help page. We don't have one yet, but it should be "famfindUI.html"
+      o->callback((Fl_Callback*)help_cb);
+      o->user_data((void*)("famfindUI.html"));
+    }
+    { Fl_Button* o = find_cancel = new Fl_Button(295, 65, 100, 25, "Cancel");
+      o->down_box(FL_DOWN_BOX);
+      o->labelfont(1);
+      o->callback((Fl_Callback*)binnedfamfind_cb);
+    }
+    { Fl_Return_Button* o = find_ok = new Fl_Return_Button( 410, 65, 100, 25, "OK" );
+      o->down_box(FL_DOWN_BOX);
+      o->labelfont(1);
+      o->callback((Fl_Callback*)okfamfind_cb);
+      o->user_data((void*)this);
+    }
+    o->hotspot( find_ok, 0);
+    o->end();
+  }
+}
+
+void famfindUI::setcontext( void* raisedon ) {
+  find_ok->user_data( (void*)this );
+  find_fromleft->user_data((void*)this);
+  find_fromright->user_data((void*)this);
+  find_fuzzy->user_data((void*)this);
+}
+
+void* famfindUI::getcontext() const {
+  return context;
+}
+
+treeinstance* famfindUI::whichtree() {
+  printf("Attempting to get treeinstance for famfindUI %ld, via context %ld\n",(long)this,(long)context);
+  switch ((strategy>>4)&1) {
+/*    case 0: there is, as yet, no context comparable to the People menu Find/Goto item
+      // for People->Find... context was the view
+      return ((mainUI*)context)->whichtree(); */
+    case 1:
+      // for indiUI Find context is the indiUI
+      return ((indiUI*)context)->whichis();
+    default:
+      return NULL;
+  }
+}
+
+void famfindUI::open( void* raisedon, short suggestedx, short suggestedy, short callerstrategy ) {
+  strategy = callerstrategy;
+  context = raisedon;
+  chosenfam = NULL;
+  find_input->value("");
+  find_id->value("");
+  setcontext( raisedon );        // this sets the user_data passed to callbacks
+  findbox->position(suggestedx, suggestedy);
+  findbox->show();
+  find_input->take_focus();
+}
+
+void famfindUI::searchfind(Fl_Button* button) {
+  short x,y;
+  x = findbox->x();
+  y = findbox->y();
+  strategy &= 0xfffc; // make sure no bits left from previous clicks
+  if (button==find_fromright) strategy |= 1;
+  if (button==find_fromleft)  strategy |= 2;
+  if (button==find_fuzzy)     strategy |= 3;
+  // famcompletionsbox is a global
+  famcompletionsbox->open( this->whichtree(),
+                        (char*)find_input->value(),
+                        strategy,
+                        (Fl_Callback*) chosenfamfind_cb,
+                        //(void*) searchfrom->getview(),
+                        x+65, y+55 );
+}
+
+void famfindUI::setfam( famcompletion_item* match ) {
+// need to extract names and IDs of both spouses, but we need some way to decide which one first
+// must fill in find_input
+//              find_id
+//              spouse
+//              spouse_id
+//              fam_id->value( fam->getidname() );
+  if (match!=NULL) {
+    chosenfam = match->fam();
+    printf("famfindUI::setfam attempting to complete the gotobox for id %s\n",chosenfam->getidname());
+    fam_id->value( chosenfam->getidname() );
+    char* gender = match->gender();
+    GEDCOM_object* spouseF;
+    GEDCOM_object* spouseM;
+    spouseF = chosenfam->thewife();
+    spouseM = chosenfam->thehusband();
+    // we are going to assume, since we've got here as the result of name matching, that the first
+    // spouse will definitely have a value for NAME. This is a less clearcut assumption for the
+    // second spouse, but we're not going to code defensively yet... Just remember that there's
+    // potential for a null pointer lurking in here.
+    switch (*gender) {
+      case 'F' :
+         find_input->value(spouseF->subobject(NAME_tag)->value());
+         find_id->value(spouseF->getidname() );
+         if (spouseM!=NULL) {
+           spouse->value(spouseM->subobject(NAME_tag)->value());
+           spouse_id->value(spouseM->getidname() );
+         } else {
+           spouse->value("");
+           spouse_id->value("");
+         }
+         break;
+      case 'M' :
+         find_input->value(spouseM->subobject(NAME_tag)->value());
+         find_id->value(spouseM->getidname() );
+         if (spouseF!=NULL) {
+           spouse->value(spouseF->subobject(NAME_tag)->value());
+           spouse_id->value(spouseF->getidname() );
+         } else {
+           spouse->value("");
+           spouse_id->value("");
+         }
+         break;
+      default :  fl_alert("Oh shit\n"); // think of a more helpful message, please, and some idea of what to do...
+    }
+  } else {
+    fl_alert("famfindUI::setfam called with NULL match\n");
+  }
+}
+
+short famfindUI::getstrategy() {
+  return strategy;
+}
+
+void famfindUI::OK() {
+  printf("famfindUI::OK()\n");
+  printf("So the family we want to lookup is %s\n",(char *)famgotobox->find_input->value());
+  printf("and we are trying to look it up in this treeinstance %ld\n",(long)this->whichtree());
+/* The completions item got destroyed when we closed the window, but we have the info we need in the
+   findUI dbox including chosenfam which is a pointer to the FAM object. I am unclear why the
+   chosenfam needs to be referenced through famgotobox and not this->
+*/
+  if (famgotobox->chosenfam != NULL) {
+    // make sure we didn't leave a completions window lying around
+    famcompletionsbox->finish();
+    // so at this point we need to add a FAMC to the indi from the indiUI context, and
+    // add him or her as a CHIL to the FAM
+    GEDCOM_object* indi = ((indiUI*)context)->whois();
+    indi->add_subobject(new GEDCOM_object(FAMC_tag,famgotobox->chosenfam->getid()));
+    famgotobox->chosenfam->add_subobject(new GEDCOM_object(CHIL_tag,indi->getid()));
+   findbox->hide();
+   return;
+  }
+  // if chosenfam has not been set, OK should do nothing, unless you choose to whinge at user...
+  fl_alert("Bastards ! chosenfam seems to be NULL\n");
+}
+
+void famfindUI::finish( ) {
+  findbox->hide();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// class famcompletionsUI controls family completion window - only one instance of
+// the window as it is a short-lived transient sort of thing.
+// It will search the tree of the window it was raised on, and display matching
+// names. When one is selected it will pass the GEDCOM object back to its caller
+// so the name chosen can be set *for that window*.
+
+famcompletionsUI::famcompletionsUI() {
+// the constructor does *not* set up and fill in a window/browser, just creates
+// the class - which means we do nothing explicit here
+  completionswin = (Fl_Window*) NULL;
+  completions = (Fl_Select_Browser*) NULL;
+  first = (famcompletion_item*) NULL;
+}
+
+void famcompletionsUI::open( treeinstance* tree,
+                          char* partialname,
+                          int strategy,
+                          Fl_Callback* famcompletionok_cb,
+                          //void* raisedon,
+                          short suggestedx, short suggestedy ) {
+GEDCOM_object* found_indi;
+GEDCOM_object* fams;
+GEDCOM_object* thing;
+bool accept_indi;
+char* gender;
+famcompletion_item* item;
+famcompletion_item* last;
+int openheight; openheight = 0;
+// initial widths for columns - will be incremented as text is found, there are no fixed width columns in the fam version
+  widths[0] = 1;
+  widths[1] = 1;
+  widths[2] = 1;
+  widths[3] = 1;
+  // we only allow one copy of this window at a time, so if we are called to open
+  // when we are already open, we must first close:
+  if (completionswin != (Fl_Window*) NULL) this->finish();
+  scantree = tree;
+  if (scantree==NULL) fl_alert("Blew it - NULL treeinstance to search\n"); //should actually do something about that - continuing just crashes
+  searchfor = partialname;
+  searchmethod = strategy;
+  { Fl_Window* o = completionswin = new Fl_Window( 400, 500, "X!Family matching families" );
+    o->labeltype(FL_NO_LABEL);
+    { Fl_Select_Browser* o = completions = new Fl_Select_Browser( 0, 0, 400, 500);
+      // fluid says o->type(1); but this isn't very documented. Why ?
+      o->labeltype(FL_NO_LABEL);
+      // the callback on the Select_Browser is called when user chooses
+      o->callback(famcompletionok_cb);
+      //o->user_data(raisedon);
+      Fl_Group::current()->resizable(o);
+    }
+    // the callback on the Fl_Window is called if the user closes it
+    o->callback((Fl_Callback*)famcompletionbinned_cb);
+    o->end();
+  }
+  found_indi = (GEDCOM_object*) NULL;
+  last = first;
+  printf("Search strategy %d bits %d\n",strategy,strategy&&3);
+  switch (strategy&3) {
+    case 1: found_indi = scantree->INDI_fromright( found_indi, searchfor ); break;
+    case 2: found_indi = scantree->INDI_fromleft( found_indi, searchfor ); break;
+    case 3: found_indi = scantree->INDI_fuzzymatch( found_indi, searchfor ); break;
+    default: printf("strategy unset !\n"); found_indi = (GEDCOM_object*) NULL;
+  }
+  while (found_indi != (GEDCOM_object*) NULL) {
+    // just because we have a match doesn't mean we have a marriage that fits, we need to look
+    // at every FAMS object for this spouse and add it to the list - there may be none, of course.
+    thing = found_indi->subobject( SEX_tag );
+    if (thing==NULL) break; // no point in looking for FAMS for an indi whose gender we don't know
+    gender = thing->value();
+    printf("famcompletionsbox->open matched %s %s, gender %s\n",found_indi->getidname(),found_indi->subobject(NAME_tag)->value(),gender);
+    fams = found_indi->subobject(FAMS_tag);
+    while (fams!=NULL) {
+      item = new famcompletion_item( fams->followxref(), gender );
+      openheight++;
+      if (last == (famcompletion_item*) NULL) first=item; else last->setnext( item );
+      item->setwidths( widths );
+      last=item;
+      completions->add(item->display(), (void*)0);
+      fams = fams->next_object(FAMS_tag);
+    }
+    switch (strategy&3) {
+      case 1: found_indi = scantree->INDI_fromright( found_indi, searchfor ); break;
+      case 2: found_indi = scantree->INDI_fromleft( found_indi, searchfor ); break;
+      case 3: found_indi = scantree->INDI_fuzzymatch( found_indi, searchfor ); break;
+    }
+  }
+  // at this point, if first is still NULL, there were no hits and we should not
+  // raise the completions window at all. But we already created the FL_Window, so need to destroy that
+  // which possibly means calling ->finish()
+  // Equally, if there was only one hit, we
+  // should probably simply pass the GEDCOM_object back to the callback as if the
+  // completions window were being closed with that selected. But not yet ...
+  if (first==NULL) return;
+  completionswin->position( suggestedx, suggestedy );
+  completions->column_widths( widths );
+  // each column has allowed 5 pixels over reported width, and we need to add
+  // another chunk for the scroll bar
+  openheight *= fl_height();
+  openheight += 5;
+  if (openheight>500) openheight=500;
+  completionswin->size(widths[0]+widths[1]+widths[2]+widths[3]+widths[4]+widths[5]+25,openheight);
+  completionswin->show();
+}
+
+void famcompletionsUI::finish() {
+famcompletion_item* destroyme;
+// since open does very little, there is not much to undo. Yet.
+  if (completionswin == (Fl_Window*) NULL) return;
+  delete completionswin; // does this automatically lose completions ?
+  completions = (Fl_Select_Browser*) NULL;
+  completionswin = (Fl_Window*) NULL;
+  while (first != NULL) {
+    destroyme = first;
+    first = first->next();
+    delete destroyme;
+  }
+}
+
+famcompletion_item* famcompletionsUI::chosen_fam( int chosen ) {
+int count=0;
+famcompletion_item* item=first;
+
+  while (item!=NULL) {
+    count++;
+    // item->fam() is the GEDCOM_object* pointing to the FAM, I believe, but we really
+    // want the caller to get the display() too, to fill into the gotobox
+    // but beware if that gets filled in, hitting the search button(s) again will be useless
+    // our idiom here is a little poorly defined. Probably what we want is to have two
+    // fields in the search box, one writable by the user and one not. The search value goes in
+    // the first one, and when the completions window hits OK, we copy one spuse (the one
+    // matched, 'cos that's how we'll have them) into that row, and the other spouse into
+    // the one below, as well as the F<nnn> ID into a box for that. The user could then
+    // change his mind and retype something into the top row, and hitting a search button
+    // again would clear the other boxes and do the search. Alternatively, we cold make
+    // it so you can only do search once, then the buttons are greyed, but have a "New"
+    // button alongside "Help", "Cancel" and "OK" which would clear the fields (and, if
+    // still open, close the completions window) then ungrey the search buttons.
+    if (count==chosen) return item;
+    item = item->next();
+  }
+  return NULL;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// this class is for holding items on a list of names (and related info) used
+// by the name-completion code
+
+// It knows about internal representations in FLTK Browsers, so it probably
+// should not be in object.cxx. In fact, it probably belongs in gui.cxx
+//
+
+famcompletion_item::famcompletion_item( GEDCOM_object* found_fam, char* gender ):
+  famptr (found_fam)
+{
+  std::string displayline; displayline="";
+  char * rawdate; int i;
+  GEDCOM_object* subitem;
+  GEDCOM_id* identifier;
+  char * idname;
+  GEDCOM_object* thing; thing = (GEDCOM_object*) NULL;
+  char* val;
+  sex = gender;
+
+  if (famptr == NULL) {
+    fl_alert("Bombing out with null pointer passed to famcompletion_item()\n");
+    exit(0);
+  }
+  switch (*gender) {
+    case 'F' : displayline += "@C1@.";
+      subitem = found_fam->thewife();
+      break;
+    case 'M' : displayline += "@C4@.";
+      subitem = found_fam->thehusband();
+      break;
+  }
+  val = subitem->subobject(NAME_tag)->value();
+  printf("New famcompletion_item for spouse %s %s\n",subitem->getidname(),val);
+  width[0] = 5 + (int) fl_width( val );
+  displayline += val;
+  displayline += "\t";
+  subitem = found_fam->subobject(MARR_tag);
+  if (subitem!=NULL) {
+    val = subitem->subobject(DATE_tag)->value();
+    displayline += val;
+  }
+  displayline += "\t";
+  width[1] = 5 + (int) fl_width( val );
+  switch (*gender) {
+    case 'M' : displayline += "@C1@.";
+      subitem = found_fam->thewife();
+      break;
+    case 'F' : displayline += "@C4@.";
+      subitem = found_fam->thehusband();
+      break;
+  }
+  if (subitem==NULL) {
+    // yes, we can match a family with only one known spouse...
+    printf("New famcompletion_item with no second spouse\n");
+    width[2] = 0;
+  } else {
+    val = subitem->subobject(NAME_tag)->value();
+    printf("New famcompletion_item for other spouse %s %s\n",subitem->getidname(),val);
+    width[2] = 5 + (int) fl_width( val );
+    displayline += val;
+  }
+  displayline += "\t";
+  identifier = famptr->getid();
+  if (identifier != NULL) {
+    idname = identifier->GEDCOM_idname();
+    width[3] = 5 + (int) fl_width( idname );
+    displayline += "@C0 ";
+    displayline += idname;
+  }
+
+  /* else bombsville - should never have a FAM with no ID ! */
+  displayptr = new GEDCOM_string( (char*)displayline.c_str() );
+  nextptr = (famcompletion_item*) NULL;
+}
+
+famcompletion_item::~famcompletion_item() {
+  delete displayptr;
+}
+
+void famcompletion_item::setwidths( int widths[] ) {
+// we can do this 'cos arrays are passed by address, so get returned
+  if (widths[0]<width[0]) widths[0] = width[0];
+  if (widths[1]<width[1]) widths[1] = width[1];
+  if (widths[2]<width[2]) widths[2] = width[2];
+  if (widths[3]<width[3]) widths[3] = width[3];
+  printf("famcompletion_item Widths: %d, %d, %d, %d\n", widths[0], widths[1], widths[2], widths[3]);
+}
+
+GEDCOM_object* famcompletion_item::fam() const {
+  printf("famcompletion_item::fam() returning %ld\n",(long)famptr);
+  return famptr;
+}
+
+famcompletion_item* famcompletion_item::next() const {
+  return nextptr;
+}
+
+void famcompletion_item::setnext( famcompletion_item* newitem ) {
+  nextptr = newitem;
+}
+
+char* famcompletion_item::display() const {
+  return displayptr->string();
+}
+
+char* famcompletion_item::gender() const {
+  return sex;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -2699,25 +3239,25 @@ char* completion_item::display() const {
 
 prefUI::prefUI() {
 // don't seem to use:   Fl_Window* w;
-  { Fl_Window* o = optsbox = new Fl_Window(460, 315, msg_prefs_title);
+  { Fl_Window* o = optsbox = new Fl_Window(460, 315, "X!Family preferences");
 // don't seem to use:     w = o;
     o->color(50);
     o->labeltype(FL_NORMAL_LABEL);
     o->user_data((void*)(this));
     { Fl_Tabs* o = choices = new Fl_Tabs(0, 20, 460, 240);
       o->labeltype(FL_NO_LABEL);
-      { Fl_Tile* o = nameprefs = new Fl_Tile(0, 50, 460, 210, msg_prefs_names);
+      { Fl_Tile* o = nameprefs = new Fl_Tile(0, 50, 460, 210, "Names");
         o->color(246);
         o->selection_color(246);
         o->hide();
         { Fl_Group* o = new Fl_Group(15, 75, 255, 75);
           o->box(FL_EMBOSSED_BOX);
           o->labeltype(FL_NO_LABEL);
-          { Fl_Check_Button* o = showfam = new Fl_Check_Button(25, 85, 235, 25, msg_prefs_famnames);
+          { Fl_Check_Button* o = showfam = new Fl_Check_Button(25, 85, 235, 25, "Always show family names");
             o->box(FL_UP_BOX);
             o->down_box(FL_DOWN_BOX);
           }
-          { Fl_Check_Button* o = showtitle = new Fl_Check_Button(25, 115, 235, 25, msg_prefs_titles);
+          { Fl_Check_Button* o = showtitle = new Fl_Check_Button(25, 115, 235, 25, "Show titles");
             o->box(FL_UP_BOX);
             o->down_box(FL_DOWN_BOX);
           }
@@ -2725,39 +3265,39 @@ prefUI::prefUI() {
         }
         o->end();
       }
-      { Fl_Tile* o = dateprefs = new Fl_Tile(0, 50, 460, 210, msg_prefs_dates);
+      { Fl_Tile* o = dateprefs = new Fl_Tile(0, 50, 460, 210, "Displayed dates");
         o->color(207);
         o->selection_color(207);
         { Fl_Group* o = new Fl_Group(5, 75, 450, 135);
           o->box(FL_EMBOSSED_BOX);
           o->labeltype(FL_NO_LABEL);
-          { Fl_Check_Button* o = treedates = new Fl_Check_Button(15, 85, 200, 25, msg_prefs_treedates);
+          { Fl_Check_Button* o = treedates = new Fl_Check_Button(15, 85, 200, 25, "Show dates on tree");
             o->box(FL_UP_BOX);
             o->down_box(FL_DOWN_BOX);
           }
-          { Fl_Box* o = new Fl_Box(15, 115, 200, 25, msg_prefs_including);
+          { Fl_Box* o = new Fl_Box(15, 115, 200, 25, "including ...");
             o->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
           }
-          { Fl_Check_Button* o = spousedates = new Fl_Check_Button(15, 145, 200, 25, msg_prefs_spousedates);
+          { Fl_Check_Button* o = spousedates = new Fl_Check_Button(15, 145, 200, 25, "Show spouse's dates");
             o->box(FL_UP_BOX);
             o->down_box(FL_DOWN_BOX);
           }
-          { Fl_Check_Button* o = marrdates = new Fl_Check_Button(15, 175, 200, 25, msg_prefs_marrydates);
+          { Fl_Check_Button* o = marrdates = new Fl_Check_Button(15, 175, 200, 25, "Show wedding dates");
             o->box(FL_UP_BOX);
             o->down_box(FL_DOWN_BOX);
           }
-          { Fl_Check_Button* o = yearonly = new Fl_Check_Button(240, 85, 200, 25, msg_prefs_yearonly);
+          { Fl_Check_Button* o = yearonly = new Fl_Check_Button(240, 85, 200, 25, "Show just year on tree");
             o->box(FL_UP_BOX);
             o->down_box(FL_DOWN_BOX);
           }
-          { Fl_Box* o = new Fl_Box(240, 115, 200, 25, msg_prefs_dateformat);
+          { Fl_Box* o = new Fl_Box(240, 115, 200, 25, "Date formats ...");
             o->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
           }
           { Fl_Group* o = new Fl_Group(235, 145, 210, 55);
-            { Fl_Light_Button* o = prefgedcom = new Fl_Light_Button(240, 145, 200, 25, msg_prefs_gedcom);
+            { Fl_Light_Button* o = prefgedcom = new Fl_Light_Button(240, 145, 200, 25, "GEDCOM dates");
               o->type(102);
             }
-            { Fl_Light_Button* o = prefios = new Fl_Light_Button(240, 175, 200, 25, msg_prefs_iso);
+            { Fl_Light_Button* o = prefios = new Fl_Light_Button(240, 175, 200, 25, "ISO-8601 dates");
               o->type(102);
             }
             o->end();
@@ -2766,24 +3306,24 @@ prefUI::prefUI() {
         }
         o->end();
       }
-      { Fl_Tile* o = miscopts = new Fl_Tile(0, 65, 460, 195, msg_prefs_misc);
+      { Fl_Tile* o = miscopts = new Fl_Tile(0, 65, 460, 195, "Miscellaneous");
         o->color(175);
         o->selection_color(175);
         o->hide();
         { Fl_Group* o = xref = new Fl_Group(5, 70, 185, 175);
           o->box(FL_EMBOSSED_BOX);
           o->labeltype(FL_NO_LABEL);
-          { Fl_Box* o = xref1 = new Fl_Box(20, 85, 105, 25, msg_prefs_xref);
+          { Fl_Box* o = xref1 = new Fl_Box(20, 85, 105, 25, "Xref errors:");
             o->labelfont(1);
             o->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
           }
-          { Fl_Light_Button* o = xrefquit = new Fl_Light_Button(25, 120, 150, 25, msg_prefs_xrefquit);
+          { Fl_Light_Button* o = xrefquit = new Fl_Light_Button(25, 120, 150, 25, "Abandon load");
             o->type(102);
           }
-          { Fl_Light_Button* o = xrefwarn = new Fl_Light_Button(25, 160, 150, 25, msg_prefs_xrefwarn);
+          { Fl_Light_Button* o = xrefwarn = new Fl_Light_Button(25, 160, 150, 25, "Warnings");
             o->type(102);
           }
-          { Fl_Light_Button* o = xrefignore = new Fl_Light_Button(25, 200, 150, 25, msg_prefs_xrefignore);
+          { Fl_Light_Button* o = xrefignore = new Fl_Light_Button(25, 200, 150, 25, "Ignore silently");
             o->type(102);
           }
           o->end();
@@ -2791,20 +3331,20 @@ prefUI::prefUI() {
         { Fl_Group* o = datestamp = new Fl_Group(195, 70, 260, 175);
           o->box(FL_EMBOSSED_BOX);
           o->labeltype(FL_NO_LABEL);
-          { Fl_Box* o = datestamp1 = new Fl_Box(210, 85, 235, 25, msg_prefs_repdates);
+          { Fl_Box* o = datestamp1 = new Fl_Box(210, 85, 235, 25, "Report datestamp format:");
             o->labelfont(1);
             o->align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE);
           }
-          { Fl_Light_Button* o = stampiso = new Fl_Light_Button(215, 120, 100, 25, msg_prefs_repiso);
+          { Fl_Light_Button* o = stampiso = new Fl_Light_Button(215, 120, 100, 25, "ISO-8601");
             o->type(102);
           }
-          { Fl_Light_Button* o = stampgedcom = new Fl_Light_Button(335, 120, 100, 25, msg_prefs_repgedcom);
+          { Fl_Light_Button* o = stampgedcom = new Fl_Light_Button(335, 120, 100, 25, "GEDCOM");
             o->type(102);
           }
-          { Fl_Light_Button* o = stamplocal = new Fl_Light_Button(215, 160, 100, 25, msg_prefs_replocal);
+          { Fl_Light_Button* o = stamplocal = new Fl_Light_Button(215, 160, 100, 25, "As locale");
             o->type(102);
           }
-          { Fl_Light_Button* o = stampother = new Fl_Light_Button(335, 160, 100, 25, msg_prefs_repother);
+          { Fl_Light_Button* o = stampother = new Fl_Light_Button(335, 160, 100, 25, "Other:");
             o->type(102);
           }
           { Fl_Input* o = stampformat = new Fl_Input(215, 200, 220, 30);
@@ -2816,22 +3356,22 @@ prefUI::prefUI() {
       }
       o->end();
     }
-    { Fl_Button* o = cancelpref = new Fl_Button(16, 275, 96, 25, msg_cancel);
+    { Fl_Button* o = cancelpref = new Fl_Button(16, 275, 96, 25, "Cancel");
       o->labelfont(1);
       o->callback((Fl_Callback*)cancelchoices_cb);
     }
-    { Fl_Button* o = applypref = new Fl_Button(128, 275, 96, 25, msg_apply);
+    { Fl_Button* o = applypref = new Fl_Button(128, 275, 96, 25, "Apply");
       o->labelfont(1);
       o->callback((Fl_Callback*)applychoices_cb);
     }
-    { Fl_Return_Button* o = okpref = new Fl_Return_Button(240, 275, 96, 25, msg_save);
+    { Fl_Return_Button* o = okpref = new Fl_Return_Button(240, 275, 96, 25, "Save");
       o->selection_color(33);
       o->labelfont(1);
       o->callback((Fl_Callback*)okchoices_cb);
     }
-    { Fl_Button* o = applypref = new Fl_Button(352, 275, 96, 25, msg_help);
+    { Fl_Button* o = applypref = new Fl_Button(352, 275, 96, 25, "Help");
       o->labelfont(1);
-      o->callback((Fl_Callback*)helpchoices_cb);
+      o->callback((Fl_Callback*)help_cb);
       o->user_data((void*)("prefUI.html"));
     }
     o->end();
@@ -2863,7 +3403,7 @@ notesUI::notesUI( treeinstance* whichtree, GEDCOM_object* newobject, GEDCOM_tag*
   window = new Fl_Window(720, 305, notes_title);
   // with this font, that is width for 80 characters, which are
   // 15 pixels high.
-  ident = new Fl_Output(100,3,600,24,msg_event_ident);
+  ident = new Fl_Output(100,3,600,24,"Text for:");
    //printf("In notesUI constructor, having created a window\n");
    this->retitle();
 
@@ -3166,9 +3706,9 @@ void notesUI::retitle() {
 GEDCOM_tag* objecttag = editobject->objtype();
 GEDCOM_object* mainobject;
 char *tempstring;
-std::string title(msg_notes_title);
-// called after doing a language change as well as when the
-// notes window is first created
+std::string title("X!Family");
+// used to be called after doing a language change (all code for which has now been removed)
+// So now it's only when the notes window is first created
 
   title += " ";
   title += edittree->getfilename();
@@ -3194,7 +3734,7 @@ std::string title(msg_notes_title);
   if (objecttag==INDI_tag) {
     GEDCOM_object* nameobj;
     if ((nameobj=(mainobject->subobject(NAME_tag)))==NULL)
-      title += msg_unnamed;
+      title += "<unnamed>";
     else
       title += nameobj->value();
   }

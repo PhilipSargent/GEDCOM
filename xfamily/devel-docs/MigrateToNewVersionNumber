@@ -1,0 +1,68 @@
+Starting a new version of XFamily
+
+written as we transition from v020 to v021 in the hope of adding code to
+add parents to an editindi dbox.
+
+Change version numbers and copyright dates in the MessageSrc file
+change strcpy(msgfile,"/usr/local/src/xfamily/v021/messages/");
+ in xlate.cxx to point to current version. The fact that this is
+ hard-coded is a bug, but we do need to deal with it each time
+ until we find a way to find the messages file cleanly.
+Run ./StringFactory.py
+
+That stuff should go away as we eliminate the esoteric internationalisation code.
+
+Look at fixes.h and convert all the conditional compilation things which
+have been well tested and are working to established code without the
+conditionals. Back out any that we think don't do the job and are
+switched off in fixes.h.
+
+We note that there are quite a lot of switched off fixes in v020, but
+at least one is for stuff we believe we do want, but wasn't compiling
+cleanly. Should we go back and fix this properly in v020 before moving
+to v021 ?
+
+fix0001 is currently active, but the fix doesn't work. Leave in, but
+aim to fix the code which it enables.
+
+fltk13  is needed by fix0001 and not used anywhere else
+
+fix0003 has been removed for some time, but comments still refer to accumulating
+        experience with fix0003 before doing more. This seems to relate to the
+        ongoing fix0001 problems.
+
+fix0005 is active - the tested code it enabled has already been made
+permanent, the rest is still to write, so it is actually unused at
+the moment.
+
+fix0008 is disabled and no code uses it. This may indicate that the
+fix has not yet been implemented rather than made permanent already...
+
+fix0009 ditto
+
+fix0012 definitely awaiting implementation - there's a file of notes
+        Eliminate-treeinstance-geteventobject
+
+fix0014 added integrity check - made permanent
+
+fix0016 added ID to completions window, Well tested, made permanenet.
+
+fix0022 inactive - breaks compile ? Need to make this work... but
+fix0024 active - we think this solves the issue that 0022 was for
+        both removed, fix0024 made permanent
+
+fix0023 active, now made permanent. Eliminate fixed ID buffer
+
+fix0026 active, now permanent - it governed a piece of code that needed to be added
+        and was only conditional during development. Now tested and fine.
+
+OK, after cleaning up the fixes we did
+
+make clean
+make depend
+make
+
+and that made a binary without errors so we can consider the migration to v021
+to have worked and been adequately documented. Probably need to test running
+on a different distro (this was under focal, so 22.04 will be along soon and
+indeed, was good).

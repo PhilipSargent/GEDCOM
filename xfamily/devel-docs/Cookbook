@@ -57,4 +57,4 @@ To find a spouse {HUSB, WIFE} object matching an INDI id without knowing the gen
 
 To then delete a spouse from a FAM it's a simple object removal,
 but then you *may* want to garbage collect the FAM if it no longer
-contains any cross-referenceing tags {HUSB,WIFE,CHIL}
+contains any cross-referencing tags {HUSB,WIFE,CHIL}

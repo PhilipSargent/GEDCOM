@@ -11,6 +11,10 @@
 // code to log all destructor calls so we see if we really are releasing memory
 //#define destructorlogs
 
+// code to journal changes as they are made to try to save the day in the event
+// of a data-loss crash
+#define journal
+
 #define fix0001
 // assume fltk does not scroll an Fl-Scroll to prevent window displaying
 // beyond the canvas area (used in gui.cxx) [AERW 2007-09-18 I don't think
@@ -61,27 +65,19 @@
 //#define fix0012
 // read Eliminate-treeinstance-geteventobject
 
-#define fix0014
-// integrity check on loaded GEDCOM (and before saving if debugging is defined)
-
-#define fix0016
-// add GEDCOM id value to a new column in the completions window. on right. gui.cxx
+// fix0022 is inactive and we believe fix0024 (which I made permanent, so the
+// #define is not useful) fixed the issue. But there is useful commentary under
+// fix0022 which I don't want to throw away just yet... The bugs file seems to be
+// saying that we fixed being able to open two editindi dboxes on the same INDI,
+// but the fix didn't prevent opening two editfam dboxes on the same FAM which
+// clearly we do need to prevent.
 
 //#define fix0022
 // add new callbacks for new-child-in-family and child-in-new-family
 // in v 0.20 turn this off until we get a clean compile, then we can
 // change our menus and start bringing the code back without the ephemeral objects...
 
-#define fix0023
-// replace the fixed char[16] with a GEDCOM_string to avoid arbitrary limit in GEDCOM_id
-// probably counts as a security fix, since it would have allowed a buffer overrun by crafting
-// a long id string...
-
-#define fix0024
-// I think this bit of what was the fix0022 code is useful and should be retained
-// it basically stops you opening multiple indiUI dboxes on the same person
-
-#define fix0026
-// add a callback to create new child
+// fixes 2022_001 and 2022_002 made permanent 2022-02-20 - I think we'd been a
+// bit sloppy with the conditionals and turning them off would probably not compile.
 
 #endif

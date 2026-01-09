@@ -1,0 +1,28 @@
+0 HEAD
+1 SOUR !Family_for_RISC_OS
+2 VERS 2.2.7 20170913
+1 GEDC
+2 VERS 5.3
+2 FORM LINEAGE-LINKED
+2 LANG English
+1 LANG English
+1 SUBM @A1@
+1 SCHEMA
+2 INDI
+3 _NINO
+4 LABL NATIONAL_INSURANCE_NUMBER
+4 DEFN United Kingdom National Insurance Number
+4 ISA IDNO
+1 SCHEMA
+2 INDI
+3 _NHSNO
+4 LABL NATIONAL_HEALTH_NUMBER
+4 DEFN United Kingdom National Health Service Number
+4 ISA IDNO
+0 @I1@ INDI
+1 NAME unknown
+0 @A1@ SUBM
+1 NAME Andrew Waddington
+0 NOTE Person unknown
+0 NOTE View @I1@
+0 TRLR

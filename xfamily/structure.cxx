@@ -26,12 +26,29 @@ treeinstance * instancelist::newinstance() {
 
 treeinstance *instantia_nova;
 
+#ifdef debugging
+  printf("about to call treeinstance constructor\n");
+#endif
   instantia_nova = new treeinstance();
+#ifdef debugging
+  printf("returned to newinstance after treeinstance constructor\n");
+#endif
   instantia_nova->setnext( firstinstance );
+#ifdef debugging
+  printf("set our new tree as setnext(firstinstance)\n");
+#endif
   if (firstinstance == NULL)
+  { 
+#ifdef debugging
+    printf("firstinstance remains null\n");
+#endif
     lastinstance = instantia_nova;
+  }
   else
     firstinstance->setprevious( instantia_nova );
+#ifdef debugging
+  printf("returning firstinstance=instantia_nova %ld\n",(long)instantia_nova);
+#endif
   return firstinstance = instantia_nova;
 }
 
@@ -41,10 +58,8 @@ treeinstance *instantia_nova;
 
   instantia_nova = this->newinstance();
   instantia_nova->loadGEDCOMfile( filename );
-#ifdef fix0014
   instantia_nova->integritycheck();
   // returns a bool - could offer to abandon loading if tree failed
-#endif
   return instantia_nova;
 }
 
@@ -87,7 +102,6 @@ editlist::editlist() {
   last_edit = NULL;
 }
 
-#ifdef fix0024
 indiUI* editlist::checkopen( treeinstance* thistree, GEDCOM_object * editindi ) {
 
 // first check through the list to see if there is already
@@ -102,25 +116,11 @@ indiUI* newedit;
   }
   return newedit;
 }
-#endif
 
 
 indiUI* editlist::open( treeinstance* thistree, GEDCOM_object * editindi ) {
 
 indiUI* newedit;
-
-#ifndef fix0024
-// caller should have already called checkopen in all cases where the
-// possibility exists that we already have an indiUI open
-
-  newedit = this->editbox( editindi );
-  if (newedit!=NULL) {
-    newedit->hide();
-    newedit->show();
-    return newedit;
-  }
-#endif
-
 
 // We're not editing this individual, so open a new edit box:
 
@@ -402,7 +402,8 @@ void noteslist::close( notesUI* ui ) {
 void noteslist::retitle() {
 
 // rebuild the window title for every extant notes window
-// called after a language change, for example
+// called after a language change, for example (which no longer happens)
+// it is looking ikely that this is redundant
 
 notesUI* ui;
   ui = first_notes;
@@ -414,7 +415,10 @@ notesUI* ui;
 
 notesUI* noteslist::notesbox( GEDCOM_object* topobject ) {
 notesUI* newui;
-GEDCOM_object* parent;
+GEDCOM_object* parent;if (topobject==NULL) {
+  printf("Serious bug - root() called on NULL topobject\n");
+  return NULL;
+}
 treeinstance* root = topobject->root();
   newui = first_notes;
   while (newui!=NULL) {

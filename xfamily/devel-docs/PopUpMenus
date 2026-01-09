@@ -14,7 +14,7 @@ this immediately calls view->whattodraw()->whoisat()
 
 where whattodraw() is a displaytree
 
-which simplay calls treetop->whoisat( h, x, y )
+which simply calls treetop->whoisat( h, x, y )
 
 where treetop is an indidisplay
 

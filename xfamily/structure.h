@@ -26,9 +26,7 @@ class editlist {
   indiUI* last_edit;
 public:
   editlist();
-#ifdef fix0024
   indiUI* checkopen( treeinstance*, GEDCOM_object* );
-#endif
   indiUI* open( treeinstance*, GEDCOM_object* );
 //  indiUI* new();                    // an empty edit window
 //  indiUI* child( GEDCOM_object* );  // ditto, the object is a FAM

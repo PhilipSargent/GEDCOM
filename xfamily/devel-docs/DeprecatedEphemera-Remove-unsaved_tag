@@ -1,0 +1,69 @@
+OK, "Cancel" on an edit dbox has been trying to back out the creation of an
+INDI (and that was going to be the idea with a FAM too), but the ability to
+add more structure *before* saving to a tree makes the whole idea of an
+ephemeral INDI which only becomes concrete when saved moot.
+
+Code to do this has been successul for a new child. An edit dbox for a
+newly created child must create an INDI with a FAMC tag, so the "Add"
+and "Find" buttons will not appear, and the dbox cannot create structure
+you'd think. Also you cannot click on the new INDI in the tree and do
+"New family" because that only works for an INDI with a gender and until
+you've hit "Apply" or "OK", there is no way that a gender you set can
+propagate back to the tree. So it looks safe. But it isn't - you can
+still open a notesUI and that prevents the INDI from disappearing
+when you hit Cancel. Even worse, if you now "Cancel" in first the
+edit dbox, then the notes dbox, then reopen the indi for edit and
+click "Cancel", the person now disappears, because it was saved into
+the tree with the "unsaved_tag". This is horrid. Make it go away.
+
+We set out with some flags on a GEDCOM_object one bit of which was meant
+to indicate ephemerality, but we never used the flags word at all.
+
+The actual implementation created an "unsaved_tag" as part of the object which
+got removed when the object was saved ("Apply" or "OK"). The issue is that
+if we "Cancel" and try to uncreate an object, we need to do checks on a
+whole lot of things to aoid creating broken GEDCOM and the fact that the
+actual disappearance of the object becomes dependent on what else has been
+edited separately makes the whole thing very non-obvious to the end user.
+
+Far better that the step that creates the object creates something permanent
+(even if initially meaningless) with enough default data to mean that it can
+stand in a tree without breaking anything or being impossible to access.
+
+"Cancel" then means just to close the edit dbox, leaving in the tree whatever
+was in the box when opened or last saved.
+
+So what do we need to do to back this out and leave no gratuitous lines of code
+to confuse things ?
+
+Any chunk of code that tests, sets, clears or otherwise fucks with the
+"unsaved_tag" subobject, and any code which would have been executed if
+one was found.
+
+The way to handle this is to check for some basic data being present in the
+INDI or FAM - and there isn't much which is critical. FAM represents structure
+so apart from needing at least one of HUSB/WIFE/CHIL it can stand. For INDI
+we'd ideally like a NAME because we want something that shows on the interface
+and which can be searched for. So perhaps the solution is that when any of
+the close processes ("Cancel", "Apply", "OK") are used, we could ask user if
+he/she is sure they want to leave an INDI with no NAME ? This does mean that
+we are starting to feel more urgency in the need for an "Are you sure" UI,
+or indeed anything that reports errors to the user rather than to stdout.
+
+Our existing policy for ephemera is that we go through the events (BIRT,
+CHR, BAPM, DEAT, BURI, CREM) and if there are no data in any of the fields,
+we make sure there is no structure for that tag. One thing that has to be
+checked for each one is the possible existence of a NOTE object. The
+tricky bit is that the user may have clicked to open a notesUI on the event
+but not yet saved it. So we would be allowing the event tag to continue to
+exist with an empty NOTE subobject. If the user then Cancels the notesUI
+with no text added (or if he deletes all the text and saves it), we should
+garbage collect the NOTE and then check if the parent event is also empty.
+If so we should garbage collect it, too. This should be happening regardless
+of whether the parent INDI (or FAM) was in some sense ephemeral - it is routine
+housekeeping to avoid a build-up of pointless empty objects.
+
+So for this to work, we need to read code and be sure that we believe that
+there is a NOTE object in the tree for every notesUI we open - we cannot just
+create it when the notes is saved. I think that this is the case, but READ THE CODE !
+

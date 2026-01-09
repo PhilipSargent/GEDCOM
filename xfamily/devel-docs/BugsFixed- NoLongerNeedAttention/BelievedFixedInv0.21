@@ -1,0 +1,75 @@
+These are cluttering up the v0.21-Bugs file but are believed fixed in v0.20 already
+
+first observed 2020-05-21 in a freshly built XFamily on Eoan:
+Loading our main tree, we see
+Constructor for I1229, @INDI@
+pointer 0 of object INDI on which add_subobject operates
+What we are adding is first subobject
+Constructor for FAMC, @F9@
+pointer 0 of object BIRT on which add_subobject operates
+What we are adding is first subobject
+pointer 0 of object DATE on which add_subobject operates
+What we are adding is first subobject
+*** buffer overflow detected ***: ./XFamily terminated
+ I think this is probably the first BIRT->DATE->TIME structure we
+encounter in the tree. Ah, wait, there's a random string in the file
+on the _next_ indi, so the buffer overflow is actually on the "INDI"
+tag (which is much longer with the random string...)
+Whilst this is a bug in the GEDCOM, we do need some sort of check to
+avoid being tripped like this... Believe this is FIXED 2020-05-24
+
+first observed 2020-05-21 in a freshly built XFamily on Eoan:
+Debug info suggests that we have loaded the entire file, and processed our way
+through all the 0 @@ FAM objects (ending with 0 @F1777@ FAM) and then, with
+no further debug output, we segfault. There was a long delay and we didn't
+see the segfault message until I hit return. Trying again, I see the segfault
+as soon as I hit return - no significant delay. This turns out to be a change
+in the way that the C-compiler treats calls to methods of a class. It used to
+be that when we were called, we could test for this==NULL and act accordingly.
+Now, if we call a method on a NULL pointer, the code segfaults. I fixed this
+for calls on indidisplay::findfam where we relied on this test and did indeed
+call the method on NULL pointers quite happily under older compilers.
+There are a number of warnings that testing this against NULL is broken,
+which implies that I am potentially reying on this test to save the code
+if methods are called on NULLs. We need to fix all the places where these
+methods are called to test for a NULL pointer to avoid calling on it.
+
+These are (at least)
+
+display.cxx: In member function ‘GEDCOM_object* famdisplay::whoisat(int, int, int, indidisplay*&, famdisplay*&) const’:
+display.cxx:569:3: warning: nonnull argument ‘this’ compared to NULL [-Wnonnull-compare]
+  569 |   if (this == NULL) return NULL;
+
+display.cxx: In member function ‘GEDCOM_object* indidisplay::whoisat(int, int, int, indidisplay*&, famdisplay*&) const’:
+display.cxx:417:3: warning: nonnull argument ‘this’ compared to NULL [-Wnonnull-compare]
+  417 |   if (this == NULL) return NULL;
+
+believe I fixed those two
+
+objects.cxx: In member function ‘treeinstance* GEDCOM_object::root()’:
+objects.cxx:772:3: warning: nonnull argument ‘this’ compared to NULL [-Wnonnull-compare]
+  772 |   if (this==NULL) {
+
+I believe I've fixed that one
+
+objects.cxx: In member function ‘GEDCOM_object* GEDCOM_object::parental_family() const’:
+objects.cxx:990:4: warning: nonnull argument ‘this’ compared to NULL [-Wnonnull-compare]
+  990 |    if (this==NULL) return NULL;
+
+OK, I've defensively coded the calls, although in practice I don't think some would
+ever have been called on Null, relying on the test...
+
+Think I got all the ones where we test on this==NULL, but there may be others
+in other source files where I don't check for NULL before calling methods. These
+may all be in places where we already have confidence from the context that we
+have a real pointer - I believe that I would have inserted those tests in all
+cases where I thought we would call on a NULL pointer (because it was clearly
+simpler and clearer to do the test in the method, just once).
+
+Fixed in v 0.21 (there may be others)
+
+2022-12-14 navigating tree to a person with only one known parent, and opening an
+  indiUI, the unknown parent should have the id box replaced by an "Add" button,
+  as is the case when creating a new person and adding parents. This bug was
+  noticed in the code rather than found in testing, so proved it did cause the
+  expected issue, then fixed it.

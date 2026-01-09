@@ -1,0 +1,169 @@
+We are in an indiUI and user clicks "Find" to find a family for parents. This calls
+
+void buttonfindindi_fam_cb(Fl_Button*, void *userdata) {
+
+the callback is set up in the constructorfor the indiUI with
+
+     indi_fam_find->user_data((void*)(this));
+
+so userdata is a pointer to the indiUI
+
+  indiUI* indibox = (indiUI*)userdata;    //is therefore OK
+  int x = indibox->indi_dbox->x();
+  int y = indibox->indi_dbox->y();
+  treeinstance* tree = indibox->whichis();
+  famgotobox->open( userdata, x+50, y+50, 16 );
+
+which is passed to
+
+void famfindUI::open( void* raisedon, short suggestedx, short suggestedy, short callerstrategy ) {
+
+so raisedon is the pointer to the original indiUI. This is kept as the context variable of the famfindUI class instance
+
+What I don't quite understand is why this function contains both
+
+  context = raisedon;
+  setcontext( raisedon );        // this sets the user_data passed to callbacks
+
+which I think probably both do the same thing...
+
+Anway, we have now opened the famfindUI (and yes, the right dbox opens and looks OK).
+
+If we now type some text and hit the fuzzy search button, we will call 
+
+void searchfamfind_cb(Fl_Button* button, void *userdata) {
+
+which says
+
+  famfindUI* searchfrom = (famfindUI*)userdata;
+
+hmmm, I'm clearly not sure what userdata we should be getting. The userdata of the find family dbox is set with
+
+    o->user_data((void*)(this));  // which means the userdata is indeed a famfindUI
+
+but we don't explicitly set the userdata for the search buttons. (this is equally true for the indifindUI, where
+stuff just works, and the userdata in searchindifind_cb seems to be the indifindUI
+
+so we believe thta we are correct in taking the userdata in searchfamfind_cb to be the famfindUI*
+
+So we need to get from the famfindUI to the treeinstance. The famfindUI::context variable points to the indiUI on which
+the process was raised (and at the moment we don't raise a findfamUI anywhere else). The indiUI has internal variables
+GEDCOM_object* whofor which should be a pointer to the indi    and
+treeinstance* which   which should be a pointer to the treeinstance on which the indiUI was raised, which is what we need
+
+and that is what indiUI*->whichis() returns
+
+All that suggests that the treeinstance* that we get in the initial callback is correct
+
+OK, so hitting any of the search buttons ends up in famfindUI::searchfind( button )
+
+and we try to decide which treeinstance to search with
+
+this->whichtree()
+
+where this is the famfindUI
+
+so that will call treeinstance* famfindUI::whichtree() {
+
+and we know that happens, because we see the debug line 
+
+
+Attempting to get treeinstance for famfindUI 94888103068032, via context 94888103459600
+
+then the fl_alert "Blew it - NULL treeinstance in search" followed by the inevitable segfault
+
+we do   switch ((strategy>>4)&1) {
+and check cases 0 and 1 (there is a default which returns NULL, but that cannot ever happen, only 0 and 1 are possible)
+
+except case 0 is commented out.Oops.
+
+case 1 returns return ((famUI*)context)->whichis();
+
+which is also wrong,because context is an indiUI
+
+OK, bugger me that's a fix. So next issue is that the competions window is very shambolic indeed.
+
+Three lines are correct matches, but one is a random marriage. We are not reporting the date or the F<id> and the dbox is as wide as the screen.
+
+And choosing one line crashes.
+
+So, we are successfully calling
+
+  famcompletionsbox->open( this->whichtree(),
+                        (char*)find_input->value(),
+                        strategy,
+                        (Fl_Callback*) chosenfamfind_cb,
+                        //(void*) searchfrom->getview(),
+                        x+65, y+55 );
+
+and by the results of the search it looks as though (char*)find_input->value() is sensible.
+I'm not sure that strategy is meaningful here... oh,yes, it must be set in the call when we switch on what button was clicked
+
+
+
+If you close the completions window, there's a callback for that. If you then search for something else,you get a completions window 1 pixel wide. SO the binned_cb fucks up, too
+OK, that one seems fixed having set the right width array members...
+
+------------------------------------------------------------------------------------------------------------------------------
+
+We now have correct values for the spouse names and IDs and the FAM ID in the find box, but hitting OK gets a NULL pointer
+in the class member chosenfam. The procss is that the OK button causes
+
+okfamfind_cb(Fl_Return_Button*, void *userdata) {
+  famfindUI* search = (famfindUI*)userdata;
+  printf("Passing famfindUI OK click to search->OK()\n");
+  search->OK();
+
+search does seem to be getting the famfindUI*
+
+OK, OK, we were assuming chosenfam was a member of this, but, in fact, it's a member of famgotobox in the relevant
+context, so changing that reference, we now get a real pointer and the code works! This indicates that search is
+being set from userdata that isn't pointing to the right thing, so we should pursue that back to see why we are
+not getting that correct. "This works" is not the same as "this code is correct". We need it to be correct and
+then well documented.
+
+We seem to be getting an answer from this->whichtree() which (because this must be a famfindUI) must be calling
+famfindUI::whichtree()
+
+We know that we set the strategy to 16, so >>4&1 will give 1, so we are casting context to indiUI* and returning whichis() on that.
+
+Now there is only one famfindUI instance (which we hide or show, as needed) and it gets set up in main.cxx as
+
+  famgotobox    = new famfindUI;
+
+the constructor sets up user_data((void*)this) on the Fl_Window but doesn't set userdata on anything else (like the buttons) do they inherit ?
+
+No, they get their userdata set in setcontext. Now that's a peculiar bit of code. We explicitly pass a pointer raisedon to it (which
+is also the value we assigned to the famfindUI::context member), but then fail to use it for anything. We set the userdata for all
+the search buttons to (void*)this. But clearly, we do not set the userdata for the "OK" button, which is what we are actually trying
+to use in okfamfind_cb. So when we call search->OK() we are actually passing junk data, and "this" is meaningless in OK
+
+The Cancel button doesn't use the userdata for anything. And the Help button does showhelp( userdata ), so it's userdata is
+supposed to be a pointer to the leaf of the URL for it's help page. That isn't set, and we don't have a help page topoint it
+at, and, for what it's worht, all the help pages we do have point into /usr/local/src/xfamily/html015 (which does exist, but
+is out of date and not really where it should be in an installed system. It should be
+/usr/share/apps/xfamily/help (and should not need a version number in the path). The code suggests
+/usr/local/share/xfamily/help/html/en but we could also go for /usr/share/docs/xfamily/html/en ...
+
+Right, so the findfamUI constructor (and the indifindUI and allthe other UI ones, too) should set the userdata for the help button.
+The userdata for the otehr buttons should also be set in the constructor, whether we have a single instance or not - you always want
+the userdata to be a pointer to the UI on which the button was clicked.
+
+------------------------------------------------------------------------------------------------------------------------------
+
+Since userdata specififes the leafname of the URL of the helppage, we should only need to use a single callback routine
+help_cb() for all the different help buttons. That means these ones become redundant (they all do the same thing)
+
+void helpedit_cb(Fl_Button *, void *userdata) {
+void helpfam_cb(Fl_Button *, void *userdata) {
+void helpindifind_cb(Fl_Button *, void *userdata) {
+void helpfamfind_cb(Fl_Button *, void *userdata) {
+void helpchoices_cb(Fl_Button *, void *userdata) {
+
+
+------------------------------------------------------------------------------------------------------------------------------
+
+Probably the next thing to add is journalling
+
+
+

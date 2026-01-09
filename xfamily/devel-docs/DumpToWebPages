@@ -21,7 +21,7 @@ sequence when converting to ISO dates.
 b) we don't, anyway, offer the user the choice of date format
 
 c) NOTE objects, which often contain census entries which only work well
-in monospaced fonts, use proprtional fonts (we should probably use <pre>)
+in monospaced fonts, use proportional fonts (we should probably use <pre>)
 
 d) we create a <META name="date" tag with a content attribute that presumably
 should be the date the pages were produced - yesterday (2017-11-29) the date
@@ -35,7 +35,10 @@ The process is pretty straightforward - we just run through the chain of INDI
 objects and for each one we
 
 a) generate a web page named with the indi-id followed by .htm[l]
-b) add a line to the index.htm[l] file
+b) add a line to the index.htm[l] file - this, of course, produced a very
+  sensibly ordered index file when !Family was maintaining all the IDNDI objects
+  in collating sequence. Xfamily doesn't achieve that, so yuour index file looks
+ like an alpahbetically-sorted list, but then with a load of extra INDIs at the end.
 
 If we were adding source references we would do a similar job on the
 chain of SOUR objects. Some of our references are just to
@@ -70,7 +73,8 @@ use
 interestingly, our SOUR record doesn't have a URL for a web site (the IGI)
 but instead refers to a REPO, and the URL is there. Strictly, I think that
 is correct, but useful ? less so... I don't want to include the REPO for
-most of the sources.
+most of the sources. The IGI is no longer at the URLs it was when we got
+all the info from it anyway, so this is a clusterfuck of LDS' own cause.
 
 Our understanding of the structure of SOUR records led to sources like
 
@@ -108,5 +112,7 @@ sources we cannot reasonably put on our own website (but we
 often include the source URL in the NOTE objects) whilst
 others like FL and OTW we believe to be out of copyright.
 The Builders of Milford not quite... and we don't have a SOUR
-record for that, by the way...
+record for that, by the way... What we refer to is a transcript
+of a printed source whose REPO is the National Library of Wales at
+Aberystwyth (from where we got it by inter-library loan).
 

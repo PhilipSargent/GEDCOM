@@ -1,0 +1,4 @@
+The lack of a proper bug tracking scheme is starting to tell. At least this directory
+will hold info on single bugs and hopefully each one will get details of how it is
+going wrong, and what code fixes it. The existing system is particularly lax about
+part-fixed bugs I've done some work on.

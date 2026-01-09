@@ -22,8 +22,10 @@ class infoUI;
 class indiUI;
 class famUI;
 class statsUI;
-class findUI;
-class completionsUI;
+class indifindUI;
+class indicompletionsUI;
+class famfindUI;
+class famcompletionsUI;
 class prefUI;
 class notesUI;
 
@@ -51,7 +53,8 @@ class GEDCOM_id;
 
 //   other structures (objects.h/cxx)
 
-class completion_item;
+class indicompletion_item;
+class famcompletion_item;
 
 //   general purpose string container
 

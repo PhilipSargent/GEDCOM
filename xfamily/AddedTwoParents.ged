@@ -1,0 +1,44 @@
+0 HEAD
+1 SOUR !Family_for_RISC_OS
+2 VERS 2.2.7 20170913
+1 GEDC
+2 VERS 5.3
+2 FORM LINEAGE-LINKED
+2 LANG English
+1 LANG English
+1 SUBM @A1@
+1 SCHEMA
+2 INDI
+3 _NINO
+4 LABL NATIONAL_INSURANCE_NUMBER
+4 DEFN United Kingdom National Insurance Number
+4 ISA IDNO
+1 SCHEMA
+2 INDI
+3 _NHSNO
+4 LABL NATIONAL_HEALTH_NUMBER
+4 DEFN United Kingdom National Health Service Number
+4 ISA IDNO
+0 @I3@ INDI
+1 SEX F
+1 FAMS @F1@
+1 NAME Jane Doe
+0 @I2@ INDI
+1 SEX M
+1 FAMS @(null)@
+1 NAME Eric /Smith/
+0 @I1@ INDI
+1 NAME unknown
+1 FAMC @(null)@
+1 FAMC @F1@
+0 @(null)@ FAM
+1 HUSB @I2@
+1 CHIL @I1@
+0 @F1@ FAM
+1 WIFE @I3@
+1 CHIL @I1@
+0 @A1@ SUBM
+1 NAME Andrew Waddington
+0 NOTE Person unknown
+0 NOTE View @I1@
+0 TRLR

@@ -1,0 +1,80 @@
+Compiling XFamily on a new distro
+
+which should also give some hints as to what we will need in order to compile
+on a new platform.
+
+Most recent successful compilation before writing this was on Ubuntu focal
+which uses FLTK 1.3.4.
+
+We're documenting what was needed to move to success on Ubuntu jammy which
+has FLTK 1.3.8. Success achieved (fairly easily) 2022-12-16.
+
+The Makefile has
+
+FLTKHOME = /usr/include/FL
+
+so I don't believe we have a dependency on a particular version of FLTK.
+But we do have dependencies on libraries which you need installed - along with
+-dev versions. Our "NewDistros" instructions are supposed to include these as
+standard when we install a new distro, but if we want to allow compilation by
+other people, we need to make the depedencies clear. In particular, we did
+get a failure on jammy maybe through installing a very minimal distro and
+not doing all the things in the NewDistros instructions. So most obviously:
+
+apt-get install libfltk1.3 libfltk1.3-dev fluid fltk1.3-doc fltk1.3-games python3-fltk python3-fltk-doc
+
+(that includes python bindings for rapid prototyping, which we've never done)
+
+apt-get install pngtools libpng-dev libpng++-dev libjpeg-dev zlib1g-dev
+
+which seems to elicit some confusion over version numbers among
+
+libjpeg-dev - Independent JPEG Group's JPEG runtime library (dependency package)
+libjpeg-turbo8-dev - Development files for the IJG JPEG library
+libjpeg8-dev - Independent JPEG Group's JPEG runtime library (dependency package)
+libjpeg62-dev - Development files for the IJG JPEG library (version 6.2)
+libjpeg9-dev - Development files for the IJG JPEG library
+libturbojpeg0-dev - Development files for the TurboJPEG library
+
+Success on jammy was achieved with
+
+libjpeg-dev:amd64         8c-2ubuntu10
+libjpeg-turbo8:amd64      2.1.2-0ubuntu1
+libjpeg-turbo8-dev:amd64  2.1.2-0ubuntu1
+libjpeg8:amd64            8c-2ubuntu10
+libjpeg8-dev:amd64        8c-2ubuntu10
+
+which we'd already installed either because they came with the base system, or
+we'd picked them up in the apt install line for libjpeg-dev
+
+But the failure we are seeing at jammy was
+
+/usr/bin/ld: cannot find -lXext: No such file or directory
+
+We have (from dpkg)
+
+ii  libxext6:amd64              2:1.3.4-1build1        amd64    X11 miscelaneous extension library
+
+whilst on focal, we had
+
+ii  libxext-dev:amd64           2:1.3.4-0ubuntu1       amd64    X11 miscellaneous extensions library (development headers)
+ii  libxext6:amd64              2:1.3.4-0ubuntu1       amd64    X11 miscellaneous extension library
+ii  libxext6:i386               2:1.3.4-0ubuntu1       i386     X11 miscellaneous extension library
+
+so start by trying the development headers
+
+apt install libxext-dev
+
+and indeed, this seemed to be sufficient to enable building XFamily. This is a useful
+data point in that it shows we didn't need the i386 library.
+
+For testing, you will want an actual tree. For a real machine, you'd want to
+set up /data/users/pub/Family/FamilyTree-gedcom and fetch MainTree.ged from
+subversion. Possibly don't want to do that on a VM set up just for testing
+a new distro, so on glaslyn we set up our link in /usr/local/src/xfamily/v021
+
+andy@glaslyn:/usr/local/src/xfamily/v021$ rm MainTreeLink.ged
+andy@glaslyn:/usr/local/src/xfamily/v021$ ln -s /lan/rawthey/users/pub/pub/Family/FamilyTree-gedcom/MainTree.ged MainTreeLink.ged
+
+and up pop the three windows we had open when the tree was last saved. Tick, VG, that
+seems to be it, then :-)

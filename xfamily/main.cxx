@@ -11,7 +11,6 @@
 #include "trees.h"
 #include "gui.h"
 #include "objects.h"
-#include "xlate.h"
 #include "tags.h"
 
 int main(int argc, char* argv[] ) {
@@ -24,15 +23,15 @@ int main(int argc, char* argv[] ) {
   // things) which language to use
   // here we should parse our command line arguments to see if we
   // want to override those choices
-  // here we load the messages into our static strings:
-  xlate_messages(strdup("en"));
   // we always need a list of tags we recognise
   GEDCOM_base_taglist();
   // and the windows which only exist in single instanciations
   aboutbox   = new infoUI;
   choicebox  = new prefUI;
-  gotobox    = new findUI;
-  completionsbox = new completionsUI;
+  indigotobox    = new indifindUI;
+  indicompletionsbox = new indicompletionsUI;
+  famgotobox    = new famfindUI;
+  famcompletionsbox = new famcompletionsUI;
   // and the linked lists of notes and edit windows, and loaded trees
   noteUIs    = new noteslist;
   editUIs    = new editlist;
@@ -62,6 +61,9 @@ int main(int argc, char* argv[] ) {
   GEDCOMcount = 0;
   treeinstance *first = trees->newinstance( initialtree );
 
+#ifdef debugging
+  printf("returned to main.cxx after treeinstance *first = trees->newinstance( initialtree )\n");
+#endif
   // now find the view of that tree
 
   mainUI *view = first->mainui();
@@ -81,13 +83,20 @@ int main(int argc, char* argv[] ) {
       printf("copied id is '%s'\n",notedid);
 #endif
     current = first->GEDCOM_objectfromref( id );
+#ifdef debugging
+      printf("set current on this tree as %ld\n",(long)current);
+#endif
     // defensive coding in case there was a duff 0 NOTE View like 0 NOTE View @S34@
     // or we got no valid INDI for some other reason (like broken code...)
     if ( (current!=NULL) && (current->objtype() == INDI_tag) ) {
       view->setcurrent( current );
     } else {
       view->setcurrent( first->noted_person() );
+      printf("Warning: we got a NOTE to set the view, but current has come out null\n");
     }
+#ifdef debugging
+    printf("We're about to try to show the first view\n");
+#endif
     view->show();
     // we should now loop looking for additional 0 NOTE View objects
     // and opening a new view for each.
@@ -122,11 +131,22 @@ int main(int argc, char* argv[] ) {
 }
 
 // there are still a few global things left:
+// we are making find/completions dboxes for INDI and FAM separately...
+// we should really have a naming convention for things that are global
+// so I don't need to keep looking here to check
+
+// i think these should really be in family.h, rather than here (2022-03-04)
+// oh, but they are - that is where they are all defined as extern. It is here where we
+// concretely define them (which creates the memory for them). That probably is right...
 
 infoUI       *aboutbox;
 prefUI       *choicebox;
-findUI       *gotobox;
-completionsUI *completionsbox;
+//findUI       *gotobox;
+ indifindUI       *indigotobox;
+ famfindUI        *famgotobox;
+//completionsUI *completionsbox;
+ indicompletionsUI *indicompletionsbox;
+ famcompletionsUI  *famcompletionsbox;
 editlist     *editUIs;
 famedlist    *famUIs;
 noteslist    *noteUIs;

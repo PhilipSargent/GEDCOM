@@ -4,7 +4,7 @@ been removed in v019 in favour of a combination of fix0021 and fix0022.
 v012 was to support the marriage->Later process, and since this still works
 in v019 we clearly achieved our result without fix0012. But what we have
 instead looks complex and I'm not understanding it (it is tied up with this
-business of creating ephemeral objects whewn we edit).
+business of creating ephemeral objects when we edit).
 
 fix0021 is inside fix0022, at least in the indiUI callbacks ...
 
@@ -20,7 +20,7 @@ round.
 The idea of the old fixes was that either of these "new child"
 callbacks would create an indiUI edit box, but that in the case
 of child-in-new-family, one parent would be blank and left
-mutable. We were ding this by a system of ephemeral objects
+mutable. We were doing this by a system of ephemeral objects
 that might be made permanent or binned ... It was looking ugly
 and I have a better way forward (probably).
 
@@ -28,14 +28,14 @@ In !Family, if you have an INDI and want to give him a child in
 a new family, when he had one family you'd choose to add a child,
 and change one parent by simply editing the name in the resulting
 dbox. This is actually a bit opaque and because the code allows
-you to do this, it also allows things that can cause damatic
+you to do this, it also allows things that can cause dramatic
 breakage of your tree by side effects you may not have foreseen.
 
 Our idea is to provide a more explicit interface and to prevent
 editing from having structural side effects. So parent names
 should be immutable in indiUI edit boxes.
 
-The currnet child-in-new and new-child-in menu items are perhaps
+The current child-in-new and new-child-in menu items are perhaps
 not quite explicit enough. I think the interface to create a new
 child should always work by clicking on the equals sign (or date)
 of an existing family and there should be no way to create a child
@@ -49,7 +49,7 @@ have a meni item on an indi to "create family". The process should
 allow for adding a spouse, but should not require it.
 
 Once you have created a family without knowing a spouse, but not yet
-added a child , you have a situation which !Family would automatically
+added a child, you have a situation which !Family would automatically
 garbage collect - a FAM with only one HUSB, WIFE or CHIL would be
 culled. We don't want that to happen here ! !Family may also cull a
 FAM even if there is hard information we want to keep - we might know
@@ -127,12 +127,14 @@ Reports ->   Ancestors
 It may be that both INDI and FAM want a "Structure" next level menu
 so Younger/Older and Later/Earlier can go therein. Of course,
 "New family" or "New child" are also structural, but we can't have
-everyting suddenly drop a level - these operations are "creative"
+everything suddenly drop a level - these operations are "creative"
 rather than "corrective" and need to be in the top level.
 If you are hiding the relative date moving options into a submenu,
 it gets tedious to move someone a long way (more Younger/Older ones
 than Later/Earlier - multiple marriages are much less common than
 big families) so maybe provide ways to move multiple places...
+
+In an ideal world, we'd tick a button that said "order by date"
 
 So both "New family" and "New child" have the potential need to
 create a new person but also potentially to attach an existing one.
@@ -217,7 +219,7 @@ renumber everyone to avoid clashing IDs and perhaps eliminate
 duplicate people over the pair of trees... this would not be v0.20
 probably more like v39.201...).
 
-However, that does raise the issue of indetifying two people in
+However, that does raise the issue of indentifying two people in
 the tree as being the same person and merging as needed - we had
 to do that manually with Samuel Bell, and that was fairly easy as
 there were no further duplicated people to eliminate. GEDCOM has

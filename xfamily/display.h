@@ -122,6 +122,7 @@ indidisplay   *getissue() const;
 void           setissue( indidisplay* );
 bool           later_valid();
 bool           earlier_valid();
+bool           unmarry_valid();
 void           displayfam( int, int, int ) const;
 void           centre( int, int, int ) const;
 GEDCOM_object *whoisat( int, int, int, indidisplay*& indid, famdisplay*& famd ) const;

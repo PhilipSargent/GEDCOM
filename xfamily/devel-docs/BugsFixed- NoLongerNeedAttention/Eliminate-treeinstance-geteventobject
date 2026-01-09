@@ -1,0 +1,83 @@
+In the callbacks, view is (mainUI*)userdata, and we then determine the
+GEDCOM_object represented by whatever was clicked on and store a pointer
+to that by setevent() on the treeinstance.
+
+This is starting to cause grief as it is not specific enough. We can
+always get to the INDI from the indisplay we clicked and to the FAM
+(and also, now, the first INDI in a marriage) from the famdisplay, so
+it would be generally more useful to store pointers to those. In
+particular, knowing which FAM your user clicked on doesn't help when
+you are assessing whether you can do "later", as you need to know
+which INDI is above the marriage. From the FAM we can't tell which
+INDI directly (or even indirectly without a huge overhead), whereas
+from the famdisplay, we could.
+
+So instead of saving a pointer to GEDCOM_object in the treeinstance,
+we'd want to save a generic pointer to either indidisplay or famdisplay,
+in the displaytree
+
+Clarification here:
+
+treedisplay is the actual canvas. It doesn't seem to know about what
+            displaytree it is showing
+
+displaytree is the tree structure we are displaying. It doesn't seem
+            to know what treedisplay canvas it is displayed on...
+
+The class which associates them is the mainUI which knows what canvas
+ it is using (treedisplay* mainUI->display) and what tree structure is
+ displayed there (displaytree* mainUI->tree).
+
+we want, therefore, to extend the displaytree to have a void* eventobj
+which can hold either a famdisplay* or indidisplay*. Properly, we
+should have a polymorphic class of which famdisplay and indidisplay are
+subclasses. And who knows ? maybe one day I will understand C++ well
+enough to rewrite them that way. But for now we just do reinterpret
+casts and save stuff as a void* (which is essentially what we are obliged
+to do with the userdata for the callbacks and that seems (a) to work
+fine and (b) to be at least as easy to understand as anything else.
+
+So use fix0012 to add eventobj to displaytree...
+
+Eliminating the use of geteventobject on treeinstance now means
+passing the mainUI in userdata to all the callbacks (we do need to be
+consistent about this, otherwise it gets very hard to maintain), so
+we need
+
+#ifdef fix0012
+  mainUI*  view = (mainUI*)userdata;
+  displaytree* clickedtree = view->whattodraw();
+  treeinstance* tree = view->whichtree();
+#else
+  treeinstance* tree = (treeinstance*)userdata;
+#endif
+
+and where we were doing:
+
+  GEDCOM_object *family = tree->geteventobject();
+or
+  GEDCOM_object *sibling = tree->geteventobject();
+
+  famdisplay* eventfam = (famdisplay*)clickedtree->getevent();
+  GEDCOM_object* family = eventfam->getfamily();
+or
+  indidisplay* eventindi = (indidisplay*)clickedtree->getevent();
+  GEDCOM_object* sibling = eventindi->getperson();
+
+#ifdef fix0012
+  mainUI* view = (mainUI*)userdata;
+  treeinstance* tree = view->whichtree();
+  displaytree* clickedtree = view->whattodraw();
+  famdisplay* eventfam = (famdisplay*)clickedtree->getevent();
+  newfambox = famUIs->open(tree, eventfam->getfamily());
+#else
+  treeinstance* tree = (treeinstance*)userdata;
+  // we need to get a pointer to our particular view, and then use
+  // the x and y position to see who the menu click was over ...
+  // then fill in all the details of the person. indi_ui probably needs a
+  // member of type GEDCOM_object* (or indeed, Indi*) to say who we are
+  // editing (NULL for a new person yet to be created).
+  newfambox = famUIs->open(tree, tree->geteventobject());
+#endif
+
+

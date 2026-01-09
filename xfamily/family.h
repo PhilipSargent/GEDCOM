@@ -76,9 +76,12 @@
 // any tree we might want to draw, and be representable as both + and
 // - infinity in an int. Some big trees might well be more than sixteen
 // times the width of a screen, I'm not sure that a 16-bit int is up to
-// this job...
+// this job... It turns out that INFINITY is defined in <math.h> anyway,
+// but not everything uses that ... so
 
+#ifndef INFINITY
 #define INFINITY 32767
+#endif
 
 #define GAP 20
 
@@ -91,8 +94,10 @@
 
 extern infoUI       *aboutbox;
 extern prefUI       *choicebox;
-extern findUI       *gotobox;
-extern completionsUI *completionsbox;
+extern indifindUI        *indigotobox;
+extern indicompletionsUI *indicompletionsbox;
+extern famfindUI         *famgotobox;
+extern famcompletionsUI  *famcompletionsbox;
 extern editlist     *editUIs;
 extern famedlist    *famUIs;
 extern noteslist    *noteUIs;

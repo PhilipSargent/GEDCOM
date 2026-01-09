@@ -1,15 +1,30 @@
 New versions:
 
+Copy the current version to a new directory named with a version number +1
+
 You need to change the version number in a few places, most notably
 in MessageSrc and in xlate.cxx where the messages files are loaded
 from a fixed path which includes the version number.
 
 Files like Changes, Upcoming, Bugs probably want new versions, too.
+We really don't have a "proper" system for keeping track of bugs and
+the code fixes intended to address them. Should really have a proper
+bug tracker, and a proper version control system (we already pretty much
+abandoned the internal fix000x conditional compilation stuff for new
+features and bug fixes).
 
 When you have edited MessageSrc, run ./StringFactory.py - the make
 sequence doesn't do this automagically. We probably ought to make
 messages/en a target and run StringFactory.py to make it - any
 other language files will automatically be recreated too.
+StringFactory.py is almost certainly python 2 which needs porting
+to python 3...
 
 You'd need to make messageSrc a dependency for strings.cxx and
-strings.h as well as messages/en and messages/fr
+strings.h as well as messages/en and messages/fr (or make it a
+dependency for the individual message files). The existing way
+of doing this internationalisation is kind of a one-off unique
+to us and not readily amenable to adding new languages. We
+should look at using one of the mainstream methods of doing
+translations of messges. Or just accept that we have a minimal
+user base who all speak English as a first language anyway.

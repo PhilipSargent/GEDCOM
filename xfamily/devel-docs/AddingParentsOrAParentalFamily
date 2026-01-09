@@ -1,0 +1,199 @@
+The normal modus operandi of someone starting to explore a family tree is to start
+with their self as the first INDI. Then you add both parents, and after editing them,
+add your siblings, your grandparents,  and so on, going upwards. The !Family idiom
+for that is that you type names into the parents fields of an INDI's edit dbox and
+those people are created. The mechanism to do that is fairly easy in XFamily, we
+just put "Add" buttons where the (blank) id fields are at the moment in the indiUI.
+
+There is a menu item on an INDI in the gui, which says "Attach". This is the mechanism
+to attach a person in the tree to an existing family - but the menu item is currently
+dead. It is not the most obvious of idioms, and it would be useful to have a menu
+item on a FAM in addition to "New child" which would add an existing person who had
+no FAMC to an existing family. That one could use the existing "Find" idiom to find
+the person you wanted to add. We'd need to implement a filter so only people without
+a FAMC would be listed.
+
+On an INDI menu, there is a "Structure" submenu which includes "Delete" (not implemented,
+but not complex), "Detach" (not implemented, a bit more complex), "Move" and "Attach".
+
+"Move" and "Attach" both need a UI to search for a FAM object to move or attach the
+INDI to. But in many ways, the "Attach" menu item is not the easiest way to present
+this. In many ways, if you have an INDI with no FAMC (ie. both parents blank), you
+might like to have a "find family" button to attach him/her to a family. It
+quickly became clear that having a "Find" button for each parent was a route to
+ambiguity and disaster as this created a mechanism which could (as it does in
+!Family where simply typing in a name which matches an existing person creates a
+relationship which might be entirely unintended) create relationships behind the
+scenes. So the process *must* be to create the FAM object first, then attach
+children to it. That could work by having a single "Find" button which, rather
+than searching for a specific parent, would search for a specific FAM object.
+
+The difficult scenario is when we have an INDI, and know one parent, and can
+add that person to the tree. That will create a FAM object, and we can use the
+FAM edit dbox to fill in the other parent (or, potentially, find an existing
+person). This will only ever happen once to create a parent. If we have
+another person who has the same parent, then that parent will already exist
+in the tree, and we have two possibilities: The two people are full siblings
+and we can search for the FAM to add the person; or the two people are half
+siblings and the parent already in the tree is the one they have in common.
+In the first case, we just search for and attach to the existing FAM. In the
+second, we menu on the known parent, add new family, and then back on the person
+we want to attach, we search for that FAM object. Needs a bit of explaining
+in the manual, but it's not particularly counter-conceptual, and should eliminate
+ambiguity. As long as we have the "Detach" and "Move" options, errors can be
+fixed.
+
+So the first step is to create the revision of the INDI ui which has "Add"
+buttons for each parent and a combined "Find" button which would look for an
+existing family. The you need, when opening an INDI ui, to check whether
+the INDI has a FAMC, and if so, hide the parent id fields and unhide the
+new buttons. That's the call newedit = new indiUI( thistree, editindi );
+in structure.cxx, but insert_details is in gui.cxx
+
+For the fam ui, we check (for each spouse) whether a null is returned, and
+if so, just do
+    husb_id->hide();
+    husb_add->show();
+    husb_find->show();
+so we need a similar process for the five three buttons in the indiui
+
+Which indeed was OK, once we'd created a new message text "findfam" with
+the smae text as "findspouse" and used that. Apparnetly "find" gives us Goto:
+which I don't know the use of...
+
+So now we have the UI, and need to put code in the callsback. The "Add" button
+for one parent should be the easiest - we need to poop up an editindi dbox,
+and when it is saved, create a suitable FAM object and add the new indi as
+a parent (of the appropriate gender). Since we are adding just one parent,
+I don't think it makes sense to also open the famUI (there's nothing we can
+sensibly edit there and clicking an "Add" button would complicate things immensely)
+
+That means adding:
+to the FAM the CHIL pointer to the INDI we are editing,
+           the HUSB or WIFE pointer to the new indi we created
+to the starting INDI add the FAMC pointer to the FAM
+in the new INDI we added (for the parent), a FAMS pointer to the FAM.
+
+It's not permissible to create the new parent with gender unset (that
+should be automagically filled in depending on which "Add" button we
+clicked, just as it is when we do an "Add" for the other spouse in a FAM). It is
+possible for the user to change that, but he can do that in existing families
+anyway, I think. We may have manually the GEDCOM for our one same-sex marriage,
+but, in theory we can do it in the program (we are still stuck with one parent
+being identified as HUSB and one as WIFE because GEDCOM doesn't cope. If a lesbian
+couple each have a baby with donated sperm, we should do something like having
+two FAM objects with the INDIs in the HUSB and WIFE rôles swapped over. I think
+we probably could do that, but I hate to think how the display would work...
+
+Then we need to hide the new buttons, restore the id fields, and fill in name
+and ID for the new parent. On the tree, the new family should appear if the
+person we were editing was the current person, but won't if he was the parent
+of the current person. This is slightly contra-conceptual, so we may want to
+automagically change the current person to be the person we edited in order
+that the new parent appears. Hmm, a bit of an eerie side effect. Actually, it
+is not that simple anyway. The INDI edit dbox where we started exists in the
+context of a treeinstance, on which we may (and usually do) have more than one
+view. We may have moved hte view since opening the dbox, and there is no guarantee
+that the indi concerned is visible on any view we have open. Therefore choosing
+one view and changing the current person is actually a really bad idea. If the
+view is unchanged and the person we added a parent to is the top person, then
+the user will need to click to make that person current (and therefore show
+parents). It may be a bit non-obvious, but it is the only way it actually
+makes sense in the context of a multi-view editor.
+
+When we edit a fam to add the name of a spouse, closing the indi dbox pushes
+the changes into the open fam dbox (and updates it in a way such that hitting
+"Cancel" does not revert to how things were when the dbox was first opened).
+But how did we push that stuff to the other dbox ? There is a mysterious line
+
+  neweditbox = editUIs->open(tree, indi);
+
+where editUIs must be global (it is defined in main.cxx). Doing that is what
+opens the edit ui on the new UI to esit the new spouse. But it doesn't in itelf
+update the fam UI from which it was raised, and I see no obvious way in which
+the closure of that edit sbox has a callback that can know about the famUI.
+
+OK, at this stage we can add a mum to the indi at the top of the tree. My
+first "oh bugger!" is that the edit indi dbox for this new parent, is for
+an INDI with no parnets, so the Add/Add/Find dboxes appear on the UI. That
+has the potential for untold grief so we really want a flag to suppress these
+buttons for edit dboxes that are creating a new person. Secondly, and not a
+great surprise, the mother is created with no problem, but the details don't
+feed back into the original edit indi dbox the way they do to the fam box when
+we add a spouse.
+
+However the good thing is that if you close the dbox and reopen it, you get
+one parent, and the other prent does *not* have an "Add" button, which is indeed
+what we want.
+
+SO on a basic level, we have the functionality to add a parent which is maybe
+enough for the short term (we'll want to do the smae code for adding father).
+However, we need to understnad how to make the original dbox update with the
+new details. When we close the indi ui dbox on adding a spouse (and indeed it
+will be the same when we add the parent), we will get a callback from the
+indiUI of the saved box. It's worth noting at this point that there is a
+similar callback if we click "Apply" but in that case with the add spouse
+scenario, the tree display updates, but the edit indi dbox doesn't. So there
+is something specific that we are doing in the "OK" callback. So these callsback are
+
+void okedit_cb(Fl_Return_Button *, void *)
+void commitedit_cb(Fl_Button*, void*)
+
+The okedit callback looks for any FAMS tag in the closed indi to see if that
+indi was a spouse in a FAM. Or more than one FAM, in fact. If it finds one,
+it follows the ref and calls code to test if there is a fam ui open on the
+FAM to which it points. For every one it finds, it calls refresh_spouse
+on that dbox, like this
+
+  test = edited->subobject(FAMS_tag);
+  while (test!=NULL) {
+    famUI* fambox;
+    if ((fambox = (famUIs->fambox(test->followxref())))!=NULL) {
+      fambox->refresh_spouse();
+    }
+    test=test->next_object(FAMS_tag);
+  }
+
+and the refresh_spouse code shows/hides the relevant id fields or Add buttons.
+
+So (a) we need to add that code to the commitedit_cb callback and (b) we need
+to replicate an equivalent system for refresh_parent on an indi ui. This probably
+all needs to be under fix2022_001. Phew ! Now, what is going to be the equivalent
+discovery code for (famUIs->fambox(test->followxref())) ?
+
+  test = edited->subobject(FAMS_tag);
+  while (test!=NULL) {
+    indiUI* indibox;
+    GEDCOM_object* FAMobject;
+    FAMobject = test->followxref();
+    test2 = FAMobject->subobject(CHIL_tag);
+    while (test2!=NULL) {
+      if ((indibox = editUIs->editbox(test2))!=NULL) {
+        indibox->refresh_parents();
+      test2=test2->next_object(CHIL_tag);
+    }
+    test=test->next_object(FAMS_tag);
+  }
+
+So the callback we are adding code to is void buttonaddindi_ma_cb(Fl_Button*, void*)
+and it will be analogous to void buttonaddwife_cb(Fl_Button*, void*)
+
+
+
+We need to create a UI for family search a bit like the one for finding an
+individual. The search UI could look just the same - fuzzy search for one
+parent, but produce a completions box listing both partners in a FAM object.
+
+So, in the INDI UI, we need to narrow the parent name fields to allow for
+two buttons to the right. Widen the ID fields to fill that space, and
+create three new buttons in gui.cxx, with three new callbacks in callback.cxx
+(and callback.h)
+
+indi_pa_add              void buttonaddindi_pa_cb(Fl_Button*, void*)
+indi_ma_add              void buttonaddindi_ma_cb(Fl_Button*, void*)
+indi_fam_find            void buttonfindindi_fam_cb(Fl_Button*, void*)
+
+Create the callbacks as stubs, and add debug so we can see they are being called.
+
+This is under fix2022-001 although perhaps not everything is covered and it will
+break if I switch that off. Not been careful enough, I think.

@@ -2,9 +2,7 @@
 # this will work are now more than merely minimal. Note that make install
 # is definitely not going to work - and the directory name we run from
 # is built into the code at present, so the program can't be moved anyway
-
-# However, we haven't defined how to build the messages and xlate source
-# files from MessageSrc using StringFactory.py, nor the tag source files
+# However, we haven't defined how to build the tag source files
 # with TagFactory.py
 
 PROGRAM = XFamily
@@ -12,7 +10,8 @@ PROGRAM = XFamily
 # if you have an older/newer version of FLTK, or have installed it in a
 # non-standard place, you will need to change this line.
 # X!Family is known to work with 1.3.0 on precise, fixing several bugs which appeared
-# with 1.0.x and 1.1.x versions. Don't use older fltk versions !
+# with 1.0.x and 1.1.x versions. Don't use older fltk versions ! We were working with
+# 1.3.4 as of focal and 1.3.8 at jammy.
 FLTKHOME = /usr/include/FL
 FLTKLIB  = /
 
@@ -21,10 +20,8 @@ CPPFILES = \
 	structure.cxx \
 	trees.cxx \
 	callback.cxx \
-	strings.cxx \
 	objects.cxx \
 	gui.cxx \
-	xlate.cxx \
 	display.cxx \
         write_png.cxx
 

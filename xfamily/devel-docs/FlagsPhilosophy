@@ -1,0 +1,459 @@
+Actually, since we seem not to have actually used the flags, this is very much not about
+them, but about the segfaults that arise using newly created objects...
+
+Every GEDCOM_object has an internal variable
+
+  unsigned int flags;   // we (probably) need some flags to indicate things like
+                        // this is an ephemeral object which we need to garbage collect
+                        //   if not made permanent
+
+We seem to be setting a flag to indicate non-permanence on a newly-created INDI
+object when we use the "Add" button on an INDI's parent. This is because it is
+possible that the user will click "Cancel" on the resulting edit dbox and our
+idea was that the new INDI would then be destroyed.
+
+This is becoming a nightmare scenario in that it is perfectly possible that
+the new INDI can be made visible in a view and could be clicked on to make
+them current. This currently causes a segfault for reasons that have not
+yet been documented in detail. This is without the issue that the INDI
+might disappear if the user hits "Cancel" on the edit dbox.
+
+However, a grep suggests that we are not actually using these flags anywhere.
+
+So we need to analyse what happens when we create a new parent INDI and try to
+make it current before its edit dbox has been saved.
+
+It is worth reading the indiUI method void canceledit_cb(Fl_Button *, void *userdata)
+
+Comments do witter on about ephemeral objects which we will garbage collect.
+In particular, when the edit dbox was opened, we created tabs for all the life
+events BIRT, CHR, BAPM, DEAT, CREM and BURI. In the cancel callback, we
+check whether the INDI has any of these subobjects, and if they are empty,
+garbage collect. In fact, for a normal edit, this is a waste of effort.
+since if they existed before we opened the edit dbox, they must continue to
+exist after a Cancel, and if they didn't (as is the case for a newly created
+INDI) they are not there to delete. But I am seeing evidence for the idea
+that I did, in fact create them when the dbox was opened. That's almost
+certainly a bad idea. SO we need to examine the person creation processes
+critically*.
+
+Ah, you can get a segfault by clcking Cancel on a open dbox of a newly created
+parent, too. The last line of debug is
+
+current tag is FAMC next would be 0
+
+It's not that 0 which is a NULL pointer which we dereference (I think) - it
+just indicates the end of the INDI object, but it must be the FAMC pointer
+that is broken (or it may be something else that happens after we reach
+the last subobject).
+
+* new IND creation in the Add parent context is 
+void buttonaddindi_ma_cb(Fl_Button*, void *userdata)
+
+We create an edit dbox
+We create an INDI object with a new ID and a SEX tag, then we
+ insert that into the linked list of INDIs for the tree.
+...
+
+that all looks kosher except we do both
+  parent_id->GEDCOM_setobjectforid( parent );            // this adds the new ID to the INDI tag, so it is valid. Why did the constructor not do this ?
+  fam_id->GEDCOM_setobjectforid( fam );                  // as above, why did this not happen in the constructor anyway ?
+ which both look like things the constructor should have done:
+  GEDCOM_object* parent = new GEDCOM_object(parent_id,INDI_tag);    // this actually creates the new INDI object. It is not yet linked
+  GEDCOM_object* fam = new GEDCOM_object(fam_id,FAM_tag);// create the new FAM
+
+Incidentally, looking at freshindi and freshfam, we note that new INDIs get inserted
+at the head of the linked list, and new FAMs get inserted at the end of that list.
+The logic was that we intended to keep INDIs in collating sequence by NAME (which
+!Family does, but we haven't implemented) but at the point of creation, the new
+INDI does not have a NAME at all. Putting it at the head of the list minimises
+the overhead when we search the list with the intention of moving the newly NAMEd
+INDI into sequence. This is of absolutely no importance in GEDCOM terms, but makes
+life that bit easier if you also intend to manually edit the GEDCOM outside of
+XFamily (or !Family).
+
+Once we have the new INDI created and linked, all looks as though it should be
+perfectly kosher EXCEPT that we don't create a
+
+2 NAME <unnamed>
+
+object - it is the tree display code that uses <unnamed> when there is no name
+tag. This seems likely to be a potential source of grief (even if not the actual
+grief we are trying to solve). Hitting Cancel leaves the INDI with no NAME, as
+does hitting "OK", in fact, since we won't save a NAME object back into the GEDCOM
+if the name is blank. So one thing that would be useful is that a blank NAME
+field is saved into GEDCOM with an actual placeholder object. This doesn't
+solve Cancel. It's important to note that when we create the INDI we don't
+create a NAME subobject, and Cancel doesn't change that. We could readily
+create a NAME in buttonaddindi_ma_cb (or any other process that creates a new
+INDI object). In the case of creating a new child, we always add
+2 NAME /surname/ in the very reasonable expectation that the child will have
+the surname of an existing parent. For a new father, we could make the same
+guess. But for a mother, we don't want to put a surname in just to annoy the
+user who will have to get rid of it.
+
+Need to have a look at the creation of a new child, too - in this case, if you
+hit Cancel in the edit dbox, the child does disappear properly from the tree.
+Since we had created an INDI with a NAME, which is therefore not empty, how do
+we decide we can lose it ?
+However, the next id number remains incremented. We had it in mind that if
+you get rid of an INDI whose ID was the current maximum ID, you could decrement
+that number back again.
+
+Creation of new FAM (at bottom of a tree) permanently creates it, hitting Cancel
+in the dbox does not make it go away. We do need to resolve these issues and
+make the interface consistent. Work out what "Unmarry" does to such a new family.
+The Fam ought to have been created as
+
+1 @F<nnn>@ FAM
+2 HUSB/WIFE @I<nnn>@
+
+and
+
+1 @I<nnn>@ INDI   ; which already existed, but we will add
+2 FAMS @F<nnn>@
+
+Unmarry should remove both of those level 2 tags, and since the FAM will be
+empty, we think it will properly be removed. What happens if we do "Unmarry"
+on a FAM with children ? Apparently nothing. Oh, dear... I think we haven't
+thought out these menu items very well (and some, of course, are not
+implemented, like "Detach" which I believe was intended to remove a child
+from a FAM). Detach looks as though this is a recipe for producing people
+who are not in the tree and can't be navigated to, but, in practice, you use
+"People->Find" to view the isolated person and Attach them somewhere else
+with the "Attach" menu item (which is also not implemented, of course).
+At the very least, these menu items should be greyed out when they are
+meaningless (you can't Detach or Move someone who has no FAMC tag, nor
+"Attach" someone who does).
+
+But, meanwhile, we digress. Why are we segfaulting with a new parent ?
+
+Firstly, we should always create a NAME subobject, even if it is blank,
+and we should not automagically delete an INDI with a blank NAME. When
+we create a new parent, we should not be waiting for the user to hit
+OK or Apply on the dbox before we remove the Add/Find buttons on the
+originating one. "Add" parent should always create a kosher new INDI
+and update the original dbox (with refresh_parents()) immediately.
+OK, we do that now, but we still segfault. Here is why in
+canceledit_cb(Fl_Button *, void *userdata)
+
+edited is the GEDCOM_object for the INDI who was the subject of the edit:
+
+  GEDCOM_object *test=edited->subobject();
+  int status = 0;
+  int count = 0;
+  GEDCOM_tag* tag;
+
+  while (test != NULL) {
+    tag = test->objtype();
+    if (tag==unsaved_tag) {
+      status = 1;
+    } else {
+      if ((tag==FAMC_tag)||(tag==FAMS_tag)) {
+        count += 1;
+      } else {
+        if (tag!=NAME_tag) count += 2;
+      }
+    }
+    test = test->next_object();
+  }
+  if ((count<2)&&(status==1)) {
+    treeinstance* tree = indibox->whichis();
+    printf("Canceled edit on newly created INDI with no reason to retain - deleting it\n");
+    tree->remove_indi( edited );
+    tree->redraw();
+  }    
+
+so we are working through the entire list of subobjects of the new INDI. What is
+unsaved_tag ? This seems to be critical and seems to be what we have used instead
+of actually using the flags member of the GEDCOM_object.
+
+If we hit OK in the edit dbox, we search for unsaved_tag and delete it. Ditto for
+Apply.
+
+When we create a new child in void newchild_cb(Fl_Menu_ *menu, void *userdata),
+we add an unsaved_tag to the new INDI. This is what enables us to remove the
+child cleanly if the user hits Cancel in its dbox (I think).
+
+So we *don't* add an unsaved_tag to a newly created parent. Doing so might be a
+worthwhile idea ? But you will then need to work out whether the tests and
+actions taken in canceledit_cb do the right thing for a parent as well as a
+child. So what are those tests actually doing ?
+
+We are adding 1 to count for either a FAMC or a FAMS tag (a newly created child
+should have just one FAMC). We add nothing for a NAME tag, and add two for any
+other tag. Remember that this is when we have saved no data from the dbox into
+the GEDCOM, so our new child should look like
+
+1 @I<nnn>@ INDI
+2 NAME /surname/
+2 FAMC @F<nnn>@
+2 unsaved
+
+which will give a count of 1 and a status of 1 which will cuase it to be deleted.
+    tree->remove_indi( edited );
+if implemented properly will follow the FAMC and remove the corresponding CHIL,
+then remove the INDI. That's clean and safe, we think. It will never remove
+the FAM - we consider a FAM with either a HUSB or a WIFE to be valid, even
+with no CHILs (that's how families are before we add a second spouse or a child).
+
+How do we do the equivalent for a parent ? A new parent will look like
+
+1 @I<nnn>@ INDI
+2 NAME /surname/
+2 FAMS @F<nnn>@
+
+and we must have created
+
+1 @F<nnn>@ FAM
+2 HUSB/WIFE @I<nnn>@        ; for the newly created parent
+2 CHIL @I<nnn>              ; for the ID of the original dbox
+
+so the equivalent test as above will again find count==1, but this time we
+didn't create an unsaved_tag. If we had done so, then we'd pass the test
+for deleting the new parent.
+
+But remember that this new parent's dbox also had "Add" buttons for its
+own parents, and we could indeed have opened a dbox to create one. In
+that case, the (parent) INDI will now have a FAMC, count will come out as 2 and
+the test will not lead to deletion. At this point, hitting Cancel (in the
+parent, either with the grandparent dbox still open, or having hit "OK" or
+"Apply" in that) will give you an anonymous parent. There's grief ahead ...
+If we had saved the grandparent, then we have an essentially kosher parent
+with a FAMC, a FAMS and *also* an unsaved_tag which fails the "need to delete"
+test and will become "permanent". If we hadn't saved the grandparent and now
+hit Cancel, the test there will be passed and that INDI and FAM will go away.
+If that's done cleanly, the FAMC in the parent we created first will also
+go away. So now it will look like
+
+1 @I<nnn>@ INDI
+2 NAME
+2 FAMS @F<nnn>@
+
+with FAMS pointing at
+
+1 @F<nnn>@ FAM
+2 HUSB/WIFE @I<nnn>@        ; for the newly created parent
+2 CHIL @I<nnn>              ; for the ID of the original dbox
+
+as before. Technically that's all kosher, but the hitting of "Cancel" in
+the parent will not have had the hoped-for effect, but more critical,
+if we had created the unsaved_tag we now have something nasty in the tree.
+Strictly, the existence of the unsaved_tag in the parent would mean that
+it should indeed be deleted. So deleting the grandparent would need to
+do some regression. But we are, once again, in the critical position that
+these people may have appeared on the display and maybe made current, so
+we would not only need to recalculate the display (not really a problem)
+but also guess a new current person (definitely harder, though we could
+probably just drop down the tree to the CHIL of the FAM we will be
+deleting). It's a bit of a can or worms and will need some very explicit
+explanatory comments, but the first step is to DOCUMENT this unsaved_tag
+which I seem to have invented and not adequately thought through.
+
+NOTE to self: we also don't use unsaved_tag when we Add a spouse. Nor
+do we do refresh_spouse on the famUI dbox as we now think we should.
+
+Progress:
+
+added the unsaved_tag in both buttonaddindi_ma_cb and buttonaddindi_pa_cb
+similarly in both buttonaddwife_cb and buttonaddhusb_cb
+
+That means that canceledit_cb will at least be able to be aware.
+
+For a new parent with no added grandparent, this should now mean Cancel
+will delete the INDI. No code added for regression down from grandparent...
+
+okedit_cb and commitedit_cb contains code for removing the unsaved_tag
+(on an INDI) and obviously if we delete the INDI/FAM then this goes away).
+Need similar for FAM. OK, added that, very easy, but code is boilerplate,
+four times, so we should factor it into a method
+void GEDCOM_object::statussaved() {
+  GEDCOM_object* test;
+  test = edited->subobject();
+  while (test!=NULL) {
+    if ((test->objtype())==unsaved_tag) {
+      edited->delete_subobject(test);
+      break;
+    }
+    test = test->next_object();
+  }
+}
+
+except edited should be "this". Is that kosher C++ ? Need to go and look in objects.cxx...
+
+Anyway, current state is that the unsaved tag is added. It's clear that the unsaved tag
+does not get included when we do a saveas (so the ephemerality is lost in the saved
+file). This raises an issue of using saveas at all while there are unsaved edit dboxes
+open (a can of worms for another day). But meanwhile, the code seems to run fine with
+these unsaved_tags dotted about but we can't see where they are if they don't get saved,
+so perhaps we need a flag for debugging which makes saveas actually output these tags
+so we can see where they are...
+
+NEXT need to implement the test for count/status for Cancel on FAM dbox.
+Need to explain why, having added unsaved_tag for a parent, the test is not
+disappearing that newly created <unnamed> parent on Cancel. And trying to make
+that parent current stills segfaults. On this occasion the last debug line was
+
+attempting to set current to this object 93973745169664:
+0 @I194@ INDI
+...
+current tag is FAMS next would be 0
+
+my suspicion is that we have a blank NAME, and we crash trying to dereference the
+string that doesn't exist. No, no, we just don't have a NAME, so the seach returns
+NULL and we are not bothering to check. But where ? In set_current (we want the name
+for the title bar) And what to do ?
+
+OK, the actual crash is caused by a debugging line
+
+  newperson->subobject( NAME_tag )->print( 1 ); // diagnose
+
+which will be passing NULL to the print code.
+
+so we can do a NULL check there very easily. But then
+
+  this->settitle();
+
+OK, that one is NULL-safe.
+
+OK, so making the debug print NULL-safe fixed the barf. And we now get a window
+title ... <unnamed> which causes us to notice that if we change the name of the
+current person, the window title doesn't get updated to reflect this.
+
+
+Either check in Set_current for a NULL return value, and use "<unnamed>" or set
+an actual (but empty) NAME tag when we create the INDI.
+
+Note on dumping GEDCOM
+
+In the code that writes out a GEDCOM file, we do not write out any object which
+has no value, *except* TRLR. This means we don't output any unsaved_tag objects
+(which is normally what we want). It will also mean we don't output a NAME
+object if there is no actual value for the NAME tag (this is possibly a bad
+thing).
+
+In the code that *prints* a GEDCOM_object, we do print everything, so the debugging
+code which dumps objects should show us unsaved tags.
+
+If we would like to dump unsaved_tag objects to an output file, then we'd want
+to set a value when we add the unsaved_tag subobject. This is potentially iffy
+unless we put code in to the output stuff to recognise the tag. What we could do
+would be to look for an unsaved subobject, and if found, print the object (with
+its unsaved tag) to the debug stream, but output it to the file without that
+tag.
+
+But meanwhile to look back at the issue we were trying to solve. Now that we've
+eliminated one bit of NULL dereferencing, the following happens when we do "Cancel"
+on a newly added parent dbox.
+
+1) In top person, we do "edit" and get a dbox with "Add" buttons for both parents.
+
+2) When we click one of these, we pop up an edit dbox for a newly added parent.
+We now immediately call refresh_parents() so that the Add/Find buttons go away.
+
+If we hit "Cancel" in the new dbox, we still get the new parent added to the tree,
+with a SEX tag, but no NAME tag like:
+
+0 @I196@ INDI
+1 SEX F
+1 FAMS @F75@
+
+0 @F75@ FAM
+1 WIFE @I196@
+1 CHIL @I195@
+
+We can successfully load this back into the program.
+
+However, that's not really what our user would have hoped for. In an ideal world,
+when we Cancel on a person with an unsaved_tag, we should try to back out the creation.
+But we can't do this if the person has had another set of parents added. To avoid
+this, an unsaved person should *never* have the Add or Find buttons in the indiUI.
+Both parent names are empty, and it does no harm for the IDs to be empty (we could
+create the dbox with neither the buttons nor the id visible, and there is an argument
+for not showing parent name fields, except that makes the layout look silly. Could
+we grey out these fields ? Well, maybe, but we probably don't need to. Lets see if
+we can just hide the buttons so the user can't add another layer of parents.
+
+So buttonaddindi_pa_cb/buttonaddindi_ma_cb creates an INDI with no name and opens
+the edit dbox thus:
+
+  neweditbox = editUIs->open(tree, parent);
+
+which is indiUI* editlist::open( treeinstance* thistree, GEDCOM_object * editindi ) in structure.cxx
+
+this gets the editUI populated by calling
+
+  if (editindi!=NULL) newedit->insert_details( editindi ); which is in gui.cxx
+
+
+OK, so now we test for     if ((thisindi->subobject(unsaved_tag))==NULL) {
+ and only if there is indeed no unsaved_tag will we show the buttons. This means
+that even if we hit "Cancel" and then reopen an editUI on the (<unnamed>) new
+INDI, we (still) don't get those buttons. That doesn't really matter if the idea
+now is that we have a "safe" ephemeral INDI that cannot have parents added to create
+a new FAM. But for this to be properly safe, remember that as long as the editUI
+remains open, the <unnamed> INDI does appear in the tree, so we also have to grey
+out all the menu items (especially New Family and Structure) that could be used
+to ingrain the ephemeral INDI in a way that makes it hard to back out. You can
+see that only a software QA person trying to break the code would think to do most
+of this stuff, but I am that person ;-)
+
+So (a) commitedit_cb and okedit_cb must check for an unsaved_tag and remove it.
+Doing that should mean that when they call refresh_parents(), the buttons can
+(and will) reappear. Oh, yes, we already do that. But the buttons don't appear,
+because now we have one parent so the ID appears ... But what we might want is
+the "edit family" button we discuss below.
+(b) canceledit_cb can check for an unsaved_tag and fully back out the existence
+of the new INDI, possibly doing a set_current to the only CHIL (it needs to do
+this only if the disappearing person was current, but it *will* need to recalculate
+the display tree if the disappearing person was being shown. That also happens
+only if the only CHIL was indeed the current person, in which case setting that
+person to be current again will recalculate the display.
+Right, this is the test we have already noted where we end up doing if ((count<2)&&(status==1))
+and removing the INDI. We have not been removing it, so the test is not working.
+And if it did, we are currently removing the INDI and doing tree-redraw(); without
+worrying about the person we just deleted being current in any view.
+
+But remember that we need to do these checks on **EVERY** view on this treeinstance.
+
+Right, now we will have a quick think about the other circumstance (other than
+our starting person being top of the tree) under which we may want to add
+parents. This is that we have someone in our main tree, who marries someone
+and we have the data for the parents of the spouse. These will be "out of view"
+so the current mechanism can only add one parent without making the spouse whose
+parents we want to add current. We'd probably prefer not to do that. The way to
+add the other spouse is to open a famUI on the family. There's no reason we can't
+do that on a family that is not shown in the current view. To make that possible,
+we have two choices.
+a) when we add a new parent, and save that INDI, refresh_parents will leave the
+second spouse undefined, with no Add/Find buttons. So one idea is to add a button
+which will open the famUI on that family (next to the undefined spouse). That
+will simply open the famUI, and allow adding a spouse in the usual way. okedit
+on that famUI should already be doing a refresh_parents on the editUI on the CHIL.
+I'm fairly sure it isn't actually calling that, because, by now, we potentially
+could have added extra children, and we'd need to be refreshing the parents on
+the editUIs of any CHIL we had open. Yes, that is desirable...
+b) We could have an item in the pop-up menu on the INDI to "edit parental family".
+This would do exactly the same as above, and would equally need to do the check
+for all CHIL tags in the family to update any editUI that might be open with
+refresh_parents.
+
+Since, conceptually, after using "Add" for one parent, the logical thing would
+seem to be to have an "Add" button for the other spouse, having a button appear
+in the obvious space to give a methd to do that would seem much more natural.
+We'd have a wider button with "Edit family". The possibly less obvious route
+would be to keep the Add button, but clicking it would need to open the famUI, and
+act as though the "Add" button had been hit for the other spouse. That would
+be opening two dboxes which seems not very obvious, even though actually less
+work for the user.
+
+So, to me, option (a) seems the one to go for.
+
+But scenarios open. Now, I think, what if we want to add a parent, but that
+parent is already in the tree, but does not yet have a FAM (or has a FAM, but with
+the wrong spouse for this issue). The current way would be to get a view which
+included the parant, do a "New family" and possibly add a spouse, then use "Find"
+in the editUI for the child. "Find" is really exactly the same as "Attach" in the
+pop-up menu. It needs to open a "Find family" UI to locate the FAM concerned.
+We do need to write that before we can get much furhter in thinking what and how
+to make the interfaces readily understood/found.

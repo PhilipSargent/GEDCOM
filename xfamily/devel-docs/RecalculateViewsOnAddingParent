@@ -1,0 +1,95 @@
+Ah, but here's a thing. Open the Rodd tree, and make Alice Sandford current.
+Open a second view. Open an edit dbox on her, add a mother. Make Alice
+Current again in one view (so the mother appears). Open an edit on the
+family and add the father OK and save all these dboxes. The first view
+now has these two parents, with the mother as top of tree. Make Alice
+current on the second view. This view now has the two parents, but with
+the father top of tree. Back in the original view, delete the father.
+That view seems fine. But the other view suddenly changes to show just
+one isolated person, who is anonymous and ungendered. Where the fuck
+did that come from ? Menu on that person does not get a pop-up. If
+we save the file, both 0 NOTE View lines are for @I112@ which is
+Alice Sandford. There is no anonymous INDI in the saved file, and a
+People->Find starting with no string and hitting fuzzy match lists
+everyone in the tree - there is no ungenedered anonymous person there,
+either. My suspicion is that we have a pointer to the deleted person
+and that the underlying object has gone. Deciding to try some tests
+for anonymous persons, I tried to add a New CHild to a random family
+in the main view. The family poop-u menu opened OK, but as soon as
+I clicked on New Child, I got a segfault.
+
+OK, in the view with the anonymous person, the title bar still says
+Alice /Sandford/. In hte view with the parental family (now just the
+mother) a po-up on the family allows me to open a famUI successfully
+and it looks as you'd expect. But add a marriage date and click on OK
+and it segfaults. We are not getting any alerts from the integrity
+checker - I suspect the actual tree is OK, but the problem is with
+the mainUI display structures.
+
+I need to work out what gets called when we delete the father and the
+views are recalculated. One clue is that if you reverse the order of
+"Create mother" and "Open new view", the new view opened does show the
+mother. That means that this view gets created properly with Alice
+Sandford current, but the view in which we added the mother is not
+being properly recalculated (she should show up there when created).
+
+This process starts with an editdbox, and the invocation of its
+"Add" button for a mother. With two views open on the tree,
+neither gets the new person shown. But making Alice current again
+gets the parent shown even before a commit or OK. It is at the
+point where we create the new INDI that a redraw should make the
+new person visible. SO, from clicking "Add":
+
+buttonaddindi_ma_cb creates a new INDI, creates a new FAM and links
+         them viw paired WIFE/FAMS and CHIL/FAMC tags. The opens an
+         indiUI on the new parent, calls refresh_parents() on the
+         original (child) indibox (which changes the buttons there
+         and shows the (still nameless) mother with an ID. I194 as
+         it happens in this case
+
+Then we call tree-redraw() [actually we do that before dealing
+with the indiUI boxes, but I don't think that's critical).
+
+Clearly we believe that tree-redraw() will redraw the mainUIs
+for every view on the treeinstance. And yes, tree is a treeinstance,
+not a treedisplay.
+
+void treeinstance::redraw() {
+mainUI * view;
+  view = firstview;
+  printf("treeinstance redraw firstview %ld\n",(long)view);
+  while (view != NULL) {
+    view->newdisplay();
+    printf("Done newdisplay(), will call redraw on %ld\n",(long)view->window);
+    view->window->redraw();
+    view = view->getnext();
+    printf("treeinstance redraw next view %ld\n",(long)view);
+  }
+}
+
+So clearly we believed that view->newdisplay() would recalculate the
+treedisplay (there are only two calls to ->newdisplay() in all the
+code. One here, and one in gui.cxx, within mainUI::setcurrent()).
+
+We know that setcurrent (on the same person that alrady was current)
+does refresh the display as we would want. It does
+
+  this->settitle();
+  this->settop();
+  this->newdisplay();
+  this->centre_current();
+  if (redraw) this->show();
+
+So treeinstance::redraw is only doing the newdisplay bit, not the other bits,
+which, most importantly, means we didn't do settop().
+
+So adding those steps to treeinstance::redraw() when we add a new parent now, ALL
+views now update correctly and immediately to show the new parent. Ah, and when
+we add a second spouse, ALL views also change so the father is shown above the
+mother - you have to make the mother current to swap them over. Now when we delete
+the fahter, ALL displays update correctly. So that seems to be a fix.
+
+
+
+
+

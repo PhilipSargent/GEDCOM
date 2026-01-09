@@ -12,6 +12,7 @@ class treeinstance {
   treeinstance *next;
   treeinstance *previous;
   mainUI       *firstview;
+  int           UIcount;
   statsUI      *statsbox;
 
   GEDCOM_object *rootobject;
@@ -35,11 +36,14 @@ class treeinstance {
   int famcount;  int maxFAMid;
   int sourcount; int maxSOURid;
   int repocount; int maxREPOid;
+  int linecount;
   bool modified;
 
 public:
   treeinstance();
   ~treeinstance();
+// debug method
+  void dump();
 // methods to traverse/maintain linked list
   treeinstance * getnext() const;
   void setnext( treeinstance * );
@@ -55,9 +59,16 @@ void remove_fam( GEDCOM_object* );
 // methods for loading and saving GEDCOM
   GEDCOM_object* getGEDCOMline( FILE*, GEDCOM_tag**, int*, const int);
   void loadGEDCOMfile( const char *);
-#ifdef fix0014
   bool integritycheck();
-#endif
+  // integritycheck was huge and monolithic and has now been split into comprehensible chunks
+  // which could nominally be used independently, so they are also public (but really intended for internal use)
+  // for a little extra overhead, we've also reduced boilerplate repetition.
+  bool integritycheck_indi( GEDCOM_object*);
+  bool integritycheck_parent( GEDCOM_tag*, GEDCOM_object*, GEDCOM_object*);
+  bool integritycheck_famc( GEDCOM_object*, GEDCOM_object*);
+  bool integritycheck_fam( GEDCOM_object*);
+  bool integritycheck_spouse( GEDCOM_tag*, GEDCOM_object*, GEDCOM_object*);
+  bool integritycheck_child( GEDCOM_object *, GEDCOM_object*);
   void setfilename( char* );
   void save() const;
   char* getfilename() const;
@@ -79,7 +90,8 @@ void remove_fam( GEDCOM_object* );
   int getnextrepo();
 
 // methods for traversing/maintaining GEDCOM structures
-  GEDCOM_id* add_id( char* );
+  GEDCOM_id* add_id( char* );    // it might help if this had a better name like create_id
+                                 // but .cxx says we should never use it, so perhaps check and remove ?
   void add_id( GEDCOM_id* );
   void drop_id( GEDCOM_id* );
   int GEDCOM_objectforref( char*, GEDCOM_object* );
@@ -101,6 +113,8 @@ void remove_fam( GEDCOM_object* );
   mainUI* mainui() const;   // first view in list, then use mainUI::getnext()
   statsUI* statsui() const; // only one stats window
   void addview( mainUI* );
+  int viewcount();
+  void removeview( mainUI*);
   void redraw();
   void reopen();
   void setevent( GEDCOM_object* );

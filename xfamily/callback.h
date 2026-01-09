@@ -50,16 +50,14 @@ extern void gplinfo_cb(Fl_Button*, void*);
 // callback routines for indiUI
 
 extern void edit_cb(Fl_Menu_ *, void *);
-#ifdef fix0022
-extern void childnew_cb(Fl_Menu_ *, void *);
-#endif
 extern void okedit_cb(Fl_Return_Button *, void *);
 extern void canceledit_cb(Fl_Button*, void*);
-extern void restoreedit_cb(Fl_Button*, void*);
+/* deprecate the Restore concept extern void restoreedit_cb(Fl_Button*, void*); */
 extern void commitedit_cb(Fl_Button*, void*);
-extern void helpedit_cb(Fl_Button*, void*);
-extern void searchma_cb(Fl_Button*, void*);
-extern void searchpa_cb(Fl_Button*, void*);
+//extern void helpedit_cb(Fl_Button*, void*);
+extern void buttonaddindi_ma_cb(Fl_Button*, void*);
+extern void buttonaddindi_pa_cb(Fl_Button*, void*);
+extern void buttonfindindi_fam_cb(Fl_Button*, void*);
 extern void famnew_cb(Fl_Menu_ *, void *);
 extern void deleteindi_cb(Fl_Menu_ *, void *);
 
@@ -68,13 +66,15 @@ extern void deleteindi_cb(Fl_Menu_ *, void *);
 extern void famed_cb(Fl_Menu_ *, void *);
 extern void okfam_cb(Fl_Return_Button *, void *);
 extern void cancelfam_cb(Fl_Button*, void*);
-extern void restorefam_cb(Fl_Button*, void*);
+/* deprecate the Restore concept extern void restorefam_cb(Fl_Button*, void*); */
 extern void commitfam_cb(Fl_Button*, void*);
-extern void helpfam_cb(Fl_Button*, void*);
+//extern void helpfam_cb(Fl_Button*, void*);
 extern void buttonaddhusb_cb(Fl_Button*, void*);
 extern void buttonfindhusb_cb(Fl_Button*, void*);
+extern void buttonremovehusb_cb(Fl_Button*, void*);
 extern void buttonaddwife_cb(Fl_Button*, void*);
 extern void buttonfindwife_cb(Fl_Button*, void*);
+extern void buttonremovewife_cb(Fl_Button*, void*);
 extern void newchild_cb(Fl_Menu_ *, void *);
 extern void unmarry_cb(Fl_Menu_ *, void *);
 
@@ -85,15 +85,25 @@ extern void savescr_cb(Fl_Menu_ *, void *);
 
 extern void stats_cb(Fl_Menu_*, void* );
 
-// callback routines for findUI
+// callback routines for indifindUI
 
-extern void find_cb(Fl_Menu_*, void* );
-extern void okfind_cb(Fl_Return_Button*, void* );
-extern void binnedfind_cb(Fl_Window*, void* );
-extern void searchfind_cb(Fl_Button*, void* );
-extern void chosenfind_cb(Fl_Select_Browser*, void* );
-extern void completionbinned_cb( Fl_Window*, void* );
-extern void helpfind_cb(Fl_Button*, void* );
+extern void indifind_cb(Fl_Menu_*, void* );
+extern void okindifind_cb(Fl_Return_Button*, void* );
+extern void binnedindifind_cb(Fl_Window*, void* );
+extern void searchindifind_cb(Fl_Button*, void* );
+extern void chosenindifind_cb(Fl_Select_Browser*, void* );
+extern void indicompletionbinned_cb( Fl_Window*, void* );
+//extern void helpindifind_cb(Fl_Button*, void* );
+
+// callback routines for famfindUI
+
+extern void famfind_cb(Fl_Menu_*, void* );
+extern void okfamfind_cb(Fl_Return_Button*, void* );
+extern void binnedfamfind_cb(Fl_Window*, void* );
+extern void searchfamfind_cb(Fl_Button*, void* );
+extern void chosenfamfind_cb(Fl_Select_Browser*, void* );
+extern void famcompletionbinned_cb( Fl_Window*, void* );
+//extern void helpfamfind_cb(Fl_Button*, void* );
 
 // callback routines for prefUI
 
@@ -101,7 +111,7 @@ extern void choices_cb(Fl_Menu_*, void* );
 extern void okchoices_cb(Fl_Button*, void*);
 extern void cancelchoices_cb(Fl_Button*, void*);
 extern void applychoices_cb(Fl_Button*, void*);
-extern void helpchoices_cb(Fl_Button*, void*);
+//extern void helpchoices_cb(Fl_Button*, void*);
 
 // callback routines to drive notesUI
 

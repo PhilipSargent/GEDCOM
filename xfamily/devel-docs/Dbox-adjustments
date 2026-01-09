@@ -1,0 +1,65 @@
+Dbox adjustments
+
+With extra buttons and ID fields, we are getting to a point where we will need
+to make some adjustments to the layout of the INDI and FAM dboxes to accomodate
+buttons with longer words, and try to make the dboxes consistent with each other.
+
+At present the various name fields (Husband, Wife, Name, Father, Mother) are all
+the same width and to their right is a field to hold the ID of that person, if
+they are filled in. Otherwise we variously have "Add" and "Find" buttons. We
+are now considering having, for the spouses in a FAM dbox, a "Remove" button
+which would have to share space with the ID field. But it would need to be a
+little larger than a "Find" button to show the word "Remove". We'd also be
+shrinking the ID field to allow space for "Remove" and I don't want to have to
+keep changing the width of that, just hide() and show() are all we want to be
+doing.
+
+Whilst we are on consistency, you'll notice that both the "Date" and "Time" fields
+for FAM events are wider than for INDI events. This is because for just the Death
+event in an INDI, we also have an "Age" field for which we want to allow space,
+whilst keeping the "Date" and "Time" fields the same size between tabs.
+
+We are already in the postion that just a very few of the family have names too
+long for the space in the edit dbxes, but we note that none of the Husband,
+Wife, Father or Mother fields are editable, just the "Name" in the indiUI.
+So I'm going to propose making that wider, and moving the ID field down to the
+row with "Title" where we can indeed have enough space to label it "ID"
+
+Current widths:
+
+fullw (place, site, plot, cause) 390
+smallw
+redw (name, husband, wife,
+      father, mother)            280 already reduced from 310
+smallw (title)                   255 bigger than really needed
+idw                              105 already increased from 75
+addw                              50
+findw                             50 not big enough for a "Remove" button
+datew (INDI)                     130
+timew (INDI)                      90
+agew                              50
+
+OK as at v0.21 2022-02-19, I've made the name field on an indiUI full width
+of the dbox, and move the ID to the following line, shortening title somewhat.
+
+Ah, I've broken it - editing an INDI with no parents is no longer showing the
+Add/Find dboxes. Bollocks ... that will be a side effect of removing the
+unsaved_tag code, I expect... No, it is an effect of loading a broken GEDCOM
+to test the integrity check alerts. Doh !
+
+New widths:
+
+fullw (name, place, site, plot, cause) 390
+smallw
+redw (husband, wife)                   260 already reduced from 310
+redw (father, mother)                  280 already reduced from 310
+smallw (title)                         255 bigger than really needed
+idw                                     55 decreased from original 75 - may be too small for longer IDs (OK up to I9999?)
+addw                                    55 increased to line up with the ID
+findw                                   60 not big enough for a "Remove" button
+remw                                    70
+remcol                                 400 col1+redw+5+addw+5
+datew (INDI)                           130
+timew (INDI)                            90
+agew                                    50
+

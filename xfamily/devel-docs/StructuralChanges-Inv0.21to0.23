@@ -1,0 +1,145 @@
+Structural changes. Although the move to v 0.21 was specifically intended to allow
+the changes outlined below, I think we didn't complete the changes before moving
+to v 0.22 for another specific purpse - viz. removing internationalisation. This
+lot is therefore still documented here with a view to making the change, either
+in v0.22 (from which we have successfully removed internationalisation) or v 0.23...
+
+We have just made changes to the code which means that treeinstance::remove_fam()
+now properly destroys the FAM object, removing not just HUSB and WIFE tags and
+the corresponding FAMS tags in each spouse, but also removes CHIL tags and the
+corresponding FAMC tags. Previously it simply refused/failed to remove the FAM
+if there were any CHIL tags (and did so silently, since the warning went to stdout).
+
+FIXME make wrning generate t least an fl_alert()
+
+"Structure->Unmarry" is a less than helpful name for this operation. We need to
+think about the circumstances under which our user might think this is a
+sensible operation.
+
+In fact, the family pop-up menu now greys out "Unmarry" for any family except
+one with just a husband and wife. This means that remove_fam can still do the
+business on a real family, but there is probably no interface that will
+actually invoke it. We will replace with a mechanism to remove one spouse
+from a family with children.
+
+The likely scenarios are
+
+1) we have a family comprising just a husband and wife, who turn out not
+to be married because (for instance) we'd misread some evidence. In this
+case "Unmarry" does pretty much what we want. In this case, however, the
+detached spouse is no longer shown on any view. Note that this operation
+is supported even if the person who disappears form the view has antecedents
+- it is only CHIL in the FAM that prevent it form being deleted
+
+2) we have a family with various issue, which were originally thought to be
+the result of one FAM relationship. Subsequent research shows that one or
+more of the issue were from an earlier or later marriage.
+
+3) we have a family with one spouse being incorrect - we want to remove
+and replace with someone else.
+
+ [If the person we want rid of is not
+otherwise connected to the tree, and the person we want to replace them
+with isn't in the tree at all, we would just edit the person to change
+their identity, leaving the FAM structure unaltered. This is almost
+certainly the best method in this case, since simply disconnecting a
+person from the FAM leaves them as an isolated INDI and as they will
+never routinely become visible, they will likely remain cluttering up
+the GEDCOM. A particularly risky game then is to "People->Find" that
+person and then delete them. Empty treedisplay ! Crash and burn !
+(Actually it just seems to fail to delete the person with no message.
+There's a printf() which says
+"We advise clicking to choose a new current person first !" which is
+unhelpful, even as an fl_alert() since if we choose a new current, we
+can't see the isolated person to delete.).
+At present we can't have an empty display and we have no way to choose
+a new current person. A kludge would be to spot (in various circumstances,
+not just this one) that we have no-one to put on the display and pop up
+a dialogue for the user to choose (or potenially create) a new current
+person.]
+
+In case (3) we'd really like to remove the incorrect spouse from the
+family without losing the relationship between the other spouse and the
+issue. In case (1) we'd like to create a new family and move one or more
+children from one FAM to the other. We have a "Structure->Move" menu
+item intended to provide an interface to do that (but no code).
+
+Case 3 is the one where we need a new idiom. To be an easy conceptual match
+for our existing idiom where we have an "Add" and "Find" button pair, it
+would be possible to shrink the ID field, and have a "Remove" button to its
+right. If you have a family which is actually a case (2), removing one spouse
+is going to be the same as "Unmarry" and hitting the button will have to
+close the FAM dbox. That's possibly not the result the user expected, and
+should not happen without some explanation such as an alert dbox saying
+"Removing one spouse from a family with no children will remove the
+family completely. Is this OK ? (Use "New family" if you then want to
+add back a new spouse)."
+
+Possibly more friendly would be to leave the FAM dbox open, and not actually
+destroy the FAM until the user hits "OK". An issue here is that hitting
+"Apply" would also make the FAM disappear, and should therefore close the
+dbox, which is not what you expect when you use that button. Greying out the
+"Apply" button would be a little opaque without some sort of message in the
+dbox indicating its imminent demise...
+
+In fact, since we got rid of the "unsaved_tag" mechanism, adding a "New family"
+to an INDI but not adding a spouse does leave a FAM with just one spouse and no
+children. Indeed, that is exactly what we want if we only know one parent and
+intend to add children - it's the only way to proceed. So it would be very
+inconsistent to make a FAM disappear automagically just because we removed one
+spouse.
+
+So, the solution would seem to be to allow one spouse to be removed in all
+circumstances and not make the FAM disappear. Our theory has been that GEDCOM
+does not allow a FAM with only one spouse and no issue, but, in fact, that is
+not logical. We may know that a person married, but have no idea to whom. It
+then makes perfect sense to have a FAM object with a NOTE or a SOURce reference
+and maybe even a MARR object if we know the date or place....
+
+So, if we have one spouse, then the Add/Find + ID combo should be just as now.
+We don't currently support FAMs with neither spouse to indicate siblinghood
+among issue (but we should, as this might occur in imported GEDCOM). For a FAM
+with both spouses, we could have an ID/Remove pair. A bit of size adjustment
+might be needed.
+
+At the bottom of the dbox, having got rid of the "Restore" button, we now
+have
+
+         Help
+Cancel   Apply    OK
+
+which leaves room for an button to eliminate the family structure entirely.
+"Destroy" seems a bit dramatic, but "Abandon" sounds more like a "Cancel"
+function and "Remove" doesn't sound quite explicit enough.
+
+If you destroy a FAM like this, you will potentially have a number of individuals,
+no longer children of this family, and perhaps not connected to the rest of the
+tree at all. Our "Attach" menu item only works on a person who is shown on the
+tree, and it seems a pain to have to make each of these detached children current
+in order to tie them to a different family. So you'd find it easier if, as well as
+"New child", you could have "Find child". That would be OK, but you could not
+attach an arbitrary person as the child of a FAM - only people who do not have
+a FAMC object - and you'd want a reality check on surname to see if the change
+made sense. It is the case with a number of structural operations that only a
+subset of the people in the tree are valid candidates. The find people dbox
+already does filtering when we are finding a spouse (by gender) so it should
+not be impossible to add other sorts of filtering. The gender filter works by
+context (we know a husband should be male...) derived from the button which was
+pressed to open the findUI. There is no filtering on the People->Find context,
+but we could have tick boxes on the dbox for obvious filters like gender.
+
+Why do we have an ID field in the Search dbox ? You can't type an ID into
+it... But when you've chosen from the list, the name is shown with the ID
+before you hit "OK", so I suppose it makes sense.
+
+A lot of this is broken by same-sex marriages (and we do have one in our own
+tree, with offspring...). GEDCOM specifically doesn't support same-sex FAM objects,
+but there is some discussion on the web which gives a "legal" method. See
+
+https://www.tamurajones.net/SameSexMarriageInGEDCOM.xhtml
+
+https://sixgen.org/lgbtq-genealogy-software-part-5/
+
+You can't add a same-sex spouse using the "fnd" idiom at the moment, since the
+FindUI filters on gender, so we will need a "same gender" button to either allow,
+or restrict to, persons of the same gender.

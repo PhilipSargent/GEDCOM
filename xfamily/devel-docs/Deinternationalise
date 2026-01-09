@@ -1,0 +1,54 @@
+Up to version v021, xfamily has used a rather "homegrown" method of translating messages
+intended to allow the user to change language whilst the program is running. Last time
+I tried to do so, it became clear that the system is broke. The aim in v022 is to remove
+all of this homegrown message substitution code and simply revert the whole shebang to
+UK-English only, with a view to some future developer putting back some more mainstream
+internationlisation soution later, if required. There are two main advantages
+
+1) the code is simplified and the intent of each error message or the use of each button
+   is clarified for new developers by being abe to see the message in the cod.
+2) The whole step of generaston of messgae files and supporting code is removed. It was
+   never supported by the Makefile, so relied on the developer to understand what was
+   going on in a quite counter-conceptual manner. We should end with a system where "make"
+   actually makes everything.
+
+To remove it, I need to understand it.
+
+The text of all messages and captions on gui widgets appears in MessageSrc. A Python (2)
+script takes MessagesSrc and generates
+
+languages.h   which #defines a macro to say how many languages there are
+languages.cxx which generates the language submenu structure
+messages.<xx> where the <xx>s are the various ISO-639 language codes
+strings.h     declares all the static strings
+strings.cxx   defines all the static strings
+xlatestr.cxx  the code which calls the function to copy the messages
+
+When a new language is configured (or at program startup), that code fills in all
+the stati message strings with values from a messages file.
+
+When we actually want to emit a string in our chosen anguage, we call things like
+
+in trees.cxx : fl_alert(msg_outopenfail);
+in gui.cxx :   { Fl_Window* o = completionswin = new Fl_Window( 400, 500, msg_famcompletions_title );
+
+Essentially, all we are going to do is to substitute for those named strings, the actual text
+of the relevant message from the messages/en-gb file, and get rid of all the cruft, which will
+include the python script, the two header and three C++ source files.
+
+=======================================================================================================================
+
+OK, that seems to have been a success, but we now need to document bugs/features that
+may be the result of that work.
+
+Open a notes window on an INDI who has ntes. The title of the Window is
+
+"X!Family MainTreeLink.ged"
+
+whereas I believe there is code to make the title specific to the INDI and apparent
+that the NOTE object is on that INDI (as opposed to on an event, for example). Oh, OK,
+I hadn't recalled this idom. So there is a line of "Text for" with a string like
+"INDI I1989 Leslie /Parker/ (NOTE)" or "CHR I1989 Leslie /Parker/ (NOTE) " which does
+the required ID. But clearly we have code which anticiated that we woud be putting that
+in the Window title (where it can be seen when choosing a window from the taskbar, for
+example). We should look into that...

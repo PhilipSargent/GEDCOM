@@ -1,0 +1,107 @@
+OK, if we use the new code to add a parent, spot an error and then use the
+menu Structure->delete on the (only) parent, it doesn't delete the FAM.
+This is broken GEDCOM:
+
+0 @F68@ FAM
+1 CHIL @I36@
+
+so, two things:
+
+1) the delete code should check for a FAM with neither HUSB nor WIFE, and if
+this is the result of the indi deletion, should delete the FAM as well. In
+this case, I36 will have a FAMC tag which needs to be removed. Actually, lets be
+complete here - an INDI may have any number of FAMS tags - each needs to be
+followed back and the FAM checked. If we remove the relevant HUSB or WIFE
+tag and that leaves no HUSB or WIFE in the FAM, then we need to delete
+that FAM(*). Deleting that FAM may involve removing CHIL, which also need following
+to remove the FAMC from the relevant INDI. If the INDI we delete has a
+FAMC, then we follow that back and remove teh CHIL tag from the FAM - that,
+in itself, will never require us to delete the FAM.
+
+I strongly suspect that we have not been doing any of this sort of garbage
+collection, but equally, I don't think we even have code for deleting a FAM
+which we will clearly need as part of this fix. Oh, that's very pessimistic
+ - see below, we are, in fact, almost there.
+
+(* in theory, if we know some INDIs are siblings, but don't know either
+parent, then a FAM with only CHIL tags is a valid way to represent this.
+However, whilst the GEDCOM may be permissible, we have no visual way to
+represent this on a tree, and no way to add actual individuals as parents
+in such a family. We've had this situation in !Family, and we just created
+a fictitious parent (typically a father, since we can be fairly sure of a
+suitable surname). This is surely the best approach anyway, it is much
+more conceptually sound... HOWEVER we do need to be aware of the possibility
+of importing GEDCOM with families like this and not throwing away siblings
+nor producing a corrupt tree with hanging pointers.)
+
+2) the consistency check on load (and save) should report any FAM objects
+like this. I believe we will already spot any FAMC that point to an absent
+FAM or one with no corresponding CHIL (and similarly for FAMS and HUSB/WIFE).
+
+3) Reading the code for deleteindi_cb, I see we check whether the person being
+deleted is the current person on the view being clicked and don't allow this
+if we are. However, this is *not* good enough. If the person to be deleted
+is the current person in *any* view, that view will break, so we need to
+do the test on all views. We also test neednewtop = (person==(view->gettop()));
+on the current view (we can delete a person who is the parent of the
+current person, and still get a valid display, but must set the same
+current person to recalulate who is now top. We need to do this for *every*
+view, not just the current one).
+
+So, the thing that does the actual deletion is this call:
+
+  tree->remove_indi(person);
+
+and it is in that code that we should be doing all the FAMC and FAMS tracing.
+Looking into treeinstance::remove_indi( GEDCOM_object* person ) we do seem
+to understand this stuff, and we seem to be removing CHIL objects from FAM
+pointed to by any FAMC (and we can only ever have one FAMC in an INDI).
+There are comments about FAMs without either spouse, but the code looks
+as if it is trying to do just what we described above
+    if (fams->delete_subobject( spouse )) {
+      if (fams->garbage_fam()) this->remove_fam( fams );
+    }
+seems to test for success in deleting the HUSB or WIFE tag. fams->garbage_fam()
+seems to be intended as a check for the situation we've described, and then
+we remove the FAM if so. So something is broken (or probably unwritten ?).
+Ah, what seems to be happening is that we check if the FAM still has any
+CHIL objects, and if so, refuse to delete the FAM. This is precisely the
+situation we have found here, so, in practice, we need not to refuse to delete
+the FAM, but to actively remove all the CHIL tags and FAMC tags in the INDIs
+to which they point. fix2022-002 aims to do this.
+
+Ah, but that's not quite enough. GEDCOM_object::garbage_fam() just counts
+ALL the HUSB WIFE and CHIL tags and only returns true if there are none.
+But in this context, we only care about the HUSB and WIFE tags. We might
+have a need for the full check, so the best way forward is to have a boolean
+to this call which says whether to include CHIL tags in the check or not.
+In the current case, we want that boolean false and at the moment, this is
+the only place garbage_fam() is called. OK, so now that takes a boolean
+"includechildren" and setting it false means CHIL tags are disregarded in
+the test. What an easy fix !
+
+Ah, but it hasn't. If you edit your INDI again, the parents are still
+blank with no IDs. The GEDCOM still goes
+0 @F73@ FAM
+1 CHIL @I112@
+
+and
+
+0 @I112@ INDI
+1 FAMC @F73@
+
+so we are not deleting the FAM, still... Manually deleting the FAMC and
+both lines of the FAM produce a fixed tree.
+
+A second issue is that we can load the broken tree again, and there is no
+complaint, so essentially this is [one or more] bug[s] in the integrity
+check.
+
+So, can we try to fix the integrity check first ? This is called when a tree
+is loaded, but also when we want to save a tree. We need not to prevent
+a tree being saved, since we may want to go and look at the GEDCOM to see
+what went wrong, but we *should* stop it from overwriting the one we loaded
+(so should either add something to the name on "save" or check that the
+file does not exist on "saveas". The latter should traditionally produce
+an "a file of that name already exists, are you sure you want to overwrite it?"
+alert anyway, so we should implement that.

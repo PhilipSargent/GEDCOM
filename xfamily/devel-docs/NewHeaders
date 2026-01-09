@@ -1,8 +1,8 @@
 Because we have't had read/write editing capabilty, we have
 maintained the GEDCOM under RISCOS !Family all these years,
-and hte file headers reflect this. Now we can do the work in
+and the file headers reflect this. Now we can do the work in
 X!Family, we can updtae these (and the program should save
-files with the new headers, rather than me just chaning the
+files with the new headers, rather than me just changing the
 file...)
 
 0 HEAD
@@ -48,7 +48,7 @@ for dad:
 2 UK National Health Service Number
 
 those should have date ranges - NHS numbers were originally Identity Card
-nubers (so issued c 1939), then were retained for NHS use, then all got
+numbers (so issued c 1939), then were retained for NHS use, then all got
 changed.
 
 0 HEAD
@@ -91,7 +91,7 @@ Adoption
 
 this will break both Family and X!Family which do not expect
 to see a FAMC twice at the top level. Elsewhere in the spec.
-it loks as though the first (top-level) FAMC for the adoptive
+it looks as though the first (top-level) FAMC for the adoptive
 partnership is optional. The trouble with that is that we use
 the top-level one to show the tree graphically.
 
@@ -103,3 +103,7 @@ Military, police or other service rank
 
 TITL is supposed for be for "Nobility title", not rank.
 rank is supposed to go after the NAME as a +1
+
+both ranks and titles have effective dates, and higher rank, additional titles
+etc. should be documented.
+

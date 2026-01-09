@@ -25,9 +25,11 @@ As we are loading tree (from !Family), we get headlist to hold:
 and the 1 SOUR object needs hacked to be:
 
 1 SOUR xfamily for Linux
-2 VERS 0.17 2013-01-14
+2 VERS 0.22 2023-01-14
 
-which we should probably do at the time we load the GEDCOM
+which we should probably do at the time we load the GEDCOM - whether or
+not the imported GEDCOM has these fields (and if it has, obviously, we
+lose the old versions).
 
 the rest is probably OK - but beware that 1 SUBM @A1@
 points at something later on, in the trlrlist. Actually, the
@@ -67,3 +69,10 @@ current trailer stuff is:
 0 NOTE View @I1388@
 0 TRLR
 
+Currently, we have a plan, if started without a tree to load, to load a blank
+tree file from the resources. Alternatively, possibly better in terms of
+keeping track of version numbers, we should generate that blank tree in the
+code, since tehat avoids the user unhelpfully editing the template tree in a
+way whichmight invalidate it (setting VERS 5.5, for example, in the hope that
+this would make hte tree acceptabe to other software, but leading to that
+software failing to understand SITe/CEME/PLOT tags.
