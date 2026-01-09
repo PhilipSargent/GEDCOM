@@ -11,6 +11,9 @@ Edit dbox still has random settings of Julian/Gregorian for events not
 
 Julian dates always seem to be being saved with a blank "3 TIME" subobject
 
+Dates with a calendar escape are yielding "@#DJULIAN@" in the html pages,
+which doesn't look good. We should convert to something like "(Julian calendar)"
+
 Marriage dbox is not persistent in the way the Edit person one is
 
 If you menu->Goto <F1 or F2> and get a completions window open, then realise

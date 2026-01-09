@@ -130,3 +130,39 @@ a raw pointer to an INDI object.
 
 So we cannot safely call DelObj on TopChil - we need to call FreeOb on the
 first (and only) subobject of TopChil, then just call Free on TopChil itself.
+
+=============================================================================
+
+Strategy:
+
+start splitting out major areas of functionality into libraries, and
+document the API - what calls should be available to callers, and what
+are intended for internal use only ?
+
+Bottom level - heap code
+
+Next level - allocation of GEDCOM objects
+
+What have we done already ?
+
+We already rewrote some heap code, so we could add to the Wimp slot
+ and some more new heap code to use OS_Heap
+The first lot is permanently part of the system, the second is optional.
+This is controlled by UseNewHeapCode%, which gets set by the -newheap
+ CLI switch, need to set "-newheap <number>" not just "-newheap". I have
+ fixed this to whinge if used incorrectly.
+-newheap 1    uses own heap manager (HeapLibV1)
+-newheap 2    uses system heap manager (HeapLibV2 calling OS_Heap)
+
+HeapLibV2 was a shambles, but now seems to be fixed OK. HeapLibV1 has an
+odd way of going about using HIMEM, so that it doesn't have a PROCInitHeap.
+But the way HeapLibV2 does it seems more sensible, and is quite compatible,
+except that the initial slot size determines the amount of space for variables,
+and *all* the heap is obtained by extending the wimpslot once running. The
+older code allocats a fixed space for variables (VarSize%) and the rest of
+the Wimpslot to the heap.
+
+Major test now is to see if the memory leak still exists in the OS_Heap
+version. If so, it must be in the next higher level of memory management
+(which is the most likely).
+
