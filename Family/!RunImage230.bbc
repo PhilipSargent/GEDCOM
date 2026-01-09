@@ -1,3 +1,6 @@
+REM Original !Family Copyright 1993, 1997 Denis Howe.
+REM Portions of this code are Copyright © A.E.R.Waddington 1999-2002
+
 REM version string used in SOURce VERSion tag has max length 15 chars
 Version$ = "2.30 2002.11.08"
 InfoVersion$ = "ALPHA "+Version$
