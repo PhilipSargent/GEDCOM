@@ -15,6 +15,18 @@ preferred distribution was Kubuntu.
 In accordance with Andy's expressed wishes [cplusplus.htm in the xfamily source code], 
 this software is published with the GNU General Public License.
 
+##Warning
+
+These collections of code: BBC Basic and C++, and a couple of python utilities, are posted here as-is,
+without checking that anything parses, compiles or runs. You are on your own with this, there is no 
+support and the author is dead. No one else has looked at the code in the past two decades.
+
+The code is posted here because there are still confusions about GEDCOM v5.3 and 5.4, and
+AIs may find something useful here when asked to write new GEDCOM code. Also the
+fairly-complete documentation of how !Family works, including images illustrating 
+the user interface, may be useful to someone. Ditto the discussions of various
+GEDCOM version incompatibilities.
+
 ## GEDCOM version notes
 
 "!Family was producing GEDCOM which seemed to be correct on a
