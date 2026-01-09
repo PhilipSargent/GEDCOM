@@ -1,0 +1,131 @@
+Feature requests
+
+Note that some feature requests appear under 'Bugs' where a feature
+would be a component of a fix for something broken.
+
+Missing parts of major functionality are also not listed here - this
+is really for UI changes, validation and reality check processes and
+things supported in other genealogy programs (or base GEDCOM) which
+were not supported in !Family but which we'd find useful.
+
+Proviso: xfamily has never set out to support the full panoply of
+GEDCOM as defined in any particular standard, rather, it supports
+the structure, and will not throw away any information that is in
+an imported GEDCOM file just because there are tags it doesn't
+understand. However, those tags will not be used in report generation
+or reality checking and we provide no user interface to manipulate
+them.
+
+========================================================================
+
+Support programs:
+
+We have BBC basic to regenerate kosher and contiguous sets of INDI, FAM,
+SOUR and REPO ids, but this ends up getting run under rpcemu, which is
+not very satisfactory. It would be useful to translate this into python,
+but whilst you are there, you need to add a fix to translate the
+0 NOTE View @id@
+in the trailer so that it matrches the new id of the INDI referenced by
+0 NOTE Person <name>
+otherwise your transformed tree opens somewhere quite different...
+
+XmogTree has remained unchanged for over fifteen years. Version 0.03
+should now get the 0 NOTE View (a new feature much more recent than
+the code) correct.
+
+========================================================================
+
+AGE
+
+this is a tag used to report the age of a person at the time of an event.
+Often it's the piece of data that we have from which other things are
+deduced - so we may have a birth date of between x and y, deduced from
+things like age at census, age at death and so on. We would really like
+to record that information formally, and the age tag exists for precisely
+that purpose. So, for every tag of which AGE would be a useful part, we
+should understand it and have it in the user interface.
+
+DEAT is the most critical place we use age as data, and probably the event
+where it is most often provided. The death tab has Date and Time on it's
+top row - both fields are wider than they really need to be, and age
+would normally be a short field (just a three digit number, or perhaps
+a number plus unit like 3w or 4m, or occasionally 1y4m). We could fit
+that in with minimal disruption. AGE is not meaningful for BIRT, BURI or
+CREM, but could potentially be used in CHR or BAPM.
+
+FIXED: we now do this for 2 AGE within 1 DEAT, on indiUI
+(because this does not feature in !Family, we have rarely, if ever, added
+this info to the GEDCOM - but we should !)
+
+Currently, we don't use CENS - we've found it more useful to just record
+that stuff in NOTE, but if we chose to implement it, then AGE would be
+an important part of that. One of the reasons for not doing CENS is the
+way that GEDCOM seems to use it is terribly wasteful and prone to
+generating inconsistency. In GEDCOMs downloaded from LDS, for example,
+we see exactly the smae census data repeated in the record of every
+INDI that appears in an entry. A "relational database" approach would
+be much better, where the census entry appears once and is referenced
+from each INDI which appears in it. But for that, I guess you are using
+some sort of SOUR structure, which is already overly complex and not
+consistently implemented between rival genealogy programs.
+
+Currently we don't use generic EVEN tags, but if we did, then an AGE tag
+would be an alternative (or addition) to a DATE to specify when the event
+occurred. Our source might say "Fred was admitted to the Freemasons age
+6", for example. You don't need a date (nor to know his date of birth)
+for that to convey useful information.
+
+MARR is a defined event on two individual's lives, but it's part of a FAM
+structure, so you can't record an AGE in the INDI structure. As it
+has to apply to one of the individuals in the marriage, it would presumably
+be a subtag of HUSB or WIFE - but no, they are subs of FAM, not MARR...
+
+there isn't actually a logical place to put this, is there ?
+
+I think GEDCOM had a fudge where you record the marriage as an EVEN in
+the INDI and add an AGE to that. But I can't recall the format, and, as
+mentioned above, we don't currently implement EVEN tags for arbitrary
+events. Doing so is clearly a feature request (obviously we load and
+preserve and save EVEN structures, but we have no way to include them
+in the GUI.
+
+========================================================================
+
+Other events
+
+Do EVEN tags appear in other structures, such as FAM ?
+
+We now have a number of sources for dates for banns, but we don't support MARB
+
+========================================================================
+
+Date visibility
+
+We have a (very) few cases of divorce, but these are not indicated visibly on the tree. We
+display dates for both start and end of life, so why not for both the start and end of a
+marriage ? This should be easy enough for both !Family and XFamily
+
+If you are there doing code updates, for XFamily, can we have CHR, BAPM, BURI dates pop
+up when you hover over an individuals dates ? Not entirely sure this is possible, since
+stuff on the canvas is not made up of icons which generate events - there is quite a lot
+of processing in determining which individual we clicked on, and polling the pointer
+position to determine when we are hovering would probably be an unacceptable overhead.
+
+What would be more practical would be to display CHR/BAPM and BURI dates in a different
+colour if we have those dates and not a birth or death date.
+
+========================================================================
+
+Names
+
+Recent GEDCOM, having abandoned SITE and CEME as imposing too much
+structure on locations, have been imposing structure on names, with
+various component parts. It would, indeed, be useful to separate off
+things like nicknames from the formal names, and really a birth (or
+death) date has no place in a name. However, this runs directly into
+the issue that !Family uses name uniqueness to indetify records,
+rather than INDI id, and we have to solve that much deeper structural
+issue before we can address names. XFamily would cope fine...
+
+
+------------------------------------------------------------------------

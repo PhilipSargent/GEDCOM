@@ -49,11 +49,7 @@ void treedisplay::setscroller( Fl_Scroll* thescroller ) {
   scroller = thescroller;
 }
 
-#ifdef fix0011
 GEDCOM_object *treedisplay::whoisat( int x, int y, indidisplay*& indid, famdisplay*& famd ) {
-#else
-GEDCOM_object *treedisplay::whoisat( int x, int y ) {
-#endif
 
 int            xoffset;
 int            yoffset;
@@ -63,16 +59,11 @@ int            yoffset;
 
   x += xoffset;
   y += yoffset;
-#ifdef fix0011
   // both reference pointers should be NULL:
   printf("treedisplay::whoisat gets %ld, %ld\n",(long)indid,(long)famd);
   return view->whattodraw()->whoisat(x,y,indid,famd);
-#else
-  return view->whattodraw()->whoisat(x,y);
-#endif
 }
 
-#ifdef fix0010
 void treedisplay::drawoffscreen() {
 
 displaytree   *display;
@@ -107,7 +98,6 @@ int            yoffset;
   }
   fl_pop_clip();
 }
-#endif
 
 void treedisplay::draw() {
 
@@ -179,9 +169,7 @@ int            yoffset;
 indidisplay::indidisplay( GEDCOM_object *person ) :
   indi (person),
   fams (NULL),
-#ifdef fix0011
   famc (NULL),
-#endif
   next (NULL),
   centrex (INFINITY),
   bottomy (INFINITY)
@@ -192,67 +180,75 @@ indidisplay::indidisplay( GEDCOM_object *person ) :
   int i;
   char* val;
 
-  obj = indi->subobject( SEX_tag );
-  if (obj == NULL) gender = SEX_UNKNOWN;
-  else {
-    char* sex = obj->value();
-    if ((*sex)=='M') gender = SEX_MALE;
+  if (indi != NULL) {
+    obj = indi->subobject( SEX_tag );
+    if (obj == NULL) gender = SEX_UNKNOWN;
     else {
-      if ((*sex)=='F') gender = SEX_FEMALE;
-      else gender = SEX_UNKNOWN;
-    }
-  }
-
-  /* if we are showing titles... (with present code, we always are) */
-  obj = indi->subobject( TITL_tag );
-  if (obj!=NULL) {
-    tempstring += obj->value();
-    tempstring += " ";
-  }
-  /* end of if */
-  obj = indi->subobject( NAME_tag );
-  if (obj==NULL) tempstring += msg_unnamed;
-    else tempstring += obj->value();
-  showname = new GEDCOM_string( (char *)tempstring.c_str() );
-
-  tempstring = "?";
-  obj = indi->subobject( BIRT_tag );
-  if (obj != NULL) {
-    obj = obj->subobject( DATE_tag );
-    if (obj != NULL ) {
-      val = obj->value();
-      if ((*val)=='@') {
-        i=2; while ((*(val+i))!='@') i++;i+=2;
-        tempstring = (val+i);
+      char* sex = obj->value();
+      if ((*sex)=='M') gender = SEX_MALE;
+      else {
+        if ((*sex)=='F') gender = SEX_FEMALE;
+        else gender = SEX_UNKNOWN;
       }
-      else tempstring = val;
     }
-  }
-  // ideally, in the absence of a birth date, we'd like to show a CHR or BAPM
-  // date in a different colour. We'd also like to provide a colour key to the
-  // situation in which BIRT has more than one DATE - if we have different dates
-  // from different sources, for example. Same applies to DEAT - we may have a
-  // CREM or BURI date in the absence of a DEAT date, or again, may have alternatives
-  tempstring += " - ";
-  // a date string really ought to be provided by a method somewhere - code like
-  // this here has this class knowing rather a lot about GEDCOM internals
-  obj = indi->subobject( DEAT_tag );
-  if (obj != NULL) {
-    obj = obj->subobject( DATE_tag );
-    if (obj != NULL ) {
-      val = obj->value();
-      if ((*val)=='@') {
-        i=2; while ((*(val+i))!='@') i++;i+=2;
-        tempstring += (val+i);
+
+    /* if we are showing titles... (with present code, we always are) */
+    obj = indi->subobject( TITL_tag );
+    if (obj!=NULL) {
+      tempstring += obj->value();
+      tempstring += " ";
+    }
+    /* end of if */
+    obj = indi->subobject( NAME_tag );
+    if (obj==NULL) tempstring += msg_unnamed;
+      else tempstring += obj->value();
+    showname = new GEDCOM_string( (char *)tempstring.c_str() );
+
+    tempstring = "?";
+    obj = indi->subobject( BIRT_tag );
+    if (obj != NULL) {
+      obj = obj->subobject( DATE_tag );
+      if (obj != NULL ) {
+        val = obj->value();
+        if ((*val)=='@') {
+          i=2; while ((*(val+i))!='@') i++;i+=2;
+          tempstring = (val+i);
+        }
+        else tempstring = val;
       }
-      else tempstring += val;
     }
+    // ideally, in the absence of a birth date, we'd like to show a CHR or BAPM
+    // date in a different colour. We'd also like to provide a colour key to the
+    // situation in which BIRT has more than one DATE - if we have different dates
+    // from different sources, for example. Same applies to DEAT - we may have a
+    // CREM or BURI date in the absence of a DEAT date, or again, may have alternatives
+    tempstring += " - ";
+    // a date string really ought to be provided by a method somewhere - code like
+    // this here has this class knowing rather a lot about GEDCOM internals
+    obj = indi->subobject( DEAT_tag );
+    if (obj != NULL) {
+      obj = obj->subobject( DATE_tag );
+      if (obj != NULL ) {
+        val = obj->value();
+        if ((*val)=='@') {
+          i=2; while ((*(val+i))!='@') i++;i+=2;
+          tempstring += (val+i);
+        }
+        else tempstring += val;
+      }
+    }
+    dates = new GEDCOM_string( (char *)tempstring.c_str() );
+    // ah... bollox. We should get the font values from our displaytree,
+    // but we don't keep a pointer to that, which is a bit of a blow :-(
+    // FIXME need to add to the class, otherwise we won't understand
+    // when we implement configurability and it fails to work...
+  } else {
+    /* we should never get passed a NULL person, exept maybe when we call this code with an empty tree ? */
+    tempstring = msg_nullindi;
+    showname = new GEDCOM_string( (char *)tempstring.c_str() );
+    tempstring = " - ";
+    dates = new GEDCOM_string( (char *)tempstring.c_str() );
   }
-  dates = new GEDCOM_string( (char *)tempstring.c_str() );
-  // ah... bollox. We should get the font values from our displaytree,
-  // but we don't keep a pointer to that, which is a bit of a blow :-(
-  // FIXME need to add to the class, otherwise we won't understand
-  // when we implement configurability and it fails to work...
   fl_font( FL_HELVETICA_BOLD , XF_FONT_SIZE );
   widthn = (int)(1+fl_width( showname->string() ));
   widthd = (int)(1+fl_width( dates->string() ));
@@ -265,7 +261,6 @@ indidisplay::~indidisplay() {
   if (next != NULL) delete next;
 }
 
-#ifdef fix0011
 void           indidisplay::setfamc( famdisplay* famd ) {
   famc = famd;
 }
@@ -274,6 +269,21 @@ bool	       indidisplay::younger_valid( ) {
   if (famc==NULL) return false;
   if (next==NULL) return false;
   return true;
+}
+
+#ifdef fix0015
+bool           indidisplay::child_valid() {
+// we must not be able to choose 'child' if indi has more than one family displayed
+  if (fams==NULL) return true;
+  if ((fams->nextfam())!=NULL) return false;
+  return true;
+}
+
+bool           indidisplay::newfam_valid() {
+// we must only be able to choose 'child in new family' if we are the upper spouse
+// it would be a valid choice if we had no family displayed, but in that case 'child'
+// is available, so this option is pointless, so our criterion is just fams
+  return (fams!=NULL);
 }
 #endif
 
@@ -376,46 +386,29 @@ int x, y;
   /* end of if */
 }
 
-#ifdef fix0011
 GEDCOM_object *indidisplay::whoisat( int h, int x, int y, indidisplay*& indid, famdisplay*& famd ) const {
-#else
-GEDCOM_object *indidisplay::whoisat( int h, int x, int y ) const {
-#endif
 
 GEDCOM_object *obj;
 indidisplay *indicheck;
 famdisplay  *famcheck;
 
-  if (this == NULL) {
-    printf("indidisplay::whoisat() called on NULL\n");
-    return NULL;
-  }
+  if (this == NULL) return NULL;
   // if this indidisplay encloses the point, return the pointer to the INDI
+#ifdef debugging
   printf("indidisplay::whoisat() testing on %s\n",this->name());
-#ifdef fix0011
+#endif
   if (this->testat(h,x,y)) {
     printf("indidisplay::whoisat() setting indid to %ld, %s\n",(long)this,this->name());
     indid = (indidisplay*) this;
     return this->getperson();
   }
-#else
-  if (this->testat(h,x,y)) return this->getperson();
-#endif
   indicheck = this->sibling();
   if (indicheck != NULL) {
-#ifdef fix0011
     if ((obj = (indicheck->whoisat( h, x, y, indid, famd ))) != NULL ) return obj;
-#else
-    if ((obj = (indicheck->whoisat( h, x, y ))) != NULL ) return obj;
-#endif
   }
   famcheck = this->family();
   while (famcheck != NULL) {
-#ifdef fix0011
     if ((obj = (famcheck->whoisat( h, x, y, indid, famd ))) != NULL ) return obj;
-#else
-    if ((obj = (famcheck->whoisat( h, x, y ))) != NULL ) return obj;
-#endif
     famcheck = famcheck->nextfam();
   }
   return NULL;
@@ -434,12 +427,8 @@ bool indidisplay::testat( int h, int x, int y ) const {
 
 /////////////////////////////////////////////////////////////////////////
 
-#ifdef fix0011
 famdisplay::famdisplay( GEDCOM_object *individual, GEDCOM_object *family, indidisplay *spousedisplay, int sequence ) :
   indi (individual),  // the INDI object (not the indidisplay)
-#else
-famdisplay::famdisplay( GEDCOM_object *family, indidisplay *spousedisplay, int sequence ) :
-#endif
   fam (family),       // the FAM object
   spouse (spousedisplay),
   next (NULL),
@@ -487,9 +476,7 @@ famdisplay::~famdisplay() {
   if (next != NULL) delete next;
 }
 
-#ifdef fix0011
 GEDCOM_object* famdisplay::getindi() const { return indi; }
-#endif
 GEDCOM_object* famdisplay::getfamily() const { return fam; }
 indidisplay*   famdisplay::getspouse() const { return spouse; }
 famdisplay*    famdisplay::nextfam() const { return next; }
@@ -502,9 +489,7 @@ int            famdisplay::marrwidth() const { return width; }
 char*          famdisplay::marrlabel() const { return label->string(); }
 indidisplay*   famdisplay::getissue() const { return issue; }
 void           famdisplay::setissue( indidisplay* child ) { issue = child; }
-#ifdef fix0011
 bool           famdisplay::later_valid() { return (next!=NULL); }
-#endif
 
 void famdisplay::displayfam( int h, int xoffset, int yoffset ) const {
 
@@ -548,11 +533,7 @@ int x, y;
   fl_line( x, y, x, y + (h>>1));
 }
 
-#ifdef fix0011
 GEDCOM_object *famdisplay::whoisat( int h, int x, int y, indidisplay*& indid, famdisplay*& famd ) const {
-#else
-GEDCOM_object *famdisplay::whoisat( int h, int x, int y ) const {
-#endif
 
 GEDCOM_object *obj;
 // not sure what these were going to be for
@@ -560,7 +541,6 @@ GEDCOM_object *obj;
 //famdisplay  *famcheck;
 
   if (this == NULL) return NULL;
-#ifdef fix0011
   if (this->testat(h,x,y)) {
     printf("famdisplay::whoisat() returning %ld, %s\n",(long)this,this->marrlabel());
     famd = (famdisplay*) this;
@@ -568,11 +548,6 @@ GEDCOM_object *obj;
   }
   if ((obj = (this->getspouse()->whoisat( h, x, y, indid, famd ))) != NULL) return obj;
   if ((obj = (this->getissue()->whoisat( h, x, y, indid, famd ))) != NULL) return obj;
-#else
-  if (this->testat(h,x,y)) return this->getfamily();
-  if ((obj = (this->getspouse()->whoisat( h, x, y ))) != NULL) return obj;
-  if ((obj = (this->getissue()->whoisat( h, x, y ))) != NULL) return obj;
-#endif
   return NULL;
 }
 
@@ -590,16 +565,10 @@ bool famdisplay::testat( int h, int x, int y ) const {
 
 indidisplay* displaytree::gettop() const { return treetop; }
 
-#ifdef fix0003
 indidisplay* displaytree::getcurrent() const { return indicurrent; }
-#endif
 
-#ifdef fix0003
 displaytree::displaytree( GEDCOM_object *treeroot, GEDCOM_object *current ) :
   treecurrent(current),
-#else
-displaytree::displaytree( GEDCOM_object *treeroot ) :
-#endif
   ymax (0),
   xmin (0),
   xmax (0)  // or some minimum width
@@ -647,9 +616,7 @@ int famnumber = 0;      // zero if we don't need to sequence-number marriages, e
 			// because there are 0 or 1
 
   person = newdisplay->getperson(); // look at the INDI object
-#ifdef fix0003
   if (person==treecurrent) indicurrent = newdisplay;
-#endif
   
   fams = person->subobject( FAMS_tag ); // see if it contains a FAMS subobject
   // WARNING! fams is a FAMS object - not the FAM object to which it points
@@ -676,11 +643,7 @@ int famnumber = 0;      // zero if we don't need to sequence-number marriages, e
       if (spousedisplay==NULL) printf("displaytree::addmarriages out of heap ?\n");
     } else spousedisplay = NULL;
     oldfam = newfam;
-#ifdef fix0011
     newfam = new famdisplay( person, family, spousedisplay, famnumber );
-#else
-    newfam = new famdisplay( family, spousedisplay, famnumber );
-#endif
     if (newfam==NULL) printf("displaytree::addmarriages out of heap ?\n");
     if (oldfam == NULL) newdisplay->setfamily( newfam );
      else oldfam->setnext( newfam );
@@ -725,9 +688,7 @@ indidisplay   *oldersib;
     if (oldersib == NULL)
       newdisplay->setissue( childdisplay );
     else oldersib->setsibling( childdisplay );
-#ifdef fix0011
     childdisplay->setfamc( newdisplay );
-#endif
     this->addmarriages( childdisplay );
     chil = chil->next_object( CHIL_tag );
   }
@@ -901,7 +862,6 @@ int displaytree::getvint() const { return lineheight; }
 int displaytree::xsize() const { return xmax; }
 int displaytree::ysize() const { return ymax; }
 
-#ifdef fix0012
 void displaytree::setevent( void* event ) {
   eventobj = event;
 }
@@ -909,17 +869,11 @@ void displaytree::setevent( void* event ) {
 void* displaytree::getevent() {
   return eventobj;
 }
-#endif
 
-#ifdef fix0011
 GEDCOM_object *displaytree::whoisat( int x, int y, indidisplay*& indid, famdisplay*& famd ) const {
   // we're expecting to start with the reference pointers null:
   printf("displaytree::whoisat passed %ld, %ld\n",(long)indid,(long)famd);
   return treetop->whoisat( lineheight, x, y, indid, famd );
-#else
-GEDCOM_object *displaytree::whoisat( int x, int y ) const {
-  return treetop->whoisat( lineheight, x, y );
-#endif
 }
 
 

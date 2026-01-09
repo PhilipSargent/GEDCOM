@@ -15,5 +15,6 @@ The workaround is not not use a hard-wired default filename (the final
 code should never do this anyway...). However, there are almost certainly
 other static strings that we are using that cause null pointers to be
 floating round. The first time we try to use one, we will crash ...
-Need to learn how modern C++ does default strings likethis.
+Need to learn how modern C++ does default strings like this.
+
 

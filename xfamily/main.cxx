@@ -14,8 +14,7 @@
 #include "xlate.h"
 #include "tags.h"
 
-int main(int argc, char** argv ) {
-// that used to be char* **argv but now that's a no no it seems
+int main(int argc, char* argv[] ) {
 
   GEDCOM_object* noted;
   GEDCOM_object* current;
@@ -26,7 +25,7 @@ int main(int argc, char** argv ) {
   // here we should parse our command line arguments to see if we
   // want to override those choices
   // here we load the messages into our static strings:
-  xlate_messages("en");
+  xlate_messages(strdup("en"));
   // we always need a list of tags we recognise
   GEDCOM_base_taglist();
   // and the windows which only exist in single instanciations
@@ -49,13 +48,13 @@ int main(int argc, char** argv ) {
   // or use the file load dialogue to get a tree. As neither of those are implemented, we
   // load a tree from a default place at the moment:
 
-  char* initialtree;
-  {
-     char it[] = "/usr/local/src/xfamily/test/test2.ged";
-     initialtree = it;
-     // this is always being reported as (null). char* initialtree = "..."; always used to work, how to do it now ??
-  }
-  if (argc>0) {
+  char* initialtree = strdup( "/usr/local/src/xfamily/test/peel.ged" );
+
+  // using strdup gets rid of the warning that converting a string constant to a char* is deprecated
+
+  printf("Initial value of initial tree'%s'",initialtree);
+
+  if (argc > 1) {
      initialtree = argv[1];
   }
   GEDCOMcount = 0;

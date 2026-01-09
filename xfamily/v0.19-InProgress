@@ -1,0 +1,159 @@
+Immediate steps:
+
+1) OK, we fixed loading/saving state in 0 NOTE Person and View objects.
+We don't save GEDCOM from the ephemlist, but we *do* save GEDCOM with
+references into the ephemlist, which, not being in the GEDCOM we saved,
+means we can save broken GEDCOM. One of the ideas of having flags on
+GEDCOM_object is that we can mark an object as being ephemeral - not
+just an INDI or FAM and all it's subobjects, but also subobjects (of
+real objects) which carry references to ephemera. Then we simply check
+flag during output and simply don't write out those objects. I believe
+that is safe, because if an object would be invalid (say a FAM with zero
+or one references), it would itself be ephemeral. !Family had a flag which
+noted that an object was to be deleted, and there is a logic to the idea
+of maintaining a reference count, so we know when it's safe to do so.
+
+OK, but surely objects have intrinsic reference counts ? If a FAM has a
+HUSB, WIFE and five CHIL subobjects, there must be two INDIs which
+refer to it with a FAMS and five with a FAMC ? For every FAMS in an INDI
+there must be one FAM which refers to it with a HUSB or WIFE subobject
+(and we must know the gender), similarly, an INDI will only have at most
+one FAMC and one FAM will therefore refer to it with a CHIL. If we know
+an INDI is ephemeral we should *always* be able to find the FAM objects
+which have subobjects pointing to it...
+
+One approach to deleting/garbage collecting an INDI (and analogously
+a FAM) would be to build a linked list of objects to delete.
+
+Complexity will arise if removing an INDI reduces the number of subobjects
+of a FAM such that it is no longer a valid construct. A FAM is valid if it
+contains two or more of HUSB/WIFE/CHIL, or one of those and at least one
+event subobject (though currently I don't think !Family can build a FAM
+like that, and it might be interesting to build a test GEDCOM to see
+what happens. Examples would be a person whose marriage date or place
+we know, but don't know a spouse name or have any issue; a person for
+whom we know parents' marriage date but no names...)
+
+2) garbage collect ephemerals - this is critical: for an INDI who had
+no parents when we started editing, we have added a FAMC object pointing
+to an ephemeral FAM - leaving that in the GEDCOM would be terminal !
+Having objects flagged as ephemeral ensures they don't get saved if they
+exist legitimately when user does a save file (so we need to do this!).
+
+3) move info from ephemerals into permanent structure (then garbage
+collecting anything left). Unflag their ephemerality...
+
+4) Check for side effects on other famUI and indiUI dboxes.
+
+2,3,4 at this stage are just for changes we make in indiUIs.
+
+Next step is to go through the same process for famUIs.
+
+
+Once we have the technology to create new individuals, we should,
+before making the system any more complex, solve the issue of
+starting up with an empty tree. Currently this causes a crash...
+We seem to be able to have an empty display with no current person,
+but any time you click on the display, we segfault. This is presumably
+because we call a search function on a treedisplay which is NULL.
+This is inevitable if treeinstance is NULL, but may occur for a
+valid treeinstance if there is no current person.
+
+We need basically to be able to cope with the situation where
+there is no current person. This doesn't necessarily mean an
+empty tree - we may load a tree with an invalid current person
+(logic says that we should pop up a find person dbox, but in the
+meantime we still need to cope with a blank display). Another way
+we lose the current person is if we delete the current person from
+the tree. There's a logical way to select a new current person if
+we had a tree displayed, but if we delete an isolated person, we
+again end with an empty display.
+
+We note that if we load a tree and fail to set a current person,
+we do put up an empty display without crashing. But as soon as we
+click anywhere, we get a segfault. That suggests that debugging
+when/where the crash occurs will point to a way forward. Suspect
+we start by calling whoisat() on a treeinstance, but as the
+mainUI doesn't have a treeinstance, we'll pass NULL. That would
+be fixable by creating an empty tree, I think.
+
+On failure to set a current person we probably ought to tell the
+user how big the tree he just loaded is (pop up stats box), then
+alert him that we couldn't set the current person, and pop up a
+GoTo dbox.
+
+But even with an empty window (or null tree), he should be able
+to click to pop up a menu and do "create new person". Currently
+a right click in empty whitespace gets a context menu on which
+the only item is to save the canvas as a graphic (a pretty
+pointless bit of functionality for an empty tree), but this
+is where "create new person" would be added.
+
+====================================================================
+
+testing work:
+
+At some stage we are going to start modifying the tree, which will
+involve destroying objects and freeing up memory. Although the
+program visibly works, we haven't done any testing to show that
+destructors are actually being called, so we have no real confidence
+that the code isn't riddled with potentially massive memory leaks.
+
+Already we blithely create a new display structure every time we
+change current person, so we should be checking that everything
+we created gets destroyed. Suggest a bit of conditional compilation
+in fixes.h. #define debugging is our switch for dynamic instrumentation
+and I don't want destructor testing turned on every time I set up to
+debug some new bit of code, so suggest we have a separate variable,
+like #define destructorlogs.
+
+This will also be useful as I do need to write code to close one
+display without exiting the program. Here I'll want not only to
+see that stuff *is* being destroyed, but also what stuff it is,
+since we want to be sure we're not destroying stuff in the wrong
+display structure...
+
+NOTES: we don't have a destructor for a GEDCOM_tag - we should never
+be destroying these. We don't seem to have a destructor for mainUI
+(which is precisely what we want when we close a main window...),
+infoUI (which is probably OK, we only ever make one and its static),
+statsUI (this is probably OK, we probably only need one, and refill
+it's values whenever shown. Actually, there's one for each
+treeinstance so we would want to destroy one if we stopped editing
+a particular tree - we do have a treeinstance destructor and it calls
+delete statsbox, so a statsUI destructor would be called - but does
+it actually need to do any work ?), findUI (this is transient, but we
+specifically only ever want one, so we've decided that it is static),
+prefUI - fine, that's static and global.
+
+completionsUI - this is definitely iffy. All reasonable user interface
+logic says we should never have more than one of these (otherwise we
+have to find some way to identify the buggers with some link to the
+field they were raised on), but we will be creating several ways of
+looking for things that will raise one - even if we only have one and
+close all others, we probably do need some identifier title... However,
+yes, we probably don't need a destructor at the moment. But the completions
+window creates a dynamic list to display - we should be destroying that
+whenever the completions window closes.
+
+Current UI work suggests that completions should be a canvas created
+within a calling window, which will clearly identify the context, and
+make it fairly sensible to allow more than one.
+
+
+========================================================================
+
+Done
+
+File saving works. Note that in order to make
+diffs easier to read, we changed the max length of text object lines to stop
+it splitting our overlength lines (they're not overlength by the GEDCOM spec.
+just by our own preferred length).
+
+save currently saves ephemeral subobjects (ie. FAMC, FAMS, HUSB, WIFE
+or CHIL that point to ephemeral level 0 objects) which is broken.
+
+Similarly, we now have a method to save the displayed tree as a graphic,
+and a proper saveas dialogue..
+
+

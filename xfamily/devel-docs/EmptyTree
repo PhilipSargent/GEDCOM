@@ -61,7 +61,9 @@ person is not shown on the current view (but is shown on other view(s)).
 If the new person is not visible at all, we could offer to open a
 new view in which the person is current (this is a likely desirable
 thing to do if the user creates a person who is not attached to
-the rest of the tree).
+the rest of the tree). Alternatively, we could ask the user to choose
+a view in which to make the newly added person current (or, if only
+one view, just ask whether to make the new one current in that).
 
 We also need to consider deletions and restructurings. If we find
 that a child is attached to the wrong parents, we will want a way

@@ -27,6 +27,9 @@ extern void language_cb(Fl_Menu_ *, void *);
 // callback routines from mainUI menu applying to whole tree
 
 extern void save_cb(Fl_Menu_ *, void *);
+#ifdef fix0013
+extern void saveas_cb(Fl_Menu_ *, void *);
+#endif
 extern void newview_cb(Fl_Menu_ *, void *);
 
 // callback routines for mainUI
@@ -49,6 +52,9 @@ extern void gplinfo_cb(Fl_Button*, void*);
 // callback routines for indiUI
 
 extern void edit_cb(Fl_Menu_ *, void *);
+#ifdef fix0022
+extern void childnew_cb(Fl_Menu_ *, void *);
+#endif
 extern void okedit_cb(Fl_Return_Button *, void *);
 extern void canceledit_cb(Fl_Button*, void*);
 extern void restoreedit_cb(Fl_Button*, void*);
@@ -66,10 +72,8 @@ extern void restorefam_cb(Fl_Button*, void*);
 extern void commitfam_cb(Fl_Button*, void*);
 extern void helpfam_cb(Fl_Button*, void*);
 
-#ifdef fix0010
 // callback routines for genpopup
 extern void savescr_cb(Fl_Menu_ *, void *);
-#endif
 
 // callback routines for statsUI
 
@@ -109,10 +113,8 @@ extern void oknotes_cb(Fl_Menu_*, void*);
 // callback routines for other things done from Person menu
 
 extern void menu_newmarriage_cb(Fl_Menu_*, void*);
-#ifdef fix0011
 extern void menu_younger_cb(Fl_Menu_*, void*);
 extern void menu_later_cb(Fl_Menu_*, void*);
-#endif
 
 // callback routines to drive sourceUI
 

@@ -1,0 +1,327 @@
+I think we need flags to test, probably as a bit field stored in some
+class, maybe the editUI, or maybe in some GEDCOM object...
+
+When we start to edit an individual (including the case where we create a new
+ INDI and open a dbox, which could be by means of the =>child submenu)
+
+mother may exist already, or be being (potentially) created. In the case
+ of =>child, we should not be able to change the mother.
+So we want flags for 'prexisting' and 'immutable' (in this edit)
+Same for father.
+Both these fields are displayed in Fl_Input - is there a method for
+disabling input ? yep indi_ma->readonly(<non-zero>) for example
+so if you had a bit to represent 'immutable' with a mask MA_IMMUTABLE
+you could set indi_ma->readonly(bitfield AND MA_IMMUTABLE); (I think)
+
+OK, how do we start indiUIs ?
+                                                 parents:
+1) edit for click on an indidisplay              both mutable
+2) child for click on a famdisplay               both immutable
+3) new-child-in-family for click on indidisplay  both immutable
+4) child-in-new-family for click on indidisplay  first immutable, second mutable
+5) new person for click in space                 both mutable
+
+In case 1, a change in structure can result from a spelling correction
+casually done in the edit dbox - really, in this case we should have both
+boxes immutable and have a more explicit way of changing structure. If
+you want to change the name of a parent, you should do it by editing that
+parent, not as a side effect of editing the name in the child. If you have
+a child of one marriage that belongs in another, there should be a more
+explicit way of doing that than editing the name in the child dbox.
+
+So, 2 and 3 are essentially the same, and in 1, the parents should be
+immutable. In case 4, we could ask to define the new parent first, giving
+us the chance to see if the proposed new parent is an existing INDI (and
+thus creates a FAM object). Once we've got the FAM, then case 4 degrades to
+being identical with 2 and 3 and the parents should be immutable. Case 5
+is the harder one, and perhaps we should open the dbox with both parents
+blank and immutable, but add some functionality on all the indi_edit
+dboxes for adding a parent - but only where the existing parent is blank.
+In other cases, we might want to have a means to explicitly disconnect
+from a parent.
+
+[ Scenario, and this is a real case:
+ We had a father, and found several children. Some of the records for the
+ children gave a mother's name and we created a family with one pair of
+ parents, and all the children. It subsequently becomes apparent that one
+ child was actually of a different FAM - usually of the same father but a
+ different mother in an earlier marriage, but sometimes of the same mother
+ but a different father. In !Family, if you go into the relevant child, you
+ can simply edit the parent name and on saving, the new FAM will be created,
+ and the new parent created as a new INDI. But if an existing name is entered,
+ the parent may not be a new INDI, but the FAM created using the existing INDI.
+ This is a frequent and troublesome source of deeply corrupted trees. There
+ needs to be an explicit acknowledgement by the user that a child is being
+ connected to an existing person as parent by the process before we just
+ blindly create structure which is hard to remove. This is all bad enough
+ when we have just one child to move to a new FAM. When there are multiple
+ children, there is even more scope for grief. So parents should be immutable
+ in the edit_indi dbox, with an explicit button to click to open a different
+ dbox to change family. But then you need some "family chooser" functionality
+ which would presumably be by typing a [partial] name and using the list
+ functionality to choose one parent. If that parent had more than one FAMS,
+ you would get a choice, but anyway you would need a choice of adding a new
+ FAMS, which, in effect, is adding a new marriage. ]
+
+So, building on that case 5 would have blank and immutable parents. You
+ could then connect to parents by creating a FAM object by the same
+ mechanism, which would allow for the possibility of adding to an existing
+ family (case 3) or creating a new family of which one parent was already
+ known (case 4). The point being to avod any possibility of creating a FAM
+ object inadvertantly.
+
+We only ever might not need to create a new indiUI in case 1. But to make
+all cases work the same way, we need a "create INDI" process which is
+different from an "edit INDI" process. Our initial concept was to create
+an ephemeral INDI object with an "E" identifier, and only generate a
+permanent "I" identifier when we saved the INDI. Something similar applied
+to the creation of new FAM objects. However, we seem to have got to a stage
+where these ephemeral objects are getting created and appear in the tree,
+but with some sort of pointer to non-existant objects which cause a segfault.
+We need to get away from this ephemeral object idea...
+
+We decided that we needed a separate method to find and raise an indiUI on
+a person if we're already editing them (which seems eminently sensible -
+having two edit dboxes open for the same object is really undesirable). Let's
+call it checkopen, and have it return the indiUI* if the indiUI is already
+open. OK, that's done, and most coding for case 4 is done, except the
+[im]mutability flags. Cases 2 and 3 are almost the same code, except that
+we will get a different object clicked on, so for 3, we need to find the
+famdisplay, then code is same as 2.
+
+OK, fix0015 has added code to check case validity, and add the new
+menu item to the indi popup. Wording of menu items for clarity is
+"new child in family" versus "child in new family".
+
+So now we will raise child on a defined situation. We may know both
+parents (both flagged preexisting and immutable) or only one (both
+flagged immutable - we don't want child creation to create a marriage
+as a side effect; and the one we know about flagged preexisting).
+Do we create an ephemeral INDI for the unknown parent, given that
+we are going to block definition of that parent ?
+
+uuurrrgghhh... we are getting into the whole wormcan of adding a
+spouse to an existing family here - !Family usually does what we
+want, but sometimes ambiguities are present and never resolved.
+If we have a single known parent, with existing issue and we choose
+"marry" in !Family, we add a spouse who becomes the other parent
+of all the existing issue. This is (almost) always what we wanted.
+If we choose one child of an existing single-parent family, and
+in the edit dbox, add the other parent, this creates a new FAM,
+leaving the other issue still with a single parent, and the one
+we edited with two parents in a new family. If this was the last
+issue of the old FAM, it vanishes. If we change an INDI to have
+an additional parent, and we already have FAM featuring these
+two parents, then we simply change the INDIs FAMC to point to this
+FAM. That's probably quite a complex case internally...
+
+So, if we have an INDI who we wish to "Marry" we should first ask
+if we are marrying a new or existing INDI (and if user doesn't know,
+we'd want a search interface to go look for the person). If we are
+marrying a new INDI, first create that INDI (whether we pop up a
+full edit indo dbox at this point is a good question which I'll defer)
+Then check if the original INDI has one or more existing FAMS. If so,
+and regardless of whether the FAMS have the other spouse[s] known, we
+should pop up a list of ALL the existng issue in all FAMS, with tick
+boxes for "move issue to new family". It might be handy to have "all"
+and "none" tick boxes, too, which would immediately tick or untick
+all the other boxes, any of which we could individually change.
+
+So we're hoping by this means to avoid the pitfalls of the unique
+naming restriction of !Family, so the next paragraphs cease to be
+relevant (they were written before thinking of this approach).
+
+(an added complication) in !Family, everyone in the tree is identified
+by a unique textual name. This is not a GEDCOM requirement, and trees
+from other researchers may not conform. In addition, we've always seen
+this as a nasty restriction resulting in unpleasant surprises when you
+type a name intending to create a new person, but find that you connect
+to someone already in the tree in a messy and difficult-to-fix fashion
+(including the creation of circular descent). Hence, we've always sought
+to remove this dependency of unique names in xfamily. So typing a parent
+name in an edit dbox should NOT just connect to a preexisting person in
+the tree just because the name matches. There are several user interface
+approaches we could use to avoid this happening. Possibly the easiest
+is to deal with it when the user hits "save", in this instance, in the
+edit dbox.
+
+Check if each parent name matches an existing name in the tree. Of course,
+for parents whose name we haven't just changed, that is always going to be
+true, and we can be reasonably certain that we have the person intended
+in that case. In other cases, we want to flag up that the name matches
+an existing person and check if the user does indeed want to connect to
+that person. Potentially we could match more than one person. In every
+case we need to offer a choice between the existing INDI(s) and "new
+to tree". That means popping up a completions window where one entry
+is a new person. We only allow one completions window at a time, and
+potentially you can edit a person to connect to two parents, both of
+whom may be in the tree (indeed, this is not uncommon). So to handle
+this, we'd want to highlight the names that match, refuse to save until
+we've checked with the user, and provide a button to bring up a completions
+list for each parent (one at a time).
+
+We already provide the usual left/fuzzy/right buttons for the user
+to get a completions window by choice (and currently they do nothing),
+so now we are into UI redesign...
+
+resume reading after skipping pitfall-avoidance paragraphs:
+
+Our unique identifiers are the GEDCOM ones, usually of the form "Innnn",
+and currently the edit dbox doesn't show even the one for the INDI being
+edited (it's not something we'd want or be allowed to change). I'd
+suggest shortening the name field (it's already a lot wider than the names
+of the parents), and add a non-mutable text field showing the ID to the
+right of the name (this would be blank for a newly created INDI). We
+also want to show IDs for the parents. These would be blank for names
+just typed in, until we hit a button requiring confirmation of the
+identity (this would be the case if you hit 'apply' or 'save', for
+example, but potentially also a button to initiate the process for
+a single parent). The best approach would be to replace the existing
+[<][<>][>] triptych with a single 'search' or 'confirm' button, and
+a display-only text field showing the identifier (blank until you'd
+done a search or confirm, and would *go* blank as soon as you typed
+in the name field).
+
+Looks like you might need a new UI class for this, based on the completions
+dialogue. As a step towards this, we'd like to add the identifier as a
+column in the existing completions box, too. Make doing that fix0016.
+OK, as at 2017-09-22 we clearly hadn't done that.
+
+Your new dialogue would start much like the existing find person dbox,
+except that we'd want to show identifier (initially blank). When you
+hit oneof the search buttons, a completions list would pop up in a
+panel of _the same dbox_, and clicking on a person in the list
+would paste that person in the top field, but not instantly close
+the window as the existing find person completions window does.
+I think it would be sensible to do exactly this same UI for the
+find preson dialogue, too - it's a bit disconcerting that the UI
+closes and the main windows goes to teh new person without an
+explicit "OK" being clicked. So we would, in effect only have a single
+UI here, derived from the existing findUI, but with the windows
+combined...  Can we do that ?
+
+So this stuff relates to the creating of ephemeral objects and GUI
+dboxes which can work by side effects which we would now seek to avoid.
+Most of this can be disregarded and should be binned from the documentation
+once we have an actual implmentation...
+
+On a cancel edit we may have
+
+an ephemeral FAM created if the INDI had neither parent
+=> a CHIL pointing to our edited INDI
+=> a FAMC in our edited INDI
+
+an ephemeral INDI created if there was no mother
+=> a WIFE in the FAM
+=> a FAMS in this INDI pointing to the FAM
+
+an ephemeral INDI created if there was no father
+=> a HUSB in the FAM
+=> a FAMS in this INDI pointing to the FAM
+
+If the editing process has created one (or both) parents, then
+the save process must transform them into permanent entities and
+change the reference identifiers.
+
+The only things that we can create or change in the edit dbox are
+1) The INDI's details
+2) A mother's NAME and existence
+3) A father's NAME and existence
+4) A parental FAM, which could be created, changed or removed - herein lies the main complexity
+
+If mother is undefined - was she an ephemeral INDI created for the edit process ?
+  if so, remove the mother INDI, remove the WIFE tag of the FAM
+  if not, is the undefinition a change (ie. did we have a real mother before editing) ?
+    yes, it must be, because if she wasn't defined before, we created an ephemeral, so
+    we need to remove the FAMC that points to the FAM in which she was the WIFE and
+    remove the CHIL from that FAM that pointed to our edited INDI
+    We *may* need to create a new FAM, but we'll defer this for now, maybe we need to set
+     a flag her to indicate the possibility ?
+
+If father undefined - was he an ephemeral INDI created for the edit process ?
+  if so, remove the father INDI, remove the HUSB tag of the FAM
+  and same process as above.
+
+// what situations are feasible now ?
+a) both parents are defined
+
+
+If neither parent defined, then we don't want a FAMC. So remove it. If it previously pointed
+to a real FAM, then we need to go and examine that FAM for side effects. In that FAM, we'll
+remove the CHIL that pointed to this INDI.
+
+// at this point we may have an empty FAM, but we must still have a pointer to it. Don't
+// lose it !
+
+
+ If the FAM now has less than two of (HUSB,WIFE,CHIL)
+it has become meaningless, so we'll remove it. The FAM must previously have had two of those
+subobjects, so there must now be one left - we need to follow the xref and remove the FAMS (if
+we followed HUSB or WIFE) or FAMC (if we followed CHIL). In the latter case, the FAMC must be
+in the INDI we were just editing. Which we already removed, so that can't be. So, in fact,
+it must always be a HUSB or WIFE that we follow and a FAMS that we remove.
+
+OK, but the way we create ephemera, that isn't what we see anyway - we have always ensured
+that a FAM exists with a WIFE, HUSB and CHIL, the CHIL pointing to the edited INDI, and
+the WIFE and HUSB pointing to ephemeral INDIs if there weren't real ones, so we need to
+start even further back
+
+if we disconnect a father, we'll need to change the FAM to one with just a WIFE and CHIL tag
+pointing to the edited individual, but if the mother already has a FAMS tag pointing to a
+FAM with no HUSB, we should add our INDI as a CHIL in that FAM. We should make some effort
+to determine where to insert the CHIL on the basis of birth or christening dates. As we
+don't yet have a date collation algorithm, we can't do that yet... just put it at the end.
+
+same logic if we disconnect a mother.
+
+but if we disconnect both, ... aarrgghh need to test that first - we could be disconnecting
+a father when we already had no mother, or vice versa, so the test is 'does the person now have
+neither parent defined ?'
+
+So our algorithm:
+
+if (
+
+if (Mother's name filled in) {
+  has it changed ? {
+    is it the name of an existing individual in the tree ? {
+      // we need to change the WIFE tag in the FAM to point to the INDI
+      // we need to add a FAMS to that INDI for the new FAM - a side effect is
+      // possible - if the mother had an existing FAMS which pointed at a FAM
+      // where the HUSB points to the INDI with the same name as has been
+      // filled in in the edit dbox, we will want to use that existing FAM,
+      // not a newly created one... back, back, back
+
+
+OK, first thought, currently abandoned as not general enough:
+
+If FAM is ephemeral {
+  // both parent INDIs _must_ be ephemeral
+  if (mother filled in) {
+    mark FAM permanent, create proper identifier, put pointer in base INDI's FAMC
+    make mother INDI permanent(*), create proper identifier, change FAMS to new FAM id, change WIFE to new id
+  } else {
+    remove ephemeral INDI
+    remove WIFE from ephemeral FAM
+  }
+  if (father filled in) {
+    mark FAM permanent, create proper identifier, put pointer in base INDI's FAMC
+    make father INDI permanent(*), create proper identifier, change FAMS to new FAM id, change HUSB to new id
+  } else {
+    remove ephemeral INDI
+    remove HUSB from ephemeral FAM
+  }
+} else {
+  so FAM was preexisting. What if parent names have been *deleted* in the edit dbox ?
+  is this a valid way of disconnecting someone from parents ? You could try it in !Family,
+  but I think it is...
+
+  if (mother filled in) {
+    
+
+
+  
+
+
+
+

@@ -19,6 +19,8 @@
 ***********************************************************************************
 **********************************************************************************/
 
+#define MAX_FILENAME 256
+
 // maximum length of a line we expect (as specified in GEDCOM spec)
 // note that real world GEDCOM files may not respect this limit, even though
 // there is a perfectly good mechanism (the CONC tag) to avoid hitting it.

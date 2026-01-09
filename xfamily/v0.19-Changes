@@ -1,0 +1,242 @@
+2017-09-22 XFamily didn't compile - needed a new constructor for GEDCOM_string
+to take a string and an integer for building id strings - not sure when the
+broken code was added - seemed to be under fix004.
+
+Implemented fix0023 to add the INDI id to the end of each line in the
+completions window. Exercised the code needed above. Maybe there was a
+different way of doing this that didn't need that code ?
+
+---------------
+
+2016-10-25 fix0023 attempts to remove the arbitrary limit on length of ID name
+in @id@ and @xref@ fields by allocating heap space as a GEDCOM_string(). Not
+yet tested. I believe this is indeed tested and working in 2017. However it
+is worth recording that the 1999 GEDCOM 5.5.1 draft explicitly limits the
+length of these IDs to 20 chars (22 including the '@' symbols).
+
+---------------
+
+2016-05-02 fixed long standing bug of segfault coredump if not passed a filename,
+whilst also removing the warning that converting a string constant to a char*
+is deprecated. The latter works by saying
+
+  char* initialtree = strdup( "/usr/local/src/xfamily/test/peel.ged" );
+
+which means that the pointer is to a run-time allocated string which
+apparently is better ?? Seems to waste space to me...
+
+Anyway, the seg fault goes away because our declaration of main was
+wrong in a way that caused the dump if no argument was passed - nothing
+to do with trying to default the filename. The correct declaration is
+
+int main(int argc, char* argv[] ) {
+
+We still core dump if the filename passed is not an actual file...
+
+---------------
+
+Eliminate all the confusing conditional compilation associated
+with these fixes (which are accepted into the source):
+
+fix0018 (that was a code removal rather than new code, so all is removed)
+fix0012
+fix0011
+fix0010
+fix0007
+fix0006
+(fix0005 isn't yet complete, although what's there is tested)
+
+fix0003
+
+---------------
+
+fix bug that was saving to end of everything for each list below the
+root object, fix in trees.cxx <listhead>->subobject()->output() with
+level reduced by one.
+
+---------------
+
+Added saveas dialogue for saving the gedcom somewhere specific
+Made save as graphic use a file chooser dialogue, too.
+
+---------------
+
+fix0014: add integrity check after loading GEDCOM file (code can be
+called anywhere, so could check before saving, too). Checks for all
+FAMS and FAMC objects within INDIs, that the corresponding FAM exists
+and has a HUSB/WIFE or CHIL pointing back (and that genders pass a reality
+check - this will fail for single sex marriage ? Unless GEDCOM will then
+allow two WIFE or two HUSB tags which has other ramifications). Check
+for all HUSB, WIFE and CHIL objects within FAMs, that the corresponding
+INDI exists and has a corresponding FAMS or FAMC pointing back, that
+genders are OK (as above), that INDIs don't have more than one FAMC.
+[this will be useful for checking that ephemeral objects are being
+removed correctly]
+
+Still need to test with variously broken GEDCOM test files. Although
+we did reveal one bug in our supposedly kosher main tree :-)
+
+We don't check for multiple HUSB/WIFE within FAM, and the multiple
+FAMC test for INDIs is done only for INDIs pointed at by at least
+one CHIL.
+
+We could add counts for other tags that should only be unitary - we
+currently wouldn't spot multiple (matching or conflicting) SEX tags,
+nor multiple BIRT/CHR/BAPM/DEAT/BURI/CREM or MARR/ENGA/DIV (or other
+events, for that matter) tags. We perhaps should warn for multiple
+NOTE tags at the same level ... and the list could go on. I think
+there is some risk that GEDCOM actually allows multiple BIRT tags,
+for instance two birth dates from different sources when neither
+is obviously more reliable ? Other events are equally subject to
+reporting uncertainty. In fact, for a child that died in infancy,
+different sources might report different genders, and perhaps GEDCOM
+allows this:
+
+1 SEX F
+2 SOUR @S1@
+1 SEX M
+2 SOUR @S2@
+
+which would cause us a great deal of grief...
+
+There's no integrity checking at all on SOUR or REPO structures.
+
+However, what we've done should catch all of the types of cock-up
+that we generate by manually editing new families into the GEDCOM
+and will be useful in bug-checking editing functionality (we will
+be able to call the integrity check after each change so we see when
+corruption occurs. We'll have to expect faults being reported for
+@E<num>@ cross-references until the code is completed, but that is,
+in itself, useful for spotting when we should have cleared the
+ephemera !)
+
+---------------
+
+fix0015: changed person->Child menu item to "New child in family"
+and added "Child in new family". Added code to grey these out in
+appropriate circumstances. Added menucodes.h to enable conditional
+compilation of menu structures and ease of referral to menu items
+when the sequence number might change.
+
+---------------
+
+fix0017: show GEDCOM ids for all three individuals in an indiUI, and
+remove the search buttons from both parents. This is preparatory work
+prior to adding a full "find parent" UI. WORK INCOMPLETE. For
+uniformity, we now show the ids of both spouses in the famUI, too.
+Note that this includes "E<num>" ids for ephemeral objects, which
+should not show. Quite a lot more work here.
+
+---------------
+
+fix0018: stop showing anything related to LVG tag on indiUI. We will
+preserve any existing LVG tags in loaded GEDCOM, but this change marks
+the deprecation of this tag, which is not properly speaking part of
+any version of GEDCOM. The intention is to edit the GEDCOM files we
+use and replace this with a more kosher GEDCOM construct, which is
+probably some sort of event tag. Eventually you may want to introduce
+that back into the UI, but that is some time into the future.
+2017-09-22 fully removed all this code and the fix0018 no longer needed
+I believe we have alaso eliminated LVG from our own GEDCOM, replacing
+it with 1 NOTE (or 2 CONT) containing the information so that it remains
+accessible to other readers of the GEDCOM
+
+I think you need something like
+
+1 EVEN
+2 TYPE known living
+2 DATE 23 MAR 1999
+2 NOTE Interviewed by A.E.R.Waddington
+
+but there is no standard within GEDCOM for meanings of TYPE
+
+We really want something which indicates a known living date,
+which could be inferred from any event, and possibly want to
+record the event too, as a separate entity. Maybe like
+
+1 EVEN
+2 TYPE living
+2 DATE 23 MAR 1999
+1 EVEN
+2 TYPE interview
+2 DATE 23 MAR 1999
+2 NOTE Interviewed by A.E.R.Waddington
+
+we should only have _one_ EVEN / TYPE living, representing the latest
+of the events we know about which imply it. Although, again, having
+said that, GEDCOM is so woolly that it probably is valid to have
+
+1 EVEN
+2 TYPE living
+2 DATE 23 MAR 1999
+2 NOTE interviewed by A.E.R.Waddington
+1 DEAT
+2 DATE 15 MAY 2002
+2 NOTE reported in Daily Mail
+1 EVEN
+2 TYPE living
+2 DATE 3 JUN 2003
+2 NOTE apparently met in street by Joe Bloggs
+
+leaving you to work out yourself whether Joe Bloggs or the Daily Mail are more reliable...
+there was a reliability tag at one stage, but I think recent GEDCOM eliminated that one.
+
+Formal GEDCOM integrity checks are one thing. Reality checks are another thing
+entirely. Death before birth is perfectly valid GEDCOM... and birth (long) after
+death of supposed mother has been seen in our own tree. There are two dates and
+one relationship that could be wrong in that ;-(
+
+---------------
+
+fix0019: The OK button on indiUI wasn't really where a conventional
+button would be, so, purely cosmetically, we've moved the five 'take
+some sort of action' buttons around, so that Cancel/Apply/OK form a
+logical row, and 'Revert' and 'Help' are on the row above. Same now
+for famUI too.
+
+---------------
+
+fix0020: now recognise and display value for AGE tag within DEAT for
+indiUI. Potentially this could be applied to CHR/BAPM too. It would
+be good to add this to !Family, as that's where we actually add
+people with death info...
+
+---------------
+
+fix0021: when we create ephemeral objects to facilitate creation of an
+indiUI for a person with <2 parents, we now set an ephemeral flag on
+the objects and only display IDs in indiUI for non-ephemeral people.
+The flag will also (but does not yet) facilitate deciding whether to
+delete an object when the indiUI is closed, and should also (but does
+not yet) disable outputting an ephemeral object (or any of its
+subobjects) during filesaving. fix0021 will (but does not yet) create
+similar bitfield flags infrastructure for indiUI and famUI classes,
+which will be used to mark certain fields as immutable. These flags
+will be set according to how the UI was opened. For example if we open
+an indiUI through the =>Child menu, both parents names will be
+immutable.
+
+We think (2017-09-22) this is causing segfaults when supposedly
+ephermal objects become visible in the tree. There seem to be better
+ways of aviding the pitfalls that this code was intended to address,
+so we probably want to back this code out entirely.
+
+---------------
+
+fix0022: implement callbacks to open indiUIs to create new persons,
+from indipopup->Child-in-new-family and indipopup->New-child-in-family
+initial coding of first is done, but identifying and marking immutable
+fields is not yet done. A certain amount of fix0004 had to be backed
+out from gui.cxx as it became clear that the creation of ephemeral
+objects had to be done before trying to open the indiUI.
+
+FIXME: I'm not 100% certain that the code moved from gui.cxx into
+callback.cxx in the existing edit_cb routine is complete. We needed
+to add calls to xref->GEDCOM_setobjectforid( person ) etc. to make
+insert_details() work, as without those calls, followxref won't work!
+I think these will need doing for edit_cb (issue didn't show up before
+as the ephemeral items created have no names ...) OK, added those calls
+now.
+
+FIXME still NOTHING is garbage collected when the indiUI is closed.
+

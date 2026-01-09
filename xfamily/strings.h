@@ -36,6 +36,8 @@ extern char msg_notes_title[];
 #define MAX_notes_title 10
 extern char msg_unnamed[];
 #define MAX_unnamed 10
+extern char msg_nullindi[];
+#define MAX_nullindi 7
 extern char msg_info_title[];
 #define MAX_info_title 29
 extern char msg_menu_file[];
@@ -107,7 +109,9 @@ extern char msg_menu_younger[];
 extern char msg_menu_later[];
 #define MAX_menu_later 10
 extern char msg_menu_child[];
-#define MAX_menu_child 7
+#define MAX_menu_child 28
+extern char msg_menu_newfam[];
+#define MAX_menu_newfam 29
 extern char msg_menu_remove[];
 #define MAX_menu_remove 8
 extern char msg_menu_unmarry[];
@@ -158,6 +162,8 @@ extern char msg_event_date[];
 #define MAX_event_date 5
 extern char msg_event_time[];
 #define MAX_event_time 6
+extern char msg_event_age[];
+#define MAX_event_age 4
 extern char msg_event_place[];
 #define MAX_event_place 6
 extern char msg_event_site[];

@@ -19,7 +19,6 @@
 treeinstance::treeinstance() :
   next (NULL),
   previous (NULL),
-  filename (NULL),
   first_id (NULL),
   last_id (NULL),
   indicount (0),
@@ -38,6 +37,7 @@ treeinstance::treeinstance() :
 #ifdef debugging
   printf("treeinstance constructor called to build minimal tree\n");
 #endif
+  filename = (char*)malloc(MAX_FILENAME * sizeof(char));
   // build the minimal empty tree structure
   rootobject = new GEDCOM_object( this ); // special form of constructor for root object
   rootobject->add_subobject( headlist = new GEDCOM_object( heads_tag ));
@@ -124,8 +124,16 @@ GEDCOM_object* object;
   // first token should always be a level number. If we can't decode a
   // number from it, choose to ignore the line
   { int i;
-    if (sscanf(tok, "%d", &i) != 1) return NULL;
+    if (sscanf(tok, "%d", &i) != 1) {
+      printf("Can't decode a level from line %s\n",line);
+      return NULL;
+    }
     *level = i;
+#ifdef debugging
+    if (i==0) {
+      printf("New level 0 object %s at line %d\n",tmpline,GEDCOMcount);
+    }
+#endif
   }
 
   // next token might be an id or the tag
@@ -166,6 +174,10 @@ GEDCOM_object* object;
   // at this point we must have the tag for this line
   // look it up (or add it to the list) returning a GEDCOM_tag pointer
 
+  if (tok==NULL) {
+    printf("fl_alert: Bad tag at line %d, '%s'\n",GEDCOMcount,tmpline);
+    return NULL;
+  }
   *tag = GEDCOM_tagfromname( tok );
 
   // any more on this line ?
@@ -235,12 +247,16 @@ void treeinstance::loadGEDCOMfile( const char * newfile ) {
 
 FILE* in;
 
-  filename = (char *) newfile; // just discard const-ness
+  if (newfile == NULL) {
+    printf("fl_alert no filename given");
+    strcpy(filename,"");
+  }
+  strcpy(filename,newfile);
   // printf("set filename for tree to %s\n",filename);
   if (( in = fopen(filename, "r")) == NULL) {
     printf("fl_alert msg_fileopenfail");
     // no harm - just return with an empty tree
-    filename = NULL;
+    strcpy(filename,"");
   }
 
   int level;
@@ -279,11 +295,7 @@ FILE* in;
     if (level == levelnow[currlist] + 1)
       SubTl[currlist][levelnow[currlist]+1]->add_subobject( object );
     else
-#ifdef fix0006
       object->insert_after( SubTl[currlist][level] );
-#else
-      SubTl[currlist][level]->chain_object( object );
-#endif
     levelnow[currlist] = level;
     SubTl[currlist][level] = object;  // object->next will get set for same level
     SubTl[currlist][level+1] = object;// object->sub will get set for a sub
@@ -292,6 +304,217 @@ FILE* in;
   // now at end of file, so we are effectively finished
   fclose( in );
 }
+
+#ifdef fix0014
+
+bool treeinstance::integritycheck() {
+  // at this point we should do an integrity check on the loaded tree - mainly looking
+  // for references with no targets - but for every reference which finds a target, we
+  // could check that the target is the right sort of object and contains an appropriate
+  // object with a reference back to the starting object
+  GEDCOM_object *person;
+  GEDCOM_object *check;
+  GEDCOM_object *subcheck;
+  GEDCOM_object *family;
+  bool links;
+  //printf("Running integrity check on tree: indilist\n");
+  person = indilist->subobject();
+  //printf("Start of indilist object %s\n",person->objtype()->GEDCOM_namefromtag());
+  //while (person->objtype()==INDI_tag) {
+  while (person!=NULL) {
+    check = person->subobject();
+    //printf("INDI %s, check = person->subobject() %s\n",person->getidname(),check->objtype()->GEDCOM_namefromtag());
+    while (check!=NULL) {
+      if (check->objtype()==FAMS_tag) {
+        //printf("INDI %s, FAMS %s\n",person->getidname(),check->getxrefname());
+        if ( (subcheck=(person->subobject(SEX_tag))) ==NULL) {
+          printf("Ungendered person %s (%s) has a FAMS tag %s\n",person->getidname(),person->subobject(NAME_tag)->value(),family->getxrefname());
+        } else {
+          //printf("gender %s\n",subcheck->value());
+          family = check->followxref();
+          if (family==NULL) {
+            printf("Person %s (%s) has a FAMS tag with no target %s\n",person->getidname(),person->subobject(NAME_tag)->value(),family->getxrefname());
+          } else {
+            if ((family->objtype())==FAM_tag) {
+              //printf("xref leads to FAM %s\n", family->getidname());
+              if (strncmp(subcheck->value(),"M",1)==0) {
+                //printf("Checking back for HUSB\n");
+                subcheck = family->subobject(HUSB_tag);
+                if (subcheck==NULL) {
+                  printf("Male INDI %s FAMS tag points to a FAM %s with no HUSB subobject\n",person->getidname(),family->getidname());
+                } else {
+                  // check HUSB obj points back to INDI
+                  //printf("FAM->HUSB %s\n",subcheck->getxrefname());
+                  if (person!=subcheck->followxref()) {
+                    printf("Person %s's FAMS points to FAM whose HUSB doesn't point back\n",person->getidname());
+                  }
+                }
+              } else {
+                if (strncmp(subcheck->value(),"F",1)==0) {
+                  //printf("Checking back for WIFE\n");
+                  subcheck = family->subobject(WIFE_tag);
+                  if (subcheck==NULL) {
+                    printf("Female INDI %s FAMS tag points to a FAM %s with no WIFE subobject\n",person->getidname(),family->getidname());
+                  } else {
+                    // check WIFE obj points back to INDI
+                    //printf("FAM->WIFE %s\n",subcheck->getxrefname());
+                    if (person!=subcheck->followxref()) {
+                      printf("Person %s's FAMS points to FAM whose WIFE doesn't point back\n",person->getidname());
+                    }
+                  }
+                } else {
+                  printf("INDI %s seems to have invalid SEX tag %s\n",person->getidname(),subcheck->value());
+                }
+              }
+            } else {
+              printf("person %s (%s) has a FAMS tag which points at a non-FAM object\n",person->getidname(),person->subobject(NAME_tag)->value());
+            }
+          }
+        }
+      } else {
+        if (check->objtype()==FAMC_tag) {
+          // same stuff, but checking through FAM's CHIL tags...
+          //printf("INDI %s, FAMC %s\n",person->getidname(),check->getxrefname());
+          if ((family = (check->followxref()))==NULL) {
+            printf("Person %s (%s) has a FAMC tag with no target %s\n",person->getidname(),person->subobject(NAME_tag)->value(),check->getxrefname());
+          } else {
+            if ((family->objtype())==FAM_tag) {
+              subcheck = family->subobject(CHIL_tag);
+              links = false;
+              while (subcheck!=NULL) {
+                if (person==subcheck->followxref()) {
+                  links = true;
+                  break;
+                }
+                subcheck = subcheck->next_object(CHIL_tag);
+              }
+              if (!links) {
+                printf("Person %s (%s) has a FAMC tag whose target has no corresponding CHIL tag\n",person->getidname(),person->subobject(NAME_tag)->value());
+              }
+            } else {
+              printf("person %s (%s) has a FAMC tag which points at a non-FAM object\n",person->getidname(),person->subobject(NAME_tag)->value());
+            }
+          }
+        } else {
+          //printf("INDI %s, not FAMS or FAMC: %s\n",person->getidname(),check->objtype()->GEDCOM_namefromtag());
+        }
+      }
+      check = check->next_object();
+      //printf("Endwhile of this INDI, %ld\n",(long)check);
+    } // endwhile going through list of INDI's subobjects looking for FAMS and FAMC
+    person = person->next_object();
+    //printf("endwhile of indilist %ld\n",(long)person);
+  } // endwhile of going through entire INDI list of INDI objects
+  // should now start at famlist and go through FAMs checking all HUSB, WIFE and CHIL objects.
+  // obviously if the file integrity is OK, that will be all and exactly the same links we
+  // checked above. But if the GEDCOM is *broken*, we need both sets of checks.
+  //printf("Running integrity check on tree: famslist\n");
+  family = famslist->subobject();
+//  while (family->objtype()==FAM_tag) {
+  while (family!=NULL) {
+    check = family->subobject();
+    while (check!=NULL) {
+      //printf("FAM %s sub %s\n",family->getidname(),check->objtype()->GEDCOM_namefromtag());
+      if (check->objtype()==HUSB_tag) {
+        if ((person = check->followxref())==NULL) {
+          printf("FAM %s has HUSB tag with no target\n",family->getidname());
+          break;
+        }
+        if ((person->objtype())!=INDI_tag) {
+          printf("FAM %s has HUSB tag with non-INDI target\n",family->getidname());
+          break;
+        }
+        subcheck = person->subobject(SEX_tag);
+        if (subcheck==NULL) {
+          printf("FAM %s has HUSB which points to ungendered INDI\n",family->getidname());
+          break;
+        }
+        if (strncmp(subcheck->value(),"M",1)==0) {
+          subcheck = person->subobject(FAMS_tag);
+          if (subcheck==NULL) {
+            printf("FAM %s has HUSB with no FAMS\n",family->getidname());
+          } else {
+            links = false;
+            while (subcheck!=NULL) {
+              //printf("Checking FAMS %s\n",subcheck->getxrefname());
+              if (family==subcheck->followxref()) {
+                links = true;
+                break;
+              } else {
+                subcheck = subcheck->next_object(FAMS_tag);
+              }
+            }
+            if (!links) {
+             printf("FAM %s HUSB points to INDI %s whose FAMS doesn't point back\n",family->getidname(),person->getidname());
+            }
+          }
+        }
+      } // end of checks on HUSB tag
+      // same again for WIFE tag
+      if (check->objtype()==WIFE_tag) {
+        if ((person = check->followxref())==NULL) {
+          printf("FAM %s has WIFE tag with no target\n",family->getidname());
+          break;
+        }
+        if ((person->objtype())!=INDI_tag) {
+          printf("FAM %s has WIFE tag with non-INDI target\n",family->getidname());
+          break;
+        }
+        subcheck = person->subobject(SEX_tag);
+        if (subcheck==NULL) {
+          printf("FAM %s has WIFE which points to ungendered INDI\n",family->getidname());
+          break;
+        }
+        if (strncmp(subcheck->value(),"F",1)==0) {
+          subcheck = person->subobject(FAMS_tag);
+          if (subcheck==NULL) {
+            printf("FAM %s has WIFE with no FAMS\n",family->getidname());
+          } else {
+            links = false;
+            while (subcheck!=NULL) {
+              if (family==subcheck->followxref()) {
+                links = true;
+                break;
+              } else {
+                subcheck = subcheck->next_object(FAMS_tag);
+              }
+            }
+            if (!links) {
+             printf("FAM %s WIFE points to INDI whose FAMS doesn't point back\n",family->getidname());
+            }
+          }
+        }
+      } // end of checks on WIFE tag
+      // similar for CHIL tag (should only ever be one FAMC to check points back)
+      if (check->objtype()==CHIL_tag) {
+        if ((person = check->followxref())==NULL) {
+          printf("FAM %s has CHIL tag with no target\n",family->getidname());
+          break;
+        }
+        if ((person->objtype())!=INDI_tag) {
+          printf("FAM %s has CHIL tag with non-INDI target\n",family->getidname());
+          break;
+        }
+        subcheck = person->subobject(FAMC_tag);
+        if (subcheck==NULL) {
+          printf("FAM %s has CHIL %s with no FAMC\n",family->getidname(), check->getxrefname());
+        } else {
+          if (family!=(subcheck->followxref())) {
+            printf("FAM %s CHIL points to INDI whose FAMC doesn't point back\n",family->getidname());
+          }
+          // there's an argument that this check ought to be under the INDI chain,
+          // but, in fact, it's slightly less code to do it here, I think...
+          if ((subcheck->next_object(FAMC_tag))!=NULL) {
+            printf("FAM %s CHIL points to INDI with more than one FAMC\n",family->getidname());
+          }
+        } // end of checks on CHIL tag
+      }
+      check = check->next_object();
+    } // end while subobjects of the FAM
+    family = family->next_object();
+  } // end while famslist
+}
+#endif
 
 #ifdef fix0004
 void treeinstance::add_ephemera( GEDCOM_object* thing ) {
@@ -305,7 +528,7 @@ int treeinstance::ephemnextref() {
 #endif
 
 void treeinstance::setfilename( char* newfile ) {
-  filename = newfile;
+  strcpy(filename,newfile);
 }
 
 void treeinstance::save() const {
@@ -314,23 +537,31 @@ FILE* out;
 #ifdef debugging
   printf("About to try to save to %s\n", filename );
 #endif
+#ifdef fix0014
+  // move this into the debugging section if not needed after initial testing
+  ((treeinstance*) this)->integritycheck();
+#endif
   if ((out = fopen( filename, "w" )) == NULL) {
     printf("fl_alert msg_outopenfail");
   }
   else {
-#ifdef fix0005
-  int level = -1;
+  int level = 0;
   GEDCOM_object* trlritem;
   GEDCOM_object* oldnote;
   GEDCOM_object* newnote;
   GEDCOM_object* person;
   mainUI* view;
 
-    headlist->output( out, level );
-    indilist->output( out, level );
-    famslist->output( out, level );
-    sourlist->output( out, level );
-    repolist->output( out, level );
+    headlist->subobject()->output( out, level );
+    //fprintf(out,"end headlist\n");
+    indilist->subobject()->output( out, level );
+    //fprintf(out,"end indilist\n");
+    famslist->subobject()->output( out, level );
+    //fprintf(out,"end famslist\n");
+    sourlist->subobject()->output( out, level );
+    //fprintf(out,"end sourlist\n");
+    repolist->subobject()->output( out, level );
+    //fprintf(out,"end repolist\n");
     trlritem = trlrlist->subobject();
     // first, remove the old NOTE objects saying who were current person(s)
     while (trlritem!=NULL) {
@@ -366,13 +597,9 @@ FILE* out;
       }
       view = view->getnext();
     }
-    trlrlist->output( out, level );
+    trlrlist->subobject()->output( out, level );
+    //fprintf(out,"end trlrlist\n");
         
-#else
-  int level = -2;
-
-    rootobject->output( out, level );
-#endif
     fclose(out);
   }
 }

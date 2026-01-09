@@ -1,0 +1,138 @@
+Bugs first found/recorded/created(!) in v 0.19
+
+Some of these are feature requests ...
+
+*** see older bugs files for unfixed bugs known already ***
+
+---------------
+
+make doesn't make xlate.o
+symptom: if you add a new message, all your menus get screwed up
+OK, this seems to get fixed by doing
+make depend
+first. So somewhere we need to ensure that this gets done, by
+having some rule that makes everything else depend on the
+"makedepend" file (which is typically zero bytes if you hadn't
+run make depend)
+
+---------------
+
+We have noted that the string from an @id@ or @xref@ gets stored
+within a GEDCOM_id object as a char[16] and felt that this was
+a risky fixed limit. I can't quite see why we didn't simply
+implement this as a GEDCOM_string. So do so. GEDCOM_id would
+just call new GEDCOM_string() in the constructor and remember
+to delete it in the destructor ! FIXED at v0.20
+
+The tag name in GEDCOM_tag is similarly stored fixed length. We
+should either test the length (and whinge) or implement this as
+a GEDCOM_string.
+
+---------------
+
+When we click on an indi and choose "edit" we pop up an indi edit
+dbox. If the INDI object doesn't have a FAMC, ie. we don't have
+either parent, we create an ephemeral INDI with FAMS objects pointing
+to two ephemeral INDI objects. If we don't add a parent, and close
+the edit dbox, these should get deleted. But they don't. This is
+really part of unfinished code under fix0004 (which we backed out
+anyway, as it was becoming apparent that the code we were building
+was really not in the right place). It needs noting that this remains
+unimplemented or it will get forgotten. NO LONGER EXISTS v0.20
+
+---------------
+
+In situation above, the indiUI now shows GEDCOM ids for both parents
+if a parent wasn't defined, the name field is blank (and editable),
+but the id field shows the ephemeral ids we created. We should *not*
+display id for an ephemeral indi, and the id should go blank as soon
+as we start changing the name in the name field. There's UI still to
+develop here as we will want to get the user to do some sort of
+confirmation on a name entered here if it is likely that an existing
+indi in the tree is intended. We can overload the id field to show
+a status, eg. an id if the typed name matches an existing indi, or
+<new> if it doesn't or something else to indicate ambiguity if the
+name matches multiple individuals (since we are allowing names not
+to be unique). If we have a flag for ephemeral (of the indi object),
+and one for changed (of the name field), this should be manageable.
+But can we afford the overhead of searching the tree for a name
+match every time the user types a character into the name field ?
+NO LONGER EXISTS v0.20
+
+---------------
+
+When we click on any of the famUI or indiUI tabs (birth, baptism,
+christening, death, cremation, burial, marriage, engagement, divorce)
+the bit of the tab that shows that keyword goes grey instead of
+retaining the tab colour. Did it always do this ? I'd prefer it
+didn't... Priority low.
+
+---------------
+
+In completions window, title is in black, and name is in gender-colour,
+then dates are in black again. We would rather like titles to be in
+black on the main tree display too. Completions window appears to do
+this by building strings containing "@C60@" before the next bit of
+the string to be displayed. Seems we build a string from title and
+name in the mainUI and ought to be able to do the same thing here,
+rather than using all those font colour calls ?
+
+---------------
+
+At some stage we'd like to implement some reality checks and convenience
+features, such as inserting a new child for whom we have a birth date at
+the right point in a FAM/CHIL/CHIL/CHIL structure or issuing warnings if
+dates conflict (ie. represent impossible situations like birth after
+death, burial/cremation before death, birth after death of mother or
+a long time after death of putative father or when mother's age was
+infeasibly high. We don't want to stop the user from using those values
+if that's what the sources say (only one of the dates may be wrong, and
+we can't speculate which), just make sure that they are aware that the
+reality check fails (and they might have just mistyped a date). However,
+before we can do that we need code that not just manipulates dates but
+can actually collate them.
+
+Logically that needs a function that will convert a textual date into
+two integers each representing a point in a monotonically increasing
+index from some arbitrary starting point (is this what a juliandate
+is ?). The two points would be starting and ending points for the
+possible interval, and we need values to represent plus and minus
+infinity so that one or both of the dates can be undefined for things
+like "before 1066" "after 2013-02-11" as well as the usual fixed
+date (both numbers the same) or interval ("between 1st and 4th March
+1914"). In GEDCOM, I belive the BET keyword actually indicates an
+inclusive range (so between 1st and 4th is a range of four days, not
+two).
+
+We should *only* use this functionality for putting things in order
+and doing reality checks.
+
+
+---------------
+
+We had a version of our main tree which on one occasion caused
+!Family (rpcemu2) to data abort towards the end of loading the
+file. It didn't do it again next time... But if we load it into
+XFamily, all seems fine. But if we navigate to make William
+Gibbins Welch current, we get a segfault. This implies that
+some pointer we use is likely uninitialised.
+
+We need to do a lot more robust checking when loading a file
+so that we can spot when we have failed to initialise one or
+more pointers. See "v019-DanglingPointers"
+
+---------------
+
+If you make a person current, having no ancestors, then click on
+that person again (to try to expose parents on the tree) then
+sometimes the program seems to invent parents as green <unnamed>
+inviduals. Similarly, missing spouses from among the tree may
+appear in the same way. Typically, clicking (left or right) on
+these entities produces a segfault. I have not been able to
+reproduce this by deliberately trying. One hopes that the code
+we plan to back out for v0.20 will make this go away.
+NO LONGER EXISTS v0.20 - never sen anyway, and the code we think
+was repsonsible has gone away.
+
+
+Suspect this is fairly new code, as I have not seen it before v0.19.

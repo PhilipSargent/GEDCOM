@@ -50,7 +50,11 @@ void        GEDCOM_base_taglist();
 
 class GEDCOM_id {
 //  static GEDCOM_id *first_id;
+#ifdef fix0023
+  GEDCOM_string *id;
+#else
   char id[16];                        // this is an arbitrary limit which worries me
+#endif
   GEDCOM_object *object;
   GEDCOM_id     *next;
   GEDCOM_id     *previous;
@@ -60,6 +64,7 @@ public:
   GEDCOM_id( char*, int );
 #endif
   ~GEDCOM_id();
+
   char* GEDCOM_idname() const;
   GEDCOM_id* getnext() const; // changed the name of this from nextid() for consistency
   void setnext( GEDCOM_id* );
@@ -75,10 +80,13 @@ class GEDCOM_string {
   char *thestring;
 public:
   GEDCOM_string( char* );
-#ifdef fix0004
+#ifdef fix0023
+  GEDCOM_string( char*, int );
+#endif
+// code not under this fix now seems to use these signatures #ifdef fix0004
   GEDCOM_string( char*, char* );
   GEDCOM_string( char*, char*, char* );
-#endif
+//#endif
   GEDCOM_string( size_t );
   ~GEDCOM_string();
   char* string() const;
@@ -104,7 +112,7 @@ class GEDCOM_object {
   GEDCOM_object *sub;   // -> object representing first subobject of this object
   GEDCOM_object *next;  // -> next subobject of our parent object
   GEDCOM_object *myparent;
-  int flags;            // we (probably) need some flags to indicate things like
+  unsigned int flags;   // we (probably) need some flags to indicate things like
                         // this is an ephemeral object which we need to garbage collect
                         //   if not made permanent
                         // this is an object which is flagged for deletion and should be
@@ -112,7 +120,8 @@ class GEDCOM_object {
 
 // to make that clearer:
 //   the @ref@ in         1 CHIL @I960@  refers to a 0 @I960@ INDI
-// the CHIL object has .ref pointing to the "I960" identifier
+// the CHIL object has .ref pointing to the "I960" identifier   <level> [@<id>@] <tag> [@<xref>@] [value]
+
 // the INDI object has .id  pointing to the same "I960" identifier
 // the identifier has a pointer back to the INDI object, and of course,
 // the INDI object would (in this case) have a FAMC reference whose
@@ -134,17 +143,18 @@ public:
   void add_subobject( GEDCOM_object* );
   bool swap_subobject( GEDCOM_object*, GEDCOM_object* );
   bool delete_subobject( GEDCOM_object* );
-#ifndef fix0006
-  void chain_object( GEDCOM_object* );
-  void precede_object( GEDCOM_object* );
-#endif
-#ifdef fix0006
-  void insert_before( GEDCOM_object* );
   void insert_after( GEDCOM_object* );
-#endif
+  void insert_before( GEDCOM_object* );
 
 // for destroying objects
   ~GEDCOM_object();
+
+#ifdef fix0021
+// setting and testing flags
+// probably don't actually need the bit values #include "flags.h"
+  bool testflags(unsigned int, unsigned int);
+  void setflags(unsigned int, unsigned int);
+#endif
 
 // for changing objects
   void setid( GEDCOM_id*);
@@ -161,10 +171,8 @@ public:
   char* tagname() const;                  // the text string for the tag of this object
   void output( FILE*, int ) const;        // output a chain of objects (recursive)
   void outline( FILE*, int ) const;       // output a line of the object
-#ifdef debugging
   void print( int ) const;
   void printline( int ) const;
-#endif
 
 // methods appropriate for objects which have an @id@ such as INDI, SOUR, REPO, FAM
   GEDCOM_id* getid() const;               // pointer to @id@ for this object

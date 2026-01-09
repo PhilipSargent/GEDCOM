@@ -27,6 +27,9 @@ CHR_tag = new GEDCOM_tag("CHR");
 CREM_tag = new GEDCOM_tag("CREM");
 CAUS_tag = new GEDCOM_tag("CAUS");
 PLOT_tag = new GEDCOM_tag("PLOT");
+#ifdef fix0020
+AGE_tag = new GEDCOM_tag("AGE");
+#endif
 FIDE_tag = new GEDCOM_tag("FIDE");
 QUAY_tag = new GEDCOM_tag("QUAY");
 ORIG_tag = new GEDCOM_tag("ORIG");

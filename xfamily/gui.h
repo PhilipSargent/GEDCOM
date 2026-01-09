@@ -21,12 +21,11 @@
 #include <FL/Fl_Tabs.H>
 #include <FL/Fl_Tile.H>
 #include <FL/Fl_Select_Browser.H>
-
-#ifdef fix0007
 #include <FL/Fl_Text_Buffer.H>
 #include <FL/Fl_Text_Display.H>
 #include <FL/Fl_Text_Editor.H>
-#endif
+
+#include "menucodes.h"
 
 #include "classes.h"
 #include "family.h"
@@ -44,34 +43,28 @@ public:
 
 class indipopupmenu {
 public:
-  Fl_Menu_Item popup_data[10];
+  Fl_Menu_Item popup_data[imenusize];
 
   indipopupmenu( mainUI* );
-#ifdef fix0011
   void grey( int );
   void black( int );
-#endif
 };
 
 class fampopupmenu {
 public:
-  Fl_Menu_Item popup_data[6];
+  Fl_Menu_Item popup_data[fmenusize];
 
   fampopupmenu( mainUI* );
-#ifdef fix0011
   void grey( int );
   void black( int );
-#endif
 };
 
-#ifdef fix0010
 class genpopupmenu {
 public:
   Fl_Menu_Item popup_data[2];
 
   genpopupmenu( mainUI* );
 };
-#endif
 
 class notesmenu {
   Fl_Menu_Item menu_data[6];
@@ -111,19 +104,15 @@ public: // this lot should become private v. soon !
   // so for now we won't bother declaring them
   indipopupmenu  *indimenu;
   fampopupmenu   *fammenu;
-#ifdef fix0010
   genpopupmenu   *genmenu;
-#endif
 
   mainUI( treeinstance* ); // our constructor
   void settitle();
   void show();
   void hide();
   void canvassize( int, int );
-#ifdef fix0010
   int canvas_w();
   int canvas_h();
-#endif
   mainUI *getnext() const;
   void setnext( mainUI* );
   treeinstance* whichtree() const;
@@ -195,19 +184,29 @@ class indiUI {
 public:
   Fl_Window *indi_dbox;
   Fl_Input  *indi_name;
+#ifdef fix0017
+  Fl_Output  *indi_id;
+#endif
   Fl_Input  *indi_title;
   Fl_Light_Button *indi_male;
   Fl_Light_Button *indi_female;
   Fl_Light_Button *indi_unknown;
   Fl_Input  *indi_ma;
+#ifdef fix0017
+  Fl_Output  *indi_ma_id;
+#else
   Fl_Button *ma_fromright;
   Fl_Button *ma_fuzzy;
   Fl_Button *ma_fromleft;
+#endif
   Fl_Input  *indi_pa;
+#ifdef fix0017
+  Fl_Output  *indi_pa_id;
+#else
   Fl_Button *pa_fromright;
   Fl_Button *pa_fuzzy;
   Fl_Button *pa_fromleft;
-  Fl_Check_Button *indi_living;
+#endif
   Fl_Button *indi_notes;
   Fl_Button *indi_sources;
   Fl_Button *indi_will;
@@ -249,6 +248,9 @@ public:
   Fl_Tile   *indi_death;
   Fl_Input  *indi_deathdate;
   Fl_Input  *indi_deathtime;
+#ifdef fix0020
+  Fl_Input  *indi_deathage;
+#endif
   Fl_Light_Button *indi_deathgreg;
   Fl_Light_Button *indi_deathjul;
   Fl_Light_Button *indi_deathdef;
@@ -328,6 +330,10 @@ public:
   Fl_Window *fam_dbox;
   Fl_Output *husb_name;
   Fl_Output *wife_name;
+#ifdef fix0017
+  Fl_Output *husb_id;
+  Fl_Output *wife_id;
+#endif
   Fl_Button *fam_notes;
   Fl_Button *fam_sources;
   Fl_Tabs   *fam_events;
@@ -529,12 +535,8 @@ public:
   Fl_Window       *window;   // handle of the main window
   Fl_Output       *ident;    // handle of the text which says what we're editing
   Fl_Menu_Bar     *menubar;  // handle of the row of buttons (not really a menu, yet)
-#ifdef fix0007
   Fl_Text_Editor  *scroll;   // handle of the pane which contains the editable text
   Fl_Text_Buffer  *input;    // an FLTK buffer for that sort of thing
-#else
-  Fl_Input        *input;    // handle of the pane which contain the text
-#endif
 
   notesUI( treeinstance*, GEDCOM_object*, GEDCOM_tag* );
   void status(bool);

@@ -27,6 +27,9 @@ GEDCOM_tag *CHR_tag = NULL;
 GEDCOM_tag *CREM_tag = NULL;
 GEDCOM_tag *CAUS_tag = NULL;
 GEDCOM_tag *PLOT_tag = NULL;
+#ifdef fix0020
+GEDCOM_tag *AGE_tag = NULL;
+#endif
 GEDCOM_tag *FIDE_tag = NULL;
 GEDCOM_tag *QUAY_tag = NULL;
 GEDCOM_tag *ORIG_tag = NULL;

@@ -31,6 +31,10 @@ and see if they have been changed. If not, do nothing for that value
 For any value which has been changed, we need to change the relevant
 bit of the GEDCOM_object, which typically means destroying the old bit
 and creating a new one. If the old bit was NULL, just create a new one.
+If the new field is empty, just destroy the old one. There is a complexity
+here if you remove a final subobject - eg, if you remove the DATE from
+a BIRT/CHR/BAPM/DEAT/BURI/CREM which had no PLAC etc. then you would
+*also* want to remove the main tag.
 
 to do this, we'll want an indiUI::update_details() method. I see no
 point in passing it a GEDCOM_object* thisindi, as the method has full
@@ -39,13 +43,15 @@ access to the who value.
 Now we see certain UI subtleties. If we have not changed any field,
 the "revert" button should be inactive. If we just opened an indiUI
 to create a new person, the "revert" button should never get created
-at all,as (a) it's pretty meaningless - you'd just revert to a blank
+at all, as (a) it's pretty meaningless - you'd just revert to a blank
 dbox with perhaps a surname filled in, but (b) there is no GEDCOM_object
 from which to fetch data to revert (we don't automatically create an
 empty indi object, since there is no point in doing so until the user
 hits "save"). That's no longer true - in fix0004, we aim to create
 ephemeral GEDCOM objects for each INDI and FAM represented by an indiUI
-or famUI, and not present in the original structure. Read on ...
+or famUI, and not present in the original structure. Read on ... but
+be aware that we decided fix004 was not in the right place and have
+backed at least some of it out.
 
 This possibly means that out indiUI class needs a boolean which says
 whether the dbox was created for a newly created indi. Although, in
@@ -72,17 +78,23 @@ A favourite way to corrupt your tree in !Family is to change the name
 of one or both parents. If you have a child and have tied it into the
 wrong family, this is what you do. It doesn't go away and change the
 parent's name (this would then affect another INDI and all the other
-children), instead, it goes away and tied this child to a different
+children), instead, it goes away and ties this child to a different
 family. If it was an only child, and there was only one parent, the
 old family may need to be removed. If it has a new pairing of parents
 for which there was not previously a family, such a family needs to be
 created. What can go wrong here is that we are doing this based on
-the *name* of the new parenet (or parents), which, in !Family, was
+the *name* of the new parent (or parents), which, in !Family, was
 guaranteed unique (in theory), but in xfamily one of our major aims
-is to remove this restriction. SO we do need to do more validation
+is to remove this restriction. So we do need to do more validation
 here.
 
-What we suggest is that parents' details are immutable by default,
+We have also decided that in the majority of circumstances, the
+names of parents in an edit dbox should be *immutable* and a
+different mechanism should be provided for changing the family
+membership of an INDI - the method currently under consideration
+is not really what is outlined below...
+
+What we suggested was that parents' details are immutable by default,
 and changing a parent requires explicitly enabling with a "change
 parent" button. You can then look for an existing parent with the
 usual completions mechanism, but the completions list should be
@@ -106,7 +118,8 @@ Yuck ! So yes, we need to change strategy and have a definite
 INDI object *whenever* we open an indibox. Even this is a little
 problematical, since the current !Family strategy is to keep all
 INDI objects in surname-alphabetical order in the linked list.
-But until we have a surname, we can't do this...
+But until we have a surname, we can't do this... [we also don't
+have any sorting mechanism coded in xfamily to add the INDI]
 
 OK, so maybe we don't worry about this. If we open an indiUI
 for an individual which has no parents, we could create a
@@ -136,7 +149,10 @@ reference from the INDI to a FAMC (if there is one), and
 then from the referenced FAM to fam->thehusband and
 fam->thewife. These are pointers to the GEDCOM_objects,
 and may, of course, be returned NULL if the FAM has no
-HUSB or WIFE.
+HUSB or WIFE. This is also going to become a bit dire
+now that we have our first LGBGT family where both parents
+are female - GEDCOM does not actually support this and
+various ad hoc methods sem to be in use.
 
 [aside: in !Family, there is no way to create a FAM with
 multiple CHIL objects, but neither HUSB or WIFE. However,
@@ -163,11 +179,18 @@ fields. Then if we are closing the indiUI (for Save, not
 for Commit) then we garbage collect any ephemeral INDI
 and FAM objects that we created which have not "become real".
 
+2017-09-22 did we indeed code that ? It sounds very much like
+what might be creating these green <unnamed> INDIs which are
+occasionally appearing visibly on the tree and causing
+segfaults if clicked on... I think the whole idea of "ephemeral"
+FAM and INDI objects is now seen as a seriously misguided
+concept.
+
 If we save the file whilst these ephemeral objects are
 around (including pointers by reference from real objects)
 we must be dead careful not to save any ephemeral objects,
 including pointers which are subobjects of real objects
 (so a 0 FAM @F<#>@ for a real family may contain a
 1 HUSB @E<#>@ pointer to an ephemeral indi, and we must
-save neither the ephemeral indo nor the pointer to it.)
+save neither the ephemeral indi nor the pointer to it.)
 

@@ -27,6 +27,9 @@ extern GEDCOM_tag *CHR_tag;
 extern GEDCOM_tag *CREM_tag;
 extern GEDCOM_tag *CAUS_tag;
 extern GEDCOM_tag *PLOT_tag;
+#ifdef fix0020
+extern GEDCOM_tag *AGE_tag;
+#endif
 extern GEDCOM_tag *FIDE_tag;
 extern GEDCOM_tag *QUAY_tag;
 extern GEDCOM_tag *ORIG_tag;

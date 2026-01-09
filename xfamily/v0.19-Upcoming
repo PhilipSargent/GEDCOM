@@ -1,0 +1,225 @@
+Upcoming changes for v 0.19:
+
+********************************************************************************
+**** We did code tidying and minor infrastructure changes in v 0.17        *****
+**** We did some non-structural editing functionality + more tidying v0.18 *****
+**** Much of what is described here is being postponed until ..., by which *****
+**** time one would hope to know my way round the code a little better...  *****
+********************************************************************************
+
+Urgent: Make saving text back into NOTE objects work
+        Make changing things in edit and famed dboxes work.
+        Make "add child" and "marry" functionality work
+
+Once you have those, you have most of what you really need - anything else
+like adding new event types is icing, since we can (and typically do) do
+those things by manually editing the gedcom anyway.
+
+Bring into conformity with GEDCOM 5.5 by removing the CEME, SITE and PLOT
+tags, and implementing a structured PLAC with essentially the same user
+interface as at present. The issue is what to use as our internal delimiter.
+GEDCOM expects that the structure will be delimited by commas, but, of course,
+these are already used internally within the strings, which would make it hard
+for us to parse off at what level things should go. That is, of course, fairly
+arbitrary anyway, but we would like to preserve what the user chose if at all
+possible. Within a cemetery we can delimit the old PLOT tag simply with the word
+plot.
+
+Actually, we have a fairly clear idea of the level of division between PLAC
+(essentially a map-defined place with some sort of administrative boundary,
+and, ideally, the smallest such unit, such as a parish or a village name
+within a parish) SITE/CEME essentially an address of a building or property
+PLOT a location within a property (ie. a precise burial location in a
+graveyard or cemetery). By analogy with PLOT, for other events, we could
+have a level which defined a location within the property (eg. "kitchen"
+within a particular address for something like a birth location (as in
+Auntie Joy:)
+The simplest change to export to software which refuses to recognise
+CEME, SITE and PLOT is simply to change
+
+1 BURI
+2 PLAC Eccleshill, Yorkshire
+3 CEME Norman Lane Burial Ground
+4 PLOT Section 4 plot 6/A
+
+to
+
+1 BURI
+2 PLAC Eccleshill, Yorkshire
+3 CONT CEME Norman Lane Burial Ground
+3 CONT PLOT Section 4 plot 6/A
+
+etc. though this will, of course, put things in an odd order overall,
+rather than going from most specific to most general as a normal
+address would.
+
+Move to implement the NAME subtags NPFX, GIVN, NICK, SPFX, SURN and NSFX
+
+Although we currently include UK National Grid References for a lot of our
+places, this is in no way formalised. In GEDCOM 5.5, PLAC has a MAP subobject
+with LATI and LONG subtags which expect degrees and decimal fractions (ie.
+not minutes and seconds). There is no provision for alternate coordinate systems
+such as UTM or UK National Grid. We could choose to implement this information
+with specifically formatted NOTE structures. It's worth checking 5.5.1 for
+alternative grid systems.
+
+We should really support the format for dates derived by interpretation from a
+free-form date as in  DATE (int) <date> (The Thursday before Palm Sunday, 1788)
+
+Remove the LVG tag, introduce the RESN tag. I believe we should only support
+the "confidential" value within our GEDCOM. Exported GEDCOM which removes
+information from objects marked as confidential, should use 'RESN privacy'
+to indicate that data are missing from this transmission. We could use the
+'RESN locked' field for stuff that we know looks wrong but is proven by
+enough evidence that we should be preventing casual alteration of the record.
+However, this object was really intended for publically-accessible records,
+and may not seem appropriate for a personal desktop product. The GEDCOM
+documentation doesn't seem to be clear about whether a record which is
+both locked and confidential uses both keywords in one tag, or repeats
+
+----------------------------------------------------------------------------
+
+To contemplate the next section, we need to have edit functionality on
+events (there's no sense in having a UI to add extra events if we have
+no way of keeping the events - we'd be generating pointers to bombsville...)
+
+So to what extent do we have ANY editing functionality now ?
+
+We believe we have full editing of NOTE objects, so we need to test this
+to be sure (and to do that, we need to be sure that our "save" function
+is actually working - there's a suspicion that it did, and now might not.
+OK it works except where it can't open the file for writing, in which
+case it fails safely, with a message to the terminal which may not be
+seen. We don't display a "modified" indicator anywhere.). We have been
+working on some code to support indiUI editing in v 0.17. However, any
+idea that saving NOTEs back to GEDCOM works is wrong !
+
+We do have indi->younger and fam->later editing added successfully.
+It would therefore be very easy to add indi->older and fam->earlier,
+but slightly harder to add a subdbox to move left or right in
+multiple steps (though that would be easiest in terms of usability).
+
+----------------------------------------------------------------------------
+
+The major change contemplated for <some future> version is to remove the fixed
+tabs on the INDI and FAM objects (BIRT,CHR,BAPM,DEAT,CREM,BURI; ENGA,MARR,DIV)
+and allow arbitrary appropriate events to be added to these objects, each
+creating a tab for entry or editing of the details. So the INDI ui would
+initially be rather bleak and empty-looking for a newly created INDI object,
+but clicking on an 'Add Event' button would give a menu of possible events,
+and choosing one would add the appropriate subobject to the INDI object,
+and a suitable tab to the dbox. In theory, this could allow you to have, for
+example, two BIRT tags, for different dates with different sources, although
+we would definitely need an 'are you sure' dialogue to allow that. We'd
+also want to clearly define which one would be displayed in the tree view -
+and probably display that with a question mark or in a colour that indicates
+that it is an alternative, not definitive... (This is an area where the
+GEDCOM spec is wilfully unhelpful - mostly it tells me that the order of
+occurrence in the structure is not significant, elsewhere it tells me that
+the "preferred" version of the structure should come first, and elsewhere
+again it warns me that most approved editing systems discard multiple
+occurrences and just accept the last one read in (thus throwing away the
+preferred instance). In practice we preserve everything we read that is
+structurally correct, whether we understand it or use it or not, but if
+a tag occurs multile times, we curretly won't make the user aware of it.
+If we have two BIRT tags, and we load up the first into a dbox to edit
+it, what happens when we save back ? I believe we have a pointer to the
+relevant GEDCOM object, so will overwrite the one we edited correctly,
+leaving an alternative one untouched, which should also preserve the
+sequence, ie. which one is the preferred instance. All sounds good, but
+of course, it means the user can blithely overwrite the preferred
+instance with the smae values that are in the other instance if he is
+unaware that both dates have been entered... so a bit dangerous to
+data integrity.)
+
+The object here is to simplify the user interface for the majority of
+individuals and families that do not have all the various events defined
+(you don't need BURI or CREM for someone lost at sea; you are unlikely to
+need both CHR and BAPM for most people; you don't need DIV for most
+marriages, there aren't many for which you will know the details to
+fill in the ENGA tag and I don't believe we've every needed ANUL). But
+also to provide the flexibilty to record other events for those few
+individuals and families that need them. For instance, multiple birth
+dates from different sources; perhaps two MARR objects, one for a TYPE
+Common Law, and one for a legal marriage at a later date; and records
+for Banns, marriage by licence (there's at least one in the tree),
+marriage contracts or settlements, and so on. Although GEDCOM doesn't
+properly support it, we need *something* we can do for a civil partnership.
+
+Internally, we need a list of events for which we can create tabs, a
+preferred order in which tabs would appear (usually the order in which
+the associated events would _normally_ appear chronologically) and, of
+course, a detailed layout for each of these tabs.
+
+You'd need a "new event" button, clicking on which would produce a drop-down
+menu of events we know about in this context, and clicking on the relevant
+menu item would create the new tab, in the right place, and make it current.
+
+If you edit an INDI/FAM with any of the extra events, you need to notice
+the existence of the event and create (and populate) the tab.
+
+When hitting "Apply" or "OK", you need to work through all the tabs, not
+just the six or three that we have at present, and create/update all
+the events.
+
+
+
+Implementation detail: How do we add a new tab to a dbox ? Does FLTK
+display them in the order that they were defined, or can we insert a new
+tab into a list between existing tabs ? The former will be much more of a
+pain as we would need to basically rebuild the dbox from scratch anytime
+a new event with associated tab was added (or an old one removed).
+
+We have an object
+
+Fl_Tabs* o = indi_events = new Fl_Tabs(col0, tabsrow, dboxwidth, tabheight);
+
+and within that, each tab is instanciated with
+
+Fl_Tile* o = indi_birth = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, msg_birth);
+Fl_Tile* o = indi_chr = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, msg_chr);
+Fl_Tile* o = indi_bapm = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, msg_bapm);
+Fl_Tile* o = indi_death = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, msg_death);
+Fl_Tile* o = indi_crem = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, msg_crem);
+Fl_Tile* o = indi_buri = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, msg_buri);
+
+and then we call code to complete the Fl_Tabs*
+
+o->end();
+
+(in each case o is a local variable used to save typing, so that is really indi_events->end(); )
+
+So yes, FLTK displays them all in the order we defined them, and it may not be
+possible to add/remove/reorder.
+
+OK, we can add a tab just by doing
+
+indi_events->begin();
+{
+   Fl_Tile* o = indi_nova = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, msg_nova);
+   ...
+   o->end();
+}
+indi_events->end();
+
+but this will just add the new tab at the end
+
+the docs seem to refer to add() and remove() functions, but these are not in the
+example code. add() will only add at the end of the Fl_Group. But add and remove
+don't create or destroy the children - so you can remove a tab and add it again
+at the end. You can get a pointer to an array of the children with
+Fl_Widget *const * Fl_Group::array() const
+So if you have an array of six tabs, and want to add one in the middle, you
+would get that array, remove the last three, add the new one, and add back
+the three you removed, at the end. Then some sort of redraw would be needed.
+Be aware that the array you get back is only valid until the next add/remove,
+so you'd have to take a copy in order to be able to refer to all the elements
+as you remove and add. Although, of course, within the class, you have your own
+variables
+
+
+------
+
+At the moment we have buttons (which do nothing) for "Will" and "Probate". Very few
+of our INDIs have WILL or PROB tags - indeed, I've probably added the first one (a
+PROB) in late 2015

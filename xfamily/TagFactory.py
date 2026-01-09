@@ -1,3 +1,6 @@
+# This is obsolete - it has no way of handling stuff inside conditional
+# compilation markers, and we seem to have removed KnownTags anyway !
+
 #! /usr/bin/env python
 import sys
 #I% = OPENIN"KnownTags"

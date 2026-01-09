@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
 
 #include "fixes.h"
 #include "classes.h"
@@ -114,18 +115,28 @@ GEDCOM_id::GEDCOM_id( char *newid ) {
 
 // should only ever need to be called from tree's add_id method.
 
+#ifdef fix0023
+  id = new GEDCOM_string( newid );
+#else
   strcpy( id, newid );
+#endif
   object = NULL;
   next = NULL;
 }
 
-#ifdef fix0004
+// we're backing off from fix0004, but fix0023 needs this code. Note quite sure how we did
+// this when id was a char[16] without needing this signature
+//#ifdef fix0004
 GEDCOM_id::GEDCOM_id( char *prefix, int suffix ) {
+#ifdef fix0023
+  id = new GEDCOM_string( prefix, suffix );
+#else
   sprintf( id, "%s%i", prefix, suffix );
+#endif
   object = NULL;
   next = NULL;
 }
-#endif
+//#endif
 
 GEDCOM_id::~GEDCOM_id() {
 
@@ -135,10 +146,18 @@ GEDCOM_id::~GEDCOM_id() {
 #ifdef destructorlogs
   printf("~GEDCOM_id %ld, object %ld, next %ld (ought to be NULL already)\n",(long)this,(long)object,(long)next);
 #endif
+
+#ifdef fix0023
+  delete id;
+#endif
 }
 
 char *GEDCOM_id::GEDCOM_idname() const {
+#ifdef fix0023
+  return (char *) id->string();
+#else
   return (char *) id; // discard its const-ness to stop ANSI C++ whinge
+#endif
 }
 
 GEDCOM_id *GEDCOM_id::getnext() const {
@@ -170,8 +189,19 @@ GEDCOM_string::GEDCOM_string( char* callers_string ) {
   if (thestring!=NULL) strcpy( thestring, callers_string );
 }
 
-#ifdef fix0004
 // often we will generate an id by passing a prefix letter and a serial number
+#ifdef fix0023
+GEDCOM_string::GEDCOM_string( char* prefix, int suffix ) {
+  int l;
+  l = int(log10(suffix));
+  thestring = (char*)malloc( strlen(prefix)+l+2);
+  if (thestring!=NULL) {
+    sprintf( thestring, "%s%i", prefix, suffix );
+  }
+}
+#endif
+
+//#ifdef fix0004
 GEDCOM_string::GEDCOM_string( char* prefix, char* suffix ) {
   thestring = (char*)malloc( strlen(prefix)+strlen(suffix)+1 );
   if (thestring!=NULL) {
@@ -189,7 +219,7 @@ GEDCOM_string::GEDCOM_string( char* prefix, char* meat, char* suffix ) {
     strcat( thestring, suffix );
   }
 }
-#endif
+//#endif
 
 GEDCOM_string::GEDCOM_string( size_t size ) {
   thestring = (char*)malloc( size );
@@ -473,57 +503,7 @@ bool GEDCOM_object::delete_subobject( GEDCOM_object *oldobj ) {
   return false; // also means we were called in error
 }
 
-
-#ifndef fix0006
-void GEDCOM_object::chain_object( GEDCOM_object *newobj ) {
-// FIXME, we are using an illogical mix of methods and direct access to variables
-
-// adds newobj as the next subobject of this's parent
-// ie. inserts in chain after this (and before this->next if there is one,
-// but it is perfectly valid to be inserting it as the last object so we
-// can still go ahead if next==NULL)
-
-// logic says call this "insert_after", but that gives the impression that
-// we are inserting this after newobj, and it's the other way round. But we
-// do seem to have access to newobj's private variables, so we could equally
-// well have done it the other way. Maybe implemente both ways and see which
-// seems cleaner ?
-
-  newobj->next = next;
-  next = newobj;
-  newobj->setparent( myparent );
-}
-
-// we are a singly-linked list, so "insert before" is a bit harder, but clearly we
-// will need this or similar for changing the order of CHIL and MARR objects in a
-// FAM
-
-void GEDCOM_object::precede_object( GEDCOM_object *newobj ) {
-// FIXME, we are using an illogical mix of methods and direct access to variables
-
-// adds newobj as the subobject of this's parent *preceding* this
-GEDCOM_object *oldobj;
-  oldobj = myparent->subobject();
-  while (oldobj!=this) {
-    if ((oldobj->next)==this) {
-      oldobj->next = newobj;
-      newobj->next = this;
-      newobj->setparent( myparent );
-      return;
-    } else
-      oldobj = oldobj->next;
-      // if that ever comes back as NULL, our GEDCOM is broken ! so segfault ;)
-  } 
-  // only get here if this was the first subobject 
-  myparent->sub = newobj;
-  newobj->next = oldobj;
-  newobj->setparent( myparent );
-}
-#endif
-
-#ifdef fix0006
-// I'm finding chain_object() and precede_object() a little opaque, so here we
-// will implement insert_before() and insert_after() as being a little more
+// implement insert_before() and insert_after() as being a little more
 // human-readable, and should not actually be more work ?
 // In these routines 'this' is the object to insert and oldobj is an existing
 // subobject which we want to follow or precede in the list.
@@ -554,7 +534,6 @@ GEDCOM_object *preobj;
   this->next = oldobj;
   this->setparent( oldobj->parent() );
 }
-#endif
 
 GEDCOM_object::~GEDCOM_object() {
 #ifdef destructorlogs
@@ -572,6 +551,20 @@ GEDCOM_object::~GEDCOM_object() {
   // we should also have been removed from a chain, so we should have no next (but does remove subobject do that ?)
   if (next!=NULL) printf("GEDCOM_object %ld (tag %s) being killed with extant next pointer!!\n",(long)this,this->tagname());
 }
+
+#ifdef fix0021
+// setting and testing flags
+// probably don't actually need the bit values #include "flags.h"
+
+bool GEDCOM_object::testflags(unsigned int setmask, unsigned int clearmask) {
+  return ((flags & setmask)|((~flags)&clearmask));
+}
+
+void GEDCOM_object::setflags(unsigned int set, unsigned int clear) {
+  flags = flags|set;
+  flags = flags&(~clear);
+}
+#endif
 
 // for changing objects: note that changing the id of an object is a *dangerous*
 // thing. Are we sure there is no different GEDCOM_id pointing at this object ?
@@ -700,7 +693,6 @@ void GEDCOM_object::outline( FILE* out, int level ) const {
 
 }
 
-#ifdef debugging
 void GEDCOM_object::print( int level ) const {
 
 // when debugging, we want to print everything, even if it has no value, reference or subobjects
@@ -721,8 +713,6 @@ void GEDCOM_object::printline( int level ) const {
   if (val!=NULL) printf(" %s",val->string());
   printf( "\n");
 }
-
-#endif
 
 // methods appropriate for objects which have an @id@ such as INDI, SOUR, REPO, FAM
 
@@ -812,8 +802,10 @@ GEDCOM_object* GEDCOM_object::parental_family() const {
 GEDCOM_object* famc;
 // if (tag!=INDI_tag) return NULL; // bad call test not needed in subclass
   famc = this->subobject( FAMC_tag );
+  printf("parental_family found %ld\n",(long)famc);
   if (famc==NULL) return NULL;
   famc = famc->followxref();
+  printf("parental_family found %ld\n",(long)famc);
   if (famc==NULL) return NULL; // this is broken GEDCOM - every @xref@ should
   //have a corresponding @id@ in the file
   return famc;

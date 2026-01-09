@@ -1,0 +1,75 @@
+Bugs in the GEDCOM can (and will) cause crashes.
+
+When we load a tree, we first load all the INDI @ref@ records, then
+the FAM @ref@ records. That's purely a convention of the way we
+order our GEDCOM - in general we should not rely on this !!
+
+As we load the FAM records, we will follow each HUSB, WIFE, CHIL
+reference and add a pointer to the INDI object. If we don't find
+an INDI object with the right reference, we will complain.
+
+At the same time, we will be patching up all the FAMC and FAMS records
+to point to the FAM records. We won't complain if there is a FAM record
+to which no FAMC or FAMS records point, but, more critically, if we
+don't find a FAM record to which a particular FAMS or FAMC record points
+the pointer in that FAMS or FAMC will remain uninitialised and we won't
+notice, because we don't do a post-loading integrity check.
+
+We should have code to do a complete integrity check on the current
+tree, and be able to run that code at any arbitrary time by calling
+it up from a menu. It should run automagically on loading a new tree.
+
+OK, well, we appear to have
+
+bool treeinstance::integritycheck() {
+
+which is run on a newly loaded tree. That ought to be doing what we need...
+and appears to be coded to survive being passed NULL for the first subobject
+of either or both the INDI and FAM lists. This is controlled by fix0014, which
+is defined in fixes.h, so ought to be being compiled. It returns a bool, which
+isn't tested for, but the integritycheck code does print diagnostics if it
+finds a problem - which we just tested by giving it a slightly broken gedcom,
+which it reported correctly (and then loaded and displayed it fine, though
+presumably things would have gone wrong if we'd tried to display the broken bit).
+There was enough info in the messgae to fix the issue without needing line
+numbers. In this error, the INDI FAMS pointer was correct, but the FAM HUSB
+pointer pointed at a different individual (but one which did exist)
+
+We might need to add some more data to our tree objects, to keep track
+of the line numbers from which they were defined. Unfortunately, of course,
+when we start to change the tree, these line numbers won't correspond to
+anything we save...
+
+It seems likely that, since the tree itself is stored without mishap, it
+is when we are building a display structure that we get a duff pointer,
+so we should be doing a bit more validation and checking for wrong
+pointers as we do that.
+
+//* FIXED One main issue currently is that the code 
+
+  char* initialtree;
+  {
+     char it[] = "/usr/local/src/xfamily/test/test2.ged";
+     initialtree = (char*)it;
+     // this is always being reported as (null). char* initialtree = "..."; always used to work, how to do it now ??
+  }
+
+no longer seems to provide us with a default filename. So we may pass NULL to
+
+  treeinstance *first = trees->newinstance( initialtree );
+
+(which is defined in structure.cxx)
+
+FIXED */
+
+I've tried to make the code more defensive if the 
+
+void treeinstance::loadGEDCOMfile( const char * newfile ) {
+
+can't open a file for the filename it is passed (and it does now
+check if newfile == NULL), but haven't yet added code to create
+all the default things for an empty tree. In particular, we need
+to build default structures in headlist and trlrlist.
+
+That will still end with a NULL in indilist.subobject, so when we pass
+the indilist to create the display we need to catch that.

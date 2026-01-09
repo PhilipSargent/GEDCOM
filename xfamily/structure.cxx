@@ -41,7 +41,10 @@ treeinstance *instantia_nova;
 
   instantia_nova = this->newinstance();
   instantia_nova->loadGEDCOMfile( filename );
-
+#ifdef fix0014
+  instantia_nova->integritycheck();
+  // returns a bool - could offer to abandon loading if tree failed
+#endif
   return instantia_nova;
 }
 
@@ -84,7 +87,8 @@ editlist::editlist() {
   last_edit = NULL;
 }
 
-indiUI* editlist::open( treeinstance* thistree, GEDCOM_object * editindi ) {
+#ifdef fix0022
+indiUI* editlist::checkopen( treeinstance* thistree, GEDCOM_object * editindi ) {
 
 // first check through the list to see if there is already
 // an edit window for this GEDCOM_object
@@ -95,10 +99,29 @@ indiUI* newedit;
   if (newedit!=NULL) {
     newedit->hide();
     newedit->show();
+  }
+  return newedit;
+}
+#endif
+
+
+indiUI* editlist::open( treeinstance* thistree, GEDCOM_object * editindi ) {
+
+indiUI* newedit;
+
+#ifndef fix0022
+// caller should have already called checkopen in all cases where the
+// possibility exists that we already have an indiUI open
+
+  newedit = this->editbox( editindi );
+  if (newedit!=NULL) {
+    newedit->hide();
+    newedit->show();
     return newedit;
   }
+#endif
 
-// OK, we're not editing this individual, so open a new edit box:
+// We're not editing this individual, so open a new edit box:
 
   newedit = new indiUI( thistree, editindi );
   if (first_edit != NULL)

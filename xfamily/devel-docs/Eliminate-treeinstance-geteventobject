@@ -2,7 +2,7 @@ In the callbacks, view is (mainUI*)userdata, and we then determine the
 GEDCOM_object represented by whatever was clicked on and store a pointer
 to that by setevent() on the treeinstance.
 
-This is startting to cause grief as it is not specific enough. We can
+This is starting to cause grief as it is not specific enough. We can
 always get to the INDI from the indisplay we clicked and to the FAM
 (and also, now, the first INDI in a marriage) from the famdisplay, so
 it would be generally more useful to store pointers to those. In
@@ -12,7 +12,7 @@ which INDI is above the marriage. From the FAM we can't tell which
 INDI directly (or even indirectly without a huge overhead), whereas
 from the famdisplay, we could.
 
-So instead of saving a pointer to GEDOMC_object in the treeinstance,
+So instead of saving a pointer to GEDCOM_object in the treeinstance,
 we'd want to save a generic pointer to either indidisplay or famdisplay,
 in the displaytree
 
@@ -35,11 +35,11 @@ subclasses. And who knows ? maybe one day I will understand C++ well
 enough to rewrite them that way. But for now we just do reinterpret
 casts and save stuff as a void* (which is essentially what we are obliged
 to do with the userdata for the callbacks and that seems (a) to work
-fin and (b) to be at least as easy to understand as anything else.
+fine and (b) to be at least as easy to understand as anything else.
 
 So use fix0012 to add eventobj to displaytree...
 
-ELiminating the use of geteventobject on treeinstance now means
+Eliminating the use of geteventobject on treeinstance now means
 passing the mainUI in userdata to all the callbacks (we do need to be
 consistent about this, otherwise it gets very hard to maintain), so
 we need

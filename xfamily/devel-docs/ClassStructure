@@ -1,0 +1,142 @@
+We have two main structures
+
+First is a family tree, essentially encapsulating the whole of one GEDCOM file.
+Currently, xfamily only permits one such structure. But as it is quite
+possible to build subtrees separately and then connect them, we will
+want to support multiple trees, and methods to merge/connect them.
+
+Second is a display strucutre, which encapsulates the representation of
+part of a tree on a canvas into which we window our display. We already
+support multiple views into a single tree.
+
+We also have classes for user interfaces (windows or dboxes)
+                         menus
+                         completion lists
+and component classes used to build the bigger structures.
+
+The basic unit of a GEDCOM file is a line 
+
+   <level> [@<id>@] <tag> [@<xref>@] [value]
+
+where <level> places the line in a hierarchy relative to other such
+lines. This defines a tree structure of the objects in the file.
+Since an actual family tree is a rather more complex form of graph,
+the structure of the family tree (which links up individuals in
+family units) is controlled by the @id@ and @xref@ fields, only
+zero or one of which may be present in a line of GEDCOM. Such
+id and xref fields also link sources of information into a
+hierarchical structure (but that structure is, in general, a
+simple tree much like a filesystem).
+
+Our way of representing an arbitrary line of GEDCOM is with the
+GEDCOM_object class. There is a case for making this very general
+and subclassing. But if we do that, we need a class for every type
+of object, and there are many types of object which we very carefully
+preserve across GEDCOM editing, but which we don't interpret. There
+is also a mechanism for users to define arbitrary tags for objects
+of their own, which we cannot hope to know about in advance. Hence
+we do NOT subclass GEDCOM_object, but rely on the tag field to
+tell us what sort of object we are looking at, and whether it makes
+sense for that type of object to have either an id or an xref.
+
+Having said that, there are certain types of object for which
+methods like getid(), getidname(), getxref(), followxref(),
+getxrefname(), thewife(), thehusband(), thespouseof(), child(),
+parental_family(), own_family() make sense, and a lot more
+for which they don't. It is then worth asking whether we might
+be "safer" if we had appropriate subclasses.
+
+You have a subclass which has an @id@ field
+         of which INDI and FAM objects are the main (but not the only) examples, SOUR, REPO and SUBM are also used in xfamily
+         a subclass which has an @xref@ field
+         of which FAMC, FAMS, HUSB, WIFE, CHIL are the main examples. SOUR and REPO may also be used this way.
+
+We also use an extension in which a NOTE object contains an @xref@, and this does not quite
+conform to the correct format, as we have swapped @<xref>@ and value. It would be easy enough
+to fix that, although, in practice, any mainstream tag that has an xref does not have a value.
+(By this we mean the "0 NOTE View @I1862@" extension)
+
+So our current implementation has a single GEDCOM_object class in which, in general,
+only one of the id, xref and value fields actually has a value. The id and xref
+fields are stored as pointers to objects instanciating another class, GEDCOM_id,
+whilst the tag is stored as a pointer to an object of class GEDCOM_tag. If there
+is a value (ie. some text on the GEDCOM line) then this instanciates a GEDCOM_string
+which is simply a mechanism to put an arbitrary string in heap storage.
+
+GEDCOM_id contains a string field which holds the characters used for the id or xref
+in the GEDCOM file, and a pointer to a GEDCOM_object which is the object which has
+that id.
+
+We think it is probably a bug that the id string field is a fixed length char[]
+and can't quite see why this didn't get implemented as a GEDCOM_string. fix0023
+may have done enough to fix this one.
+
+The same would apply to tag, which has a fixed length defined by MAX_TAG. We have
+not yet dealt with this one, as tags are generally short. But it is equally a
+security issue if people want to cause a buffer overrun... we don't test the
+length of a tag on reading in a GEDCOM - we should either do that or generalise
+the string as for GEDCOM_id...
+
+So, to clarify how the family tree structure works, as we construct a
+GEDCOM_object for an INDI, we search the list of GEDCOM_id to see if it
+already exists. If it does, we check that the pointer to the GEDCOM_object
+is NULL, and initialise the pointer to our INDI object. If non-null, this
+indicates a duplicate id, which is an error we need to report. If we didn't
+find the id, we create a new GEDCOM_id with the id string and the pointer
+set to our new INDI object. Within the INDI there may be subobjects for FAMC
+and/or FAMS with a cross-reference to an id. When the GEDCOM_object for the
+FAMS or FAMC is constructed, first, the list of GEDCOM_id is searched to see
+if this points to a FAM we have already loaded. If not, a GEDCOM_id is
+constructed, and the id string added, but no pointer to a FAM is generated.
+A Pointer to the GEDCOM_id is returned. When a FAM object is being built,
+the list of GEDCOM_id is searched and if the id is found, we check that the
+pointer is NULL (if not, we have a duplicate id from a previous FAM - an
+error we need to report). If NULL, we initialise the pointer to point to our
+new FAM object, and return the pointer to the GEDCOM_id. If the id is not
+found, we construct a new GEDCOM_id, adding the id string and the pointer
+to the FAM oject.
+
+After we have loaded the entire GEDCOM, there should be no GEDCOM_id
+objects whose pointers are zero - I'm not sure we check this. Do we
+have a way of walking all the GEDCOM_id objects ? Are they all not just
+level 0 objects in the tree, walkable with a next object link on that
+tree ? Ah, no, that walks the objects they point to. What we want is
+to walk hte ids to see if any exist for which there is no object. Hmmm
+
+When we are subsequently using the INDI object, to find the FAM from the
+FAMS or FAMC, we follow the id pointer to the GEDCOM_id, and dereference
+its pointer to the FAM via its GEDCOM_objectfromid() method. Similarly,
+when we are using a FAM, we get to the INDIs from HUSB, WIFE or CHIL
+objects by following the id pointer and dereferencing. Although this
+seems like more overhead than strictly necessary, the alternative is
+to hold a pointer to a GEDCOM_object inside the GEDCOM_object for
+INDI, FAM, FAMC, FAMS, HUSB, WIFE or CHIL objects. Since we are not
+subclassing our GEDCOM_object class, this would mean reserving space
+for these pointers in ALL GEDCOM_objects, even though most objects
+would use neither and no object would use both. We chose to trade off
+reducing memory footprint in favour of saving processing time.
+
+INDI and FAM objects are the mainstay of the tree, and each is composed
+of one or more subobjects with a cross-reference (as detailed above) or
+taking a value. Each subobject may itself have subobjects in a tree
+structure. The tree structure of the GEDCOM file itself is held by
+a small set of pointers within GEDCOM_objects. First there is a
+pointer to the first subobject, and then there is a pointer to the
+next object at the same level. Finally, there is a pointer to the
+object's parent object (ie. the object of which this is an immediate
+subobject, nothing to do with the family tree relationships;-)
+
+Sources (SOUR) and repositories (REPO) have their own structure,
+where a SOUR is typically a subobject of almost any GEDCOM_object
+which records a fact, and contains a cross-reference to a SOUR
+object with an id. A Source may itself be a part of a larger source
+(eg. a chapter in a book, or an article in a newspaper) and may
+therefore contain a SOUR subobject with a cross-reference to the
+larger source. These can be nested arbitraily deep, and you will
+come across GEDCOMs with some quite arcane structures for sources
+which imply a somewhat liberal interpretation of the admittedly
+rather ambiguous GEDCOM standard. Eventually, a SOUR object must
+contain a REPO subobject with a cross-reference which points to a
+REPO object which defines where a source lives. Potentially, a
+repository could be part of a larger repository, but I've not
+come across any GEDCOM which contains nested REPOs.

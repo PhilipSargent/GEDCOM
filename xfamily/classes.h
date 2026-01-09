@@ -47,7 +47,6 @@ class famdisplay;  // one per marriage/family displayed
 
 class GEDCOM_object;
 class GEDCOM_tag;
-class GEDCOM_object;
 class GEDCOM_id;
 
 //   other structures (objects.h/cxx)

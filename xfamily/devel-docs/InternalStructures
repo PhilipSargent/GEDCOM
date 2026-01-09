@@ -39,6 +39,10 @@ and a pointer to the indidisplay of the person below the =, if there is one.
 The key to understanding this lot is to see what happens when we set a new current
 person for a particular view
 
+[ in conjunction with this next bit of documentation, you should also consider
+ the file Eliminate-treeinstance-geteventobject as we have reasons to change
+ how this stuff works... ]
+
 the popup_cb callback on the mainUI checks for view->main->whoisat to see if an
 indidisplay or famdisplay has been clicked on. If it's an indidisplay and a left
 button click, we'll call view->setcurrent( clicked ) where clicked is the pointer
@@ -52,7 +56,8 @@ the current person on the correct view.
 
 And finally, when a file is first loaded we will set view->setcurrent( ) for
 the current person saved in the file (or one per view, opening a view for each
-of those objects). First we try one or more 0 NOTE view objects (with
+of those objects [ at 2017-09-22 we only open one view, I believe, on the
+first person noted ]). First we try one or more 0 NOTE view objects (with
 noted_view()) and only if this fails do we fall back on a single 0 NOTE person
 object (with noted_person())
 
@@ -80,6 +85,6 @@ During this process, when we find that the indidisplay we are building is
 the one for the current person, we set displaytree::indicurrent to it
 This works out the size of each name and so on, but not where it is.
 display->calctree() is the cunning algorithm that works out where everything
- goes.
+ goes. There is scope for improvement here.
 
 

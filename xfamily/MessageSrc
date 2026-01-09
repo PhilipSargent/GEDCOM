@@ -59,6 +59,10 @@ unnamed
 en::<unnamed>
 fr::<anonyme>
 
+nullindi
+en::<null>
+fr::<null>
+
 info_title
 en::About this program
 fr::À propos de cette programme
@@ -194,8 +198,12 @@ en::Later
 fr::Plus tard
 
 menu_child
-en::Child
-fr::Enfant
+en::New child in family
+fr::Nouveau enfant dans famille
+
+menu_newfam
+en::Child in new family
+fr::Enfant dans famille nouvelle
 
 menu_remove
 en::Remove
@@ -240,8 +248,8 @@ author
 en,fr::© A.E.R.Waddington, 2013
 
 version
-en::v 0.18 alpha 2013-01-24 en-gb
-fr::v 0.18 alpha 2013-01-24 fr
+en::v 0.19 alpha 2013-02-04 en-gb
+fr::v 0.19 alpha 2013-02-04 fr
 
 purpose
 en::Family Tree Editor
@@ -293,6 +301,10 @@ en,fr::Date
 event_time
 en::Time
 fr::Temps
+
+event_age
+en::Age
+fr::Age
 
 event_place
 en::Place
@@ -542,7 +554,7 @@ en::Other:
 fr::Autre:
 
 gpl_box
-en::The X!Family Genealogical Package version 0.18 Copyright © 2013 by Andy Waddington.\n
+en::The X!Family Genealogical Package version 0.19 Copyright © 2013 by Andy Waddington.\n
 Based loosely on !Family for RISC OS originally developed by Denis Howe.\n
 \n
 This package is free software: you can redistribute it and/or modify it under the terms of\n
@@ -557,7 +569,7 @@ You should have received a copy of the GNU General Public License\n
 along with this software: if not, write to the Free Software Foundation, Inc.,\n
 59 Temple Place, Suite 330, Boston. MA 02111-1307 USA\n
 Please report faults to family-maint@pennine.ddns.me.uk
-fr::Le progiciel généalogique "X!Famille" version 0.18. Propriété © 2013 par Andy Waddington.\n
+fr::Le progiciel généalogique "X!Famille" version 0.19. Propriété © 2013 par Andy Waddington.\n
 Basé vaguement sur !Family pour RISC OS, écrit par Denis Howe.\n
 \n
 Ce programme est libre, vous pouvez le redistribuer et/ou le modifier selon les termes\n
