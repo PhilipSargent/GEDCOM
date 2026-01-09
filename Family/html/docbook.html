@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en-gb">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The !Family Screenbook</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #f4f4f9;
+        }
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        header h1 {
+            color: white;
+            margin: 0;
+        }
+        .meta {
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+        section {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        code {
+            background: #eee;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: "Courier New", Courier, monospace;
+        }
+        pre {
+            background: #272822;
+            color: #f8f8f2;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        .note {
+            border-left: 4px solid #3498db;
+            padding-left: 1rem;
+            font-style: italic;
+            color: #555;
+        }
+        footer {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #777;
+            margin-top: 4rem;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>The !Family Screenbook</h1>
+    <div class="meta">
+        <strong>Version:</strong> 2.25 [cite: 1]<br>
+        <strong>Last Updated:</strong> 2000-12-19 [cite: 1]<br>
+        <strong>Author:</strong> Andy Waddington [cite: 1]<br>
+        <strong>Principal Developers:</strong> Denis Howe, Andy Waddington [cite: 1]
+    </div>
+    <p><em>A tutorial guide to !Family - a Genealogy database (GEDCOM) editor and browser for the RISC OS desktop. [cite: 1]</em></p>
+</header>
+
+<section id="introduction">
+    <h2>1. Introduction</h2>
+    <p>!Family is an editor for Genealogy (Family Tree) Databases working directly with the internationally standardised GEDCOM file format. [cite: 6] It features an intuitive visual interface for browsing and editing families, people, and events directly on a graphical family tree view. [cite: 7]</p>
+    <p>At present, the software is undergoing a transition from BASIC to C++ to improve speed and memory efficiency. [cite: 8, 14] While currently mature, it is considered alpha release software as the user interface continues to evolve. [cite: 10, 14]</p>
+</section>
+
+<section id="main-display">
+    <h2>2. The Main Display Window</h2>
+    <p>When started, !Family opens two windows: a tree view and a notes window for the "Current Person." [cite: 15] The display follows these conventions:</p>
+    <ul>
+        <li><strong>Color Coding:</strong> Males are blue, females are red, and unknown gender is green. [cite: 22]</li>
+        <li><strong>Relationships:</strong> Husband and wife are shown one above the other with an equals sign (<code>=</code>). [cite: 25]</li>
+        <li><strong>Navigation:</strong> Left-clicking a person makes them the new "current person" and centers the tree on them. [cite: 20]</li>
+        <li><strong>Dates:</strong> Birth and death dates appear under each person by default. [cite: 23] A <code>?</code> indicates an unknown birth date, while a blank indicates an unknown death date. [cite: 24]</li>
+    </ul>
+
+    <h3>2.1 Person Menu</h3>
+    <p>Right-clicking a person opens a menu with several management options: [cite: 29]</p>
+    <ul>
+        <li><strong>Edit:</strong> Opens a dbox to edit event details like Birth, Christening, and Death. [cite: 29]</li>
+        <li><strong>Marry/Unmarry:</strong> Connect or disconnect individuals in the database. [cite: 30, 33]</li>
+        <li><strong>Child:</strong> Adds a new person as a descendant of the selected individual. [cite: 35]</li>
+        <li><strong>Older:</strong> Swaps sibling display order (this changes the GEDCOM <code>CHIL</code> tags but not birth dates). [cite: 37, 38, 39]</li>
+        <li><strong>Remove:</strong> Deletes the person and all their details from the database. [cite: 40]</li>
+    </ul>
+</section>
+
+<section id="editing">
+    <h2>3. The Person Editing Dbox</h2>
+    <p>This tabbed interface allows for detailed record-keeping for six primary life events: Birth, Christening, Baptism, Death, Cremation, and Burial. [cite: 81]</p>
+    <ul>
+        <li><strong>Name Matching:</strong> To prevent duplicate entries, you can use <code>F1</code> (start of name) or <code>F2</code> (end of name) to search for existing people in the database. [cite: 91, 92]</li>
+        <li><strong>Living Status:</strong> A "Living" checkbox is available to flag individuals who are still alive, which helps in suppressing sensitive data during export. [cite: 84, 85]</li>
+        <li><strong>Event Tabs:</strong> Each event includes fields for Date, Time, Place, and Site. [cite: 97]</li>
+        <li><strong>Calendars:</strong> Supports Gregorian (default) and Julian calendars. [cite: 100, 101]</li>
+    </ul>
+</section>
+
+<section id="iconbar">
+    <h2>4. Iconbar Functions</h2>
+    <p>The iconbar menu handles global tasks and reporting: [cite: 60]</p>
+    <ul>
+        <li><strong>Print:</strong> Attempts to print the tree across multiple pages. [cite: 61]</li>
+        <li><strong>Draw:</strong> Produces a RISC OS <code>!Draw</code> file for manual layout manipulation. [cite: 68, 69]</li>
+        <li><strong>Web Pages:</strong> Generates HTML files for website publication. [cite: 72, 73] It includes an option to omit details of living persons. [cite: 75]</li>
+        <li><strong>Save:</strong> Saves the entire tree in standard GEDCOM format.</li>
+    </ul>
+</section>
+
+<section id="gedcom">
+    <h2>Appendix: GEDCOM Files</h2>
+    <p>GEDCOM (Genealogical Data Communication) is the international standard for genealogical data. [cite: 126] Files are plain ASCII text. [cite: 130] Each line follows a specific grammar:</p>
+    <pre>level [@id@] tag value</pre>
+    <p>For example, a family unit is defined by <code>FAM</code> tags that cross-reference individual (<code>INDI</code>) records for husbands, wives, and children. [cite: 134, 139]</p>
+    <div class="note">
+        !Family aims to preserve all tags, even those it does not currently support, to ensure no data is lost when saving. [cite: 149, 154]
+    </div>
+</section>
+
+<footer>
+    <p>&copy; 2000 Andy Waddington. !Family Screenbook endpiece. [cite: 1]</p>
+</footer>
+
+</body>
+</html>
