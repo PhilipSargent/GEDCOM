@@ -7,9 +7,9 @@ from a fixed path which includes the version number.
 Files like Changes, Upcoming, Bugs probably want new versions, too.
 
 When you have edited MessageSrc, run ./StringFactory.py - the make
-sequence doesn't do this automagially. We probably ought to make
+sequence doesn't do this automagically. We probably ought to make
 messages/en a target and run StringFactory.py to make it - any
 other language files will automatically be recreated too.
 
 You'd need to make messageSrc a dependency for strings.cxx and
-strings.h as well as messages.en
+strings.h as well as messages/en and messages/fr

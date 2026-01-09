@@ -27,9 +27,7 @@ CHR_tag = new GEDCOM_tag("CHR");
 CREM_tag = new GEDCOM_tag("CREM");
 CAUS_tag = new GEDCOM_tag("CAUS");
 PLOT_tag = new GEDCOM_tag("PLOT");
-#ifdef fix0020
 AGE_tag = new GEDCOM_tag("AGE");
-#endif
 FIDE_tag = new GEDCOM_tag("FIDE");
 QUAY_tag = new GEDCOM_tag("QUAY");
 ORIG_tag = new GEDCOM_tag("ORIG");
@@ -54,6 +52,7 @@ VERS_tag = new GEDCOM_tag("VERS");
 GEDC_tag = new GEDCOM_tag("GEDC");
 HEAD_tag = new GEDCOM_tag("HEAD");
 TRLR_tag = new GEDCOM_tag("TRLR");
+unsaved_tag = new GEDCOM_tag("unsaved");
 root_tag = new GEDCOM_tag("root");
 heads_tag = new GEDCOM_tag("heads");
 indis_tag = new GEDCOM_tag("indis");
@@ -61,6 +60,3 @@ fams_tag = new GEDCOM_tag("fams");
 sours_tag = new GEDCOM_tag("sours");
 repos_tag = new GEDCOM_tag("repos");
 trlrs_tag = new GEDCOM_tag("trlrs");
-#ifdef fix0004
-ephem_tag = new GEDCOM_tag("ephemera");
-#endif

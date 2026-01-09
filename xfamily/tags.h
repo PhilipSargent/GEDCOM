@@ -27,9 +27,7 @@ extern GEDCOM_tag *CHR_tag;
 extern GEDCOM_tag *CREM_tag;
 extern GEDCOM_tag *CAUS_tag;
 extern GEDCOM_tag *PLOT_tag;
-#ifdef fix0020
 extern GEDCOM_tag *AGE_tag;
-#endif
 extern GEDCOM_tag *FIDE_tag;
 extern GEDCOM_tag *QUAY_tag;
 extern GEDCOM_tag *ORIG_tag;
@@ -54,6 +52,7 @@ extern GEDCOM_tag *VERS_tag;
 extern GEDCOM_tag *GEDC_tag;
 extern GEDCOM_tag *HEAD_tag;
 extern GEDCOM_tag *TRLR_tag;
+extern GEDCOM_tag *unsaved_tag;
 extern GEDCOM_tag *root_tag;
 extern GEDCOM_tag *heads_tag;
 extern GEDCOM_tag *indis_tag;
@@ -61,6 +60,3 @@ extern GEDCOM_tag *fams_tag;
 extern GEDCOM_tag *sours_tag;
 extern GEDCOM_tag *repos_tag;
 extern GEDCOM_tag *trlrs_tag;
-#ifdef fix0004
-extern GEDCOM_tag *ephem_tag;
-#endif

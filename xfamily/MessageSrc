@@ -50,6 +50,7 @@ fr::en
 
 untitled
 en::untitled
+fr::<anonyme>
 
 notes_title
 en::X!Family
@@ -193,21 +194,45 @@ menu_younger
 en::Younger
 fr::Plus jeune
 
+menu_older
+en::Older
+fr::Plus ancienne
+
 menu_later
 en::Later
 fr::Plus tard
 
+menu_earlier
+en::Earlier
+fr::Plus tôt
+
 menu_child
-en::New child in family
-fr::Nouveau enfant dans famille
+en::New child
+fr::Nouveau enfant
 
 menu_newfam
-en::Child in new family
-fr::Enfant dans famille nouvelle
+en::New family
+fr::Nouvelle famille
+
+menu_structure
+en::Structure
+fr::Structure
 
 menu_remove
-en::Remove
+en::Delete
 fr::Effacez
+
+menu_move
+en::Move
+fr::Changez famille
+
+menu_detach
+en::Detach
+fr::Détachez
+
+menu_attach
+en::Attach
+fr::Attachez
 
 menu_unmarry
 en::Unmarry
@@ -245,11 +270,11 @@ en::X!Family
 fr::X!Famille
 
 author
-en,fr::© A.E.R.Waddington, 2013
+en,fr::© A.E.R.Waddington, 2017
 
 version
-en::v 0.19 alpha 2013-02-04 en-gb
-fr::v 0.19 alpha 2013-02-04 fr
+en::v 0.20 alpha 2017-09-22 en-gb
+fr::v 0.20 alpha 2017-09-22 fr
 
 purpose
 en::Family Tree Editor
@@ -261,7 +286,7 @@ fr::Calendrier
 
 gregorian
 en::Gregorian
-fr::Gr�gorien
+fr::Grégorien
 
 julian
 en::Julian
@@ -385,6 +410,14 @@ fr::Mari
 wife
 en::Wife
 fr::Femme
+
+add
+en::Add
+fr::Ajoutez
+
+findspouse
+en::Find
+fr::Cherchez
 
 engage
 en::Engagement
@@ -554,7 +587,7 @@ en::Other:
 fr::Autre:
 
 gpl_box
-en::The X!Family Genealogical Package version 0.19 Copyright © 2013 by Andy Waddington.\n
+en::The X!Family Genealogical Package version 0.20 Copyright © 2017 by Andy Waddington.\n
 Based loosely on !Family for RISC OS originally developed by Denis Howe.\n
 \n
 This package is free software: you can redistribute it and/or modify it under the terms of\n
@@ -569,7 +602,7 @@ You should have received a copy of the GNU General Public License\n
 along with this software: if not, write to the Free Software Foundation, Inc.,\n
 59 Temple Place, Suite 330, Boston. MA 02111-1307 USA\n
 Please report faults to family-maint@pennine.ddns.me.uk
-fr::Le progiciel généalogique "X!Famille" version 0.19. Propriété © 2013 par Andy Waddington.\n
+fr::Le progiciel généalogique "X!Famille" version 0.20. Propriété © 2017 par Andy Waddington.\n
 Basé vaguement sur !Family pour RISC OS, écrit par Denis Howe.\n
 \n
 Ce programme est libre, vous pouvez le redistribuer et/ou le modifier selon les termes\n

@@ -87,7 +87,7 @@ editlist::editlist() {
   last_edit = NULL;
 }
 
-#ifdef fix0022
+#ifdef fix0024
 indiUI* editlist::checkopen( treeinstance* thistree, GEDCOM_object * editindi ) {
 
 // first check through the list to see if there is already
@@ -109,7 +109,7 @@ indiUI* editlist::open( treeinstance* thistree, GEDCOM_object * editindi ) {
 
 indiUI* newedit;
 
-#ifndef fix0022
+#ifndef fix0024
 // caller should have already called checkopen in all cases where the
 // possibility exists that we already have an indiUI open
 
@@ -120,6 +120,7 @@ indiUI* newedit;
     return newedit;
   }
 #endif
+
 
 // We're not editing this individual, so open a new edit box:
 
@@ -134,7 +135,11 @@ indiUI* newedit;
   if (editindi!=NULL) newedit->insert_details( editindi );
    else newedit->clear_details();
   newedit->settitle();
+  printf("editlist::open has set window title\n");
   newedit->show();
+#ifdef debugging
+  printf("editlist::open thistree %ld, editindi %ld indiUI %ld\n", (long)thistree, (long)editindi, (long)newedit );
+#endif
   return newedit;
 }
 
@@ -169,7 +174,7 @@ void editlist::close( indiUI* oldindi ) {
     tryindi = tryindi->getnext();
   } // endwhile
   // an error to get here
-  printf("an error to get here !\n");
+  printf("editlist::close an error to get here !\n");
 }
 
 indiUI* editlist::editbox( GEDCOM_object* who ) {
@@ -205,9 +210,9 @@ famedlist::famedlist() {
   last_fam = NULL;
 }
 
-famUI* famedlist::open( treeinstance* thistree, GEDCOM_object * editfam ) {
+famUI* famedlist::checkopen( treeinstance* thistree, GEDCOM_object * editfam ) {
 
-// first check through the list to see if there is already
+// check through the list to see if there is already
 // an edit-family window for this GEDCOM_object
 
 famUI* newfam;
@@ -218,8 +223,14 @@ famUI* newfam;
     newfam->show();
     return newfam;
   }
+}
 
-// OK, we're not editing this family, so open a new edit-family box:
+famUI* famedlist::open( treeinstance* thistree, GEDCOM_object * editfam ) {
+
+// caller should have already called checkopen in all cases where the
+// possibility exists that we already have an famUI open
+
+famUI* newfam;
 
   newfam = new famUI( thistree, editfam );
   if (first_fam != NULL)
@@ -264,7 +275,7 @@ void famedlist::close( famUI* oldfam ) {
     tryfam = tryfam->getnext();
   }
   // an error to get here
-  printf("an error to get here !\n");
+  printf("famedlist::close an error to get here !\n");
 }
 
 famUI* famedlist::fambox( GEDCOM_object* what ) {
@@ -304,6 +315,26 @@ noteslist::noteslist() {
   first_notes = NULL;
   last_notes = NULL;
 }
+
+notesUI* noteslist::checkopen( treeinstance* whichtree, GEDCOM_object* newobject, GEDCOM_tag* edittag ) {
+notesUI* newui;
+
+// first check through the list to see if there is already
+// a notes window for this GEDCOM_object and tag
+
+  newui = first_notes;
+  while (newui!=NULL) {
+    //printf("searching list of NOTEs windows from %d\n",(int)newui);
+    if ((newui->object() == newobject) && (newui->tag() == edittag) ) {
+      newui->hide();
+      newui->show();
+      return newui;
+    }
+    newui = newui->getnext();
+  }
+  return newui;
+}
+
 
 notesUI* noteslist::open( treeinstance* whichtree, GEDCOM_object* newobject, GEDCOM_tag* edittag ) {
 notesUI* newui;
@@ -367,6 +398,7 @@ void noteslist::close( notesUI* ui ) {
   delete ui;
 }
 
+
 void noteslist::retitle() {
 
 // rebuild the window title for every extant notes window
@@ -378,5 +410,21 @@ notesUI* ui;
     ui->retitle();
     ui = ui->getnext();
   }
+}
+
+notesUI* noteslist::notesbox( GEDCOM_object* topobject ) {
+notesUI* newui;
+GEDCOM_object* parent;
+treeinstance* root = topobject->root();
+  newui = first_notes;
+  while (newui!=NULL) {
+    parent = newui->object();
+    while ((treeinstance*)parent!=root) {
+      if (parent==topobject) return newui;
+      parent = parent->parent();
+    }
+    newui = newui->getnext();
+  }
+  return NULL;
 }
 

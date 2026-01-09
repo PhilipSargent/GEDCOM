@@ -262,6 +262,7 @@ indidisplay::~indidisplay() {
 }
 
 void           indidisplay::setfamc( famdisplay* famd ) {
+  printf("Setting famc %ld, on %s\n",(long)famd,this->name());
   famc = famd;
 }
 
@@ -271,7 +272,14 @@ bool	       indidisplay::younger_valid( ) {
   return true;
 }
 
-#ifdef fix0015
+bool	       indidisplay::older_valid( ) {
+  if (famc==NULL) return false;
+  if (this==(famc->getissue())) return false;
+  return true;
+}
+
+// this function is obsolete in that we no longer provide a "New child" menu item
+// for a click on an indidisplay, only for a famdisplay.
 bool           indidisplay::child_valid() {
 // we must not be able to choose 'child' if indi has more than one family displayed
   if (fams==NULL) return true;
@@ -280,13 +288,15 @@ bool           indidisplay::child_valid() {
 }
 
 bool           indidisplay::newfam_valid() {
-// we must only be able to choose 'child in new family' if we are the upper spouse
-// it would be a valid choice if we had no family displayed, but in that case 'child'
-// is available, so this option is pointless, so our criterion is just fams
-  return (fams!=NULL);
+// we must only be able to choose 'new family' if we are the upper spouse
+// so this is something else entirely  return (fams!=NULL);
+// must be the upper spouse if we have a famc in the display or we are current
+  if (famc!=NULL) return true;
+// but we can't tell if we are current as we have no link to our treedisplay
+// this is probably a structural omission, but for now caller will have to test
+// that for themselves
+  return false;
 }
-#endif
-
 
 GEDCOM_object* indidisplay::getperson() const { return indi; }
 
@@ -490,6 +500,7 @@ char*          famdisplay::marrlabel() const { return label->string(); }
 indidisplay*   famdisplay::getissue() const { return issue; }
 void           famdisplay::setissue( indidisplay* child ) { issue = child; }
 bool           famdisplay::later_valid() { return (next!=NULL); }
+bool           famdisplay::earlier_valid() { return (fam!=(indi->subobject( FAMS_tag )->followxref())); }
 
 void famdisplay::displayfam( int h, int xoffset, int yoffset ) const {
 
@@ -620,7 +631,9 @@ int famnumber = 0;      // zero if we don't need to sequence-number marriages, e
   
   fams = person->subobject( FAMS_tag ); // see if it contains a FAMS subobject
   // WARNING! fams is a FAMS object - not the FAM object to which it points
-
+#ifdef debugging
+  printf("addmarriages person %ld fams %ld\n",(long)person, (long)fams);
+#endif
   if (fams == NULL) return; // no known spouse or issue
 
   if ((fams->next_object( FAMS_tag )) != NULL) famnumber = 1;
@@ -632,10 +645,15 @@ int famnumber = 0;      // zero if we don't need to sequence-number marriages, e
     // this should never return null, and the object should always be a FAM. However
     // it can happen for broken GEDCOM and we should cope, not core dump ...
     if (family==NULL) {
+#ifdef debugging
       printf("display.cxx displaytree::addmarriages: fams->followxref() dereferenced to NULL\n");
       printf("Trying to dereference from this FAMS:\n");
+#endif
       fams->outline( stdout, 1 );
     }
+#ifdef debugging
+    printf("fams dereferenced to fam %ld\n",(long)family);
+#endif
 
     spouse = family->thespouseof( person );
     if (spouse != NULL) {
@@ -643,6 +661,9 @@ int famnumber = 0;      // zero if we don't need to sequence-number marriages, e
       if (spousedisplay==NULL) printf("displaytree::addmarriages out of heap ?\n");
     } else spousedisplay = NULL;
     oldfam = newfam;
+#ifdef debugging
+    printf("Need new famdisplay for person %ld, family %ld, spousedisplay %ld, famnumber %d\n",(long)person,(long)family,(long)spousedisplay,famnumber);
+#endif
     newfam = new famdisplay( person, family, spousedisplay, famnumber );
     if (newfam==NULL) printf("displaytree::addmarriages out of heap ?\n");
     if (oldfam == NULL) newdisplay->setfamily( newfam );
@@ -650,6 +671,9 @@ int famnumber = 0;      // zero if we don't need to sequence-number marriages, e
     this->adddescendants( newfam );
     famnumber++;
     fams = fams->next_object( FAMS_tag );
+#ifdef debugging
+    printf("Next fams %ld\n",(long)fams);
+#endif
   }
 }
 
@@ -678,10 +702,19 @@ indidisplay   *oldersib;
 #endif
     return; // nothing else to do, as
             // we don't wish descendants to be shown twice
+  // this does mean you'll have to find the earlier version of the marriage to add new issue
+  // since bombing out here means we don't set famc which is tested by newfam_valid()
+  // that's not unreasonable,as they will only be shown in that other part of the display.
   }
   chil = family->subobject( CHIL_tag );
+#ifdef debugging
+  printf("addescendants new chil %ld\n",(long)chil);
+#endif
   while (chil != NULL) {
     child = chil->followxref();
+#ifdef debugging
+    printf("addescendants followed xref to %ld\n",(long)child);
+#endif
     oldersib = childdisplay;
     childdisplay = new indidisplay( child );
     if (childdisplay==NULL) printf("displaytree::adddescendants out of heap ?\n");
@@ -691,6 +724,9 @@ indidisplay   *oldersib;
     childdisplay->setfamc( newdisplay );
     this->addmarriages( childdisplay );
     chil = chil->next_object( CHIL_tag );
+#ifdef debugging
+    printf("addescendants next chil %ld\n",(long)chil);
+#endif
   }
 }
 
@@ -802,6 +838,7 @@ bool nodisplay=false;
     y += lineheight;
     /* end of if */
     width = 0;
+    if ((w = display->marrwidth()) > width ) width = w;
   }
 
   { int i; for (i=0;i<MAX_TREE_GENERATIONS;i++) OxMax[i]=xMax[i]; }
@@ -846,7 +883,7 @@ bool nodisplay=false;
         } // end switch
       }   // end if x1!=0
     }     // end if gen<MAX
-    if (nodisplay) { x=0; pass++; }
+    // this breaks display for marriages with neither spouse nor issue if (nodisplay) { x=0; pass++; }
   }     // end loop in pass
   if (xr > xMax[gen]) xMax[gen] = xr;
   if (spousedisplay!=NULL) {

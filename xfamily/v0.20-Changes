@@ -1,0 +1,209 @@
+v 0.20 CHANGES
+
+backed out all changes creating "Ephemeral" objects - this is not
+the way forward to provide editing functionality, as it will lead
+to the same sort of "creating structure by side effects" mess that
+!Family suffers from (and which can cause tree corruption there by
+linking identically named individuals). fix0004 and fix0021 removed
+entirely, fix0022 switched off. Note that the description of fix0022
+as adding new callbacks for new-child-in-family and child-in-new-family
+means what it says - it is just the callback code that was rolled back.
+The menu items in the pop-up are still there until a later fix is
+applied to change the menus.
+
+Code to prevent opening more than one indiUI on the same person is
+retained from the above, under fix0024
+
+Change to allocate IDs on the heap rather than using fixed char
+arrays is now definitely made (fix0023).
+
+IDs now appear in right hand column in completions window. This
+was sufficiently straightforward that we didn't use a conditional
+compilation fix.
+
+Parents' names now immutable in indiUI.
+
+Uncommented one line which restored notesUI to save notes back into
+the GEDCOM.
+
+Modified popup menus on INDIs and FAMs. Now allow older as well as
+younger on INDIs, earlier as well as later on FAMs. "Child" is only
+allowed on FAM and "New family" on INDI, no creating a child in an
+ambiguous context with side-effects creating a new family (as in
+!Family) and no creating a new family and a child in one operation
+(which might require the creation of two INDIs at once). In fact,
+these are just the menu changes so far, the callbacks still do
+nothing useful for "New Family" or "Child", nor for anything in
+the Struct submenu.
+
+We now save all data when clicking "Apply" or "OK" in both indiUI
+and famUI and do a redraw on all views. The method used is possibly
+a bit rough on heap space as we may find ourselves creating and
+quickly deleting a lot of GEDCOM_objects. However, since the code
+is pretty well factored out into two methods on GEDCOM_object, there
+is scope to make this a bit more optimised (more code, less heap thrashing).
+
+But I note that "Restore" is not implemented (nor on famUI).
+
+OK, one ommission - we don't check the calendar radio buttons to
+ensure that things explicitly flagged as gregorian or julian are saved
+as such.
+
+Fixed other callbacks (older/younger/later/earlier) to also do their
+redraw on all views and factored out the redraw code into trees.cxx
+
+fix0015 made permanent (addition of child_valid and fam_valid to
+control greying of items in popup menus)
+
+fix0019 made permanent (revised layout of Cancel/OK/Apply/Revert/Help
+buttons (cosmetic) both indiUI and famUI)
+
+fix0017 made permanent (revise indiUI to show GEDCOM ids of indi and
+parents. revise famUI similarly for both spouse's ids)
+
+fix0020 made permanent (support AGE tag, specifically in UI for DEAT)
+needed since other new code assumes we are supporting AGE.
+
+fix0013 made permanent (saveas dialogue for saving GEDCOM to disc
+and for saving window as a graphic)
+
+Discovered (and fixed) a bug in which we segfaulted if there were no
+items in the SOUR or REPO list (ditto in HEAD, INDI and FAM for that
+matter, but we don't have many trees that empty).
+
+Fixed display calculation in case where marriage has neither spouse
+nor issue, in which the date was drawn on the left edge of the canvas
+nowhere near the one spouse that does exist.
+
+Added a method for conditionally opening (or popping to the front
+if such is already open) a famUI - checkopen. Not done this for
+notesUI, as I'm no longer sure I see the need for checkopen and
+open not to do the same thing - we don't want to provide a way
+to open more than one editing UI on the same indi or fam which
+is what we have effectively done... What we do need is a way to
+check for an already open dbox with a view to shutting it down
+if we have deleted the underlying object (and we already have
+editbox and fambox for this).
+
+Added notesbox to return the first open notesUI on an object below
+a given object in the tree. If you are closing notesUIs you can (and
+for closing indiUIs we do) just call this, close the notesUI it
+returns and call it again in a loop until it returns NULL.
+
+Added code in trees.cxx to delete an individual, tidying up CHIL
+in the FAMC->FAM and HUSB/WIFE in the FAMS-FAM(s) as needed. This
+checks for any indiUI or notesUI dboxes open on the INDI or any
+subobjects thereof, and closes these.
+
+Currently we don't allow deleting the current person as we have
+no algorithm to choose a new current person and a sudden blank
+canvas would be disconcerting (and we know the code doesn't cope
+well with an empty displaytree). However, this leaves you no way
+to delete an isolated person.
+
+Similarly added code to remove a FAM - for the purposes of
+removing an indi and garbage collecting FAMs, this is very
+simplistic, but we also do the smae sort of tidying (on
+HUSB and WIFE to remove FAMS) as above. Also close any famUI
+and notesUIs. Code refuses to remove a FAM with CHILs - this
+option should be greyed out in popup menu anyway - check !
+
+Added callback code to delete an individual, but blocking this if
+the indi is the current person (the disappearance of the entire display
+would be unreasonably disconcerting), and recalulating the display tree
+if the indi is the current treeroot.
+
+New child now works, but it would be sensible to provide a default
+name in the indiUI with the father's surname *if there is one*. So
+now we do this with either the father's or mother's surname, if that
+was present inside "/"..."/" in the preferred parent. This now breaks
+the code that deletes the INDI again if you "Cancel" without editing
+anything, as it now has an extra subobject. So now we ignore NAME
+when counting subobjects against deleting.
+
+New family "works" but once you start changing current person,
+you eventually get a segfault. At least one cause of this is fixed,
+so thia may no longer be true.
+
+When we open a famUI dbox, if a spouse is not defined, the "ID"
+box is replaced by two buttons "Add" and "Find" for inserting a
+spouse. "Add" creates a new INDI, opens an appropriate indiUI
+and when this is saved, hte spouse is refreshed into the famUI.
+Similarly, for "Find" you get a search dbox, possibly leading to
+a completions window. This search will only search for people
+of the correct gender.
+
+However, care was needed if you typed an exact name into the search
+box and hit OK:- we do now check for that spouse being the right
+gender and don't either close the search box nor update the spouse
+if it is wrong.
+
+A second detail to address is that if you type a name into the
+search box and there is only one result, you still get it in a
+completions window. We should keep a count and if there is
+indeed only one, should execute the code we'd have done for
+choosing the completion.
+
+When you OK in an indiUI, we now check for all the FAMS tags on
+the relevant INDI. For each one, we find if there is a famUI open
+on that FAM, and call fambox->refresh_spouse. In that callback,
+we refresh the spouse fields (both genders) and potentially
+hide the "Add" and "Find" buttons, to reveal the ID box, and
+update the spouse's name.
+
+If you do "new child" and then hit "Cancel" in the indiUI,
+we need something that backs out the creation of the INDI
+without ever having saved. That requires some way of
+flagging an INDI as newly created which we are now doing
+with an "unsaved" internal tag.
+
+We need to avoid saving this when doing "save" of the
+whole tree - but by default we don't save a tag with no
+xref, value or subobjects, so this *doesn't* get saved..
+
+We remove it when we do "Apply" or "OK" to save the INDI
+into the GEDCOM permanently. This "works", but if you canceled
+with a NOTE open on the INDI, it doesn't get deleted,
+and the "unsaved" tag stays there. An interesting side
+effect is that if you then close the note, open the INDI
+for edit and hit "Cancel", it gets deleted. This is a bit
+counterintuitive. We *should* have a process whereby we
+check for an empty NOTE and delete that object if it is
+empty. Then there should be a process that checks upwards
+for empty parents and deletes those... pseudo code:
+
+if NOTE empty get parent
+  delete NOTE
+  while parent empty (neither subobjects not value) {
+    current = parent
+    get parent
+    delete current
+  }
+  if parent is an INDI do the same checks as for Cancel Edit, ie.
+  if it has unsaved_tag and no more than a single FAMC/FAMS and otherwise empty,
+    remove_indi it (which will tidy CHIL/HUSB/WIFE links)
+
+Any indi that appears as green and <unnamed> should be under
+suspicion. We can arrange that such a thing can only appear
+on the tree when one of these ephemeral not really saved
+objects exists and prevent the user from actually saving an
+indi without a name (or, to avoid confusion, the name "<unnamed>").
+
+It might be better to use something other than <unnamed> for the
+as-yet-undedited name, but there should always be *some* sort of
+placeholder (and we should not allow it as a real name). This
+will be in msg_unnamed, but you see a loophole here ... Switch
+to French (which will prevent you saving as "<anonyme>", but not
+as "<unnamed>") then switch back to English and you will have an
+illegal name. This is basically the user being knowledgeably and
+determinedly perverse (and would perhaps only be thought of by a
+software Q A professional;-), so we perhaps should not let it
+worry us too much. "User fully deserves fate worse than death"
+error message should be in there somewhere.
+
+Fortunately (?) this lopohole doesn't exist at the moment, since
+the program segfaults if you change language - even to the same
+one :-(
+
+
+

@@ -52,7 +52,9 @@ int main(int argc, char* argv[] ) {
 
   // using strdup gets rid of the warning that converting a string constant to a char* is deprecated
 
+#ifdef debugging
   printf("Initial value of initial tree'%s'",initialtree);
+#endif
 
   if (argc > 1) {
      initialtree = argv[1];

@@ -1,0 +1,158 @@
+Try to get feature requests out of the "Bugs" file.
+At the moment most of these are ones from the Bugs list - need to add
+more form "ToDo and other future-musings places.
+
+---------------
+
+There is no way to add parents at the top of the tree at the moment.
+Need a "new parental family" on the indi pop-up menu. That should
+open a new famui, with both spouses blank and the Add/Find buttons
+active.
+
+---------------
+
+In completions window, title is in black, and name is in gender-colour,
+then dates are in black again. We would rather like titles to be in
+black on the main tree display too. Completions window appears to do
+this by building strings containing "@C60@" before the next bit of
+the string to be displayed. Seems we build a string from title and
+name in the mainUI and ought to be able to do the same thing here,
+rather than using all those font colour calls ?
+
+---------------
+
+At some stage we'd like to implement some reality checks and convenience
+features, such as inserting a new child for whom we have a birth date at
+the right point in a FAM/CHIL/CHIL/CHIL structure or issuing warnings if
+dates conflict (ie. represent impossible situations like birth after
+death, burial/cremation before death, birth after death of mother or
+a long time after death of putative father or when mother's age was
+infeasibly high. We don't want to stop the user from using those values
+if that's what the sources say (only one of the dates may be wrong, and
+we can't speculate which), just make sure that they are aware that the
+reality check fails (and they might have just mistyped a date). However,
+before we can do that we need code that not just manipulates dates but
+can actually collate them.
+
+Logically that needs a function that will convert a textual date into
+two integers each representing a point in a monotonically increasing
+index from some arbitrary starting point (is this what a juliandate
+is ?). The two points would be starting and ending points for the
+possible interval, and we need values to represent plus and minus
+infinity so that one or both of the dates can be undefined for things
+like "before 1066" "after 2013-02-11" as well as the usual fixed
+date (both numbers the same) or interval ("between 1st and 4th March
+1914"). In GEDCOM, I belive the BET keyword actually indicates an
+inclusive range (so between 1st and 4th is a range of four days, not
+two).
+
+We should *only* use this functionality for putting things in order
+and doing reality checks.
+
+---------------
+
+Display font size is currently compiled in (#define XF_FONT_SIZE in display.h). Needs to be run-time changeable.
+
+---------------
+
+Possibly the dbox and menu font sizes (and overall sizes) need to be changeable too - not everything
+is within our control - the title bar text size is a function of the desktop config, for example.
+This stuff would be best in an additional tab on the Choices dbox.
+
+---------------
+
+Editing functionality for sources.
+
+---------------
+
+Working choices dbox (and therefore choice of date display formats, whether to show various
+dates at all, and so on, all of which ought to be fairly easy). We can start by taking some
+notice of choices saved to file (whcih ought to be in a compile-time-fixed location, such
+as /usr/local/src/xfamily/v015/xfamilyrc for our test version, or ~/.xfamily/xfamilyrc for
+saves and first try at loads in an installed versions, with second attempt to load from
+/usr/[local/]share/apps/xfamily/xfamilyrc ?
+
+---------------
+
+Working load file dialogue. OK progress now includes being able to specify
+the file to load initially on the command line rather than being hard-coded
+(although currently, the hard-coded filename is still the default if you don't
+specify a file to load, since without a load/save dialogue or edit functionality,
+starting with an empty tree is a bit pointless...)
+
+---------------
+
+Working reports systems.
+
+---------------
+
+Working print system.
+
+---------------
+
+There are header fields that we preserve from loaded file to saved
+file - in particular we preserve the software product that produced
+the GEDCOM as !Family_for_RISCOS, which in a sense is true, as we don't
+throw away any info that !Family generates, but it should really say
+X!Family and have the right version number. Then it should also get
+various info to fill in the SUBM fields, and the DATA/COPR and contact
+stuff, and should (technically) add a filename in a FILE tag, although
+this strikes me as redundant and potentially misleading since we are
+quite happy to rename the actual file
+
+---------------
+
+We cope with the GEDCOM lineage-linked grammar in a pretty generic way,
+so that we are not tied to a particular GEDCOM version. Currently we use
+tags defined in 5.3 with maybe odd extra features from 5.5. There is no
+way to actually specify this is the header, but in any case, it would
+still be misleading as (a) we preserve what ever we loaded, whether it
+conforms to these versions or not and (b) if we load from an explicitly
+given GEDCOM version, we will preserve that version number in the header,
+even if we have added tags from 5.3 or 5.5. This risks confusing any
+subsequent program that loads the file that does not share our attitude
+to preserving information whether we understand it or not.
+
+This is really a problem with (a) the way the GEDCOM spec has made changes
+which aren't backwards-compatible, like deciding to do away with the CEME,
+SITE, PLOT tags without providing a way for 5.5-compliant programs finding
+those on input to restructure them on output (b) the underlying assumption
+about how programs work.
+
+It becomes clear that LDS imagine you will store lots of information in some
+sort of database, and that you will understand all the information you store.
+GEDCOM then becomes purely a transitory transmission medium, which you
+generate from scratch each time, outputting information in strict accordance
+with a particular GEDCOM version. If there is something you can't represent,
+you don't transmit it. On reading GEDCOM, if there is something that doesn't
+strictly adhere to the version of GEDCOM you thought you were reading, you
+fail to take it in. It's a dangerously lossy process.
+
+We, on the other hand, are version agnostic to the greatest extent we can
+achieve - if you load anything that is in the underlying lineage-linked
+grammar, then we will preserve it because we must assume you put it in
+your file for a reason. We don't reformat stuff into a preferred version
+of GEDCOM before output because the GEDCOM _is_ our database and we don't
+make changes except in response to explicit editing by the user. If there is
+something we didn't understand, we don't display it, ergo the user can't
+edit it, and thus we preserve it unchanged.
+
+What we should probably do (yes, eventually you find the feature request...)
+is dump a report on anything we preserved on loading but can't actually
+interpret and display. That should include any tag we don't understand (as
+we quite openly support only a subset of tags). Now clearly, when we first
+see a tag, it won't be in our list and we can flag it as something we don't
+understand. However, as we load it, we add it to our list, and next time we
+see it it will be a "known" tag. Need some sort of flag on members of the
+list to say that we don't understand something. That might be as simple as
+a specific tag representing "you've reached the end of known tags", or more
+complicated to say "this is a tag we understand and will output", "this is
+a tag we understand and have recipes for transforming for a specific GEDCOM
+version on ouput" and so on. The latter would support a feature request for
+output to be strictly adherent to a particular GEDCOM version (like not
+have SITE/CEME/PLOT in 5.5).
+
+
+
+
+

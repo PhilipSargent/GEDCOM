@@ -48,10 +48,16 @@ Edit
 Notes
 Marry
 Younger
+Older
 Later
-New child in family
-Child in new family
-Remove
+Earlier
+New child
+New family
+Structure
+Delete
+Move
+Detach
+Attach
 Unmarry
 Reports
 Ancestors
@@ -61,8 +67,8 @@ Author
 Version
 Purpose
 X!Family
-© A.E.R.Waddington, 2013
-v 0.19 alpha 2013-02-04 en-gb
+© A.E.R.Waddington, 2017
+v 0.20 alpha 2017-09-22 en-gb
 Family Tree Editor
 Calendar
 Gregorian
@@ -98,6 +104,8 @@ Mother
 Father
 Husband
 Wife
+Add
+Find
 Engagement
 Marriage
 Divorce
@@ -142,4 +150,4 @@ GEDCOM
 ISO-8601
 As Locale
 Other:
-The X!Family Genealogical Package version 0.19 Copyright © 2013 by Andy Waddington.\nBased loosely on !Family for RISC OS originally developed by Denis Howe.\n\nThis package is free software: you can redistribute it and/or modify it under the terms of\nthe GNU General Public License as published by the Free Software Foundation; either\nversion 3 of the license, or (at your option) any later version.\n\nThis software is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;\nwithout even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR\nPURPOSE. See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License\nalong with this software: if not, write to the Free Software Foundation, Inc.,\n59 Temple Place, Suite 330, Boston. MA 02111-1307 USA\nPlease report faults to family-maint@pennine.ddns.me.uk
+The X!Family Genealogical Package version 0.20 Copyright © 2017 by Andy Waddington.\nBased loosely on !Family for RISC OS originally developed by Denis Howe.\n\nThis package is free software: you can redistribute it and/or modify it under the terms of\nthe GNU General Public License as published by the Free Software Foundation; either\nversion 3 of the license, or (at your option) any later version.\n\nThis software is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;\nwithout even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR\nPURPOSE. See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License\nalong with this software: if not, write to the Free Software Foundation, Inc.,\n59 Temple Place, Suite 330, Boston. MA 02111-1307 USA\nPlease report faults to family-maint@pennine.ddns.me.uk

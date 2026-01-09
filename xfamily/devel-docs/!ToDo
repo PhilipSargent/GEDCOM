@@ -38,7 +38,7 @@ the desktop. MOSTLY FIXED but if the window gets bigger, the canvas may be
 offset to one side or the other leaving a grey area.
 
 We need to read some coding standards and add a LOT more comments saying
-what each routine is for - it's hard to pick up after a year or two's
+what each routine is for - it's hard to pick up after a year or ten's
 gap...
 
 ===========================================================================
@@ -49,30 +49,65 @@ Check over code for notes on FAM events to check for similar problems to those
 debugged in INDI event code. (As I read this, I note that it is so long ago,
 that I have no idea what problems those were... wish I was using CVS for this):
 
-Fix destructors to delete everything the constructors did new for.
+We have a NOTE on a HUSB object which is inaccessible from the code (it's
+the one that notes that Kate and Ali should both be WIFE in the civil
+partnership). There are a lot of places you could add notes that we don't
+really support, although, obviously, we preserve them.
 
-Write code for indiUI and famUI to save data back into GEDCOM. There are some
-minor revisions to the UI for this (added Restore and Apply butons), but there's
-a document giving a lot more thoughts on UI revision here.
+New INDIs are not placed in collating sequence when inserted. This is harmless,
+only making the GEDCOM a bit harder to hack by hand later. At the moment, we
+don't have code to parse out a surname intelligently as !Family does, although
+we do pull out the string between "/" if we are adding a new child to an
+existing family. There is a horrible suspicion that the way we've done this
+may have side effects (a parent surname seemed to vanish - we may be passing
+something by pointer in a way that lets edits feed back - we probably need
+a strdup in there somewhere).
 
-Write code for adding, deleting, marrying, unmarrying and moving people in
-the tree (INDImenu=>older is all very well in !Family, but a drag'n'drop idiom
-would be nicer. XFamily hasn't even got a FAMmenu=>earlier implementation yet).
+We reserve the headers as read. Really, we should replace some of the stuff
+with details of X!Family rather than !Family 2.2.7.
 
-Implement file choosers for both load and save.
+FLTK supports UTF-8. We should ensure tha all our code is UTF-8 safe, and
+change the language in which hte GEDCOM is saved to indicate this (there has
+been UTF-8 text in the file for many years, and any accented characters that
+were in 8-bit Latin1 under RISCOS have been corrupted. We should have been
+using ANSEL (an escaped version of 7-bit ASCII).
 
-Implement a generic class of "Are you sure?" UIs.
+Fix destructors to delete everything the constructors did new for. You can turn
+on logging to help se if we are doing OK here.
 
-Remove the LVG tag and all associated code (it will remain preserved in any
-existing GEDCOM - 'cos that's how we work). (LVG has been replaced by
-NOTE Living at <date> in the actual GEDCOM tree)
+Write code for moving people in the tree - we have menu items for Detach
+(remove from a family), Attach (add as a child to a family) and Move (both).
+However, we need a search facility to find families on the same lines as
+the one for locating people.
+
+Implement file choosers for both load and save. DONE for save.
+
+Implement a generic class of "Are you sure?" UIs. Yeah, this is starting
+to get important as we now have editing functionality. More to the point
+we really could do with some sort of alert boxes as various things are
+prevented from happening, but with no useful error messages.
+
+There are minor details
+
+The (person) search box consistently has the same window title - it would
+be nice for it to say "search for spouse for... person". This is not very
+critical as we only allow one such dbox at a time, so should be obvious
+what you are doing.
+
+If you create new family, don't fill in any details and hit cancel, the
+family is not backed out like an indi would be.
+
 
 ========== do a public release ============================
 
 Add a search facility - we have one to search for INDI names, we want something
-to search for things in notes and sources.
+to search for things in notes and sources. We will need one to search for families
+to implement moving pepole frm one marriage to another.
 
 Add UIs for WILL and PROBate - these need to be read/write straight away.
+Currnetly we have dead buttons. Wills, I think, are like NOTEs, so implementation
+should be fairly easy. PROBate is like an event, so it should really be a tab
+on indiUI.
 
 Fix problem loading empty tree. Or indeed starting up with no tree (as you
 would to start from scratch). Can we load a GEDCOM with no INDIs ?
@@ -94,7 +129,9 @@ in OO.o formats ?
 
 The Goto box has a "help" button which tries to open up a help page concerned
 with the completions window. This is not yet written, nor added to the Help
-menu on the main window. There's no help for the edit notes dbox.
+menu on the main window. There's no help for the edit notes dbox. Since the
+help is back at v 0.14 and we are now on v 0.20 with some significant new
+features to document, this needs a major rewrite.
 
 A problem arises in that FLTK doesn't
 seem to provide a way for the user to unset a radio button (ie. to
@@ -103,14 +140,15 @@ is explicitly gregorian or julian and then realise that you don't actually
 know, you can't just unset both buttons. You would need an explicit "unspecified"
 button. If you add the full range of date escape specifiers, you would then need
 six (Gregorian, Julian, FrenchR, Roman, Hebrew and unspecified). This might be
-better implemented as a drop-down list...
+better implemented as a drop-down list... We added a "default" button as a
+stopgap.
 
 Minor: Make 0 NOTE Person <name> become
             0 NOTE Person @indi-id@ <name>
 on output, and modify code to deal with both old and new forms on input.
 (We didn't do that - instead we kept 0 NOTE Person <name> unchanged for
 compatibility with older versions, but added 0 NOTE View @I1862@, which
-can occur multile times if you have multiple views open. However we did
+can occur multiple times if you have multiple views open. However we did
 NOT implement opening multiple views at load time, because we do not yet
 have a way of closing one view without terminating the whole program (which
 is a documented bug/wishlist).
@@ -123,7 +161,10 @@ with a list of active (though possibly closed) views.
 
 Missing dboxes:
 
-  Marry (this is pointless until we can actually edit the tree !)
+  Marry (this is pointless until we can actually edit the tree !). This
+  won't work like the !Family one. You will do "New Family" and we will
+  create the FAM based on one spouse, then connect other individuals in
+  appropriate roles.
 
 Dboxes requiring a rework:
 
@@ -201,13 +242,13 @@ managing a display with no people at all in it (try loading an
 
 Further completions window work:
 
-add code for complete-to-left
-             fuzzy-search
+add code for complete-to-left   DONE
+             fuzzy-search       DONE
 
-add code to incorporate INDI-ids, titles and dates in suitable columns
+add code to incorporate INDI-ids, titles and dates in suitable columns DONE
 add code to size window appropriately (width determined by code which
- formats columns, height minimised to size of short lists)
-add code to shortcut when only one INDI is found - copy the name into
+ formats columns, height minimised to size of short lists)             DONE
+add code to shortcut when only one INDI is found - copy the name into  DONE
  the goto box, rather than doing a goto straightaway
 
 further away - add soundex button for much more fuzzy searches.
@@ -222,7 +263,9 @@ would also be useful on Mother/Father fields in Edit person dbox. Usefulness
 is doubtful on the Name field, but might be some use when edit person has
 been opened in response to a "child" menu item. I would prefer that existing
 persons be connected as parent/child by doing edit person on the child and
-adding the parents (which you could do with a search, as above).
+adding the parents (which you could do with a search, as above). No, this is
+not the approach we will take - once we have a facility to search for a family
+we will do this through menus. Drag'n'drop is a very distant dream...
 
 Beware of overloading the neat dboxes for edit person and marriage !!
 
@@ -238,8 +281,8 @@ point to a GEDCOM record containing the info that that URL obtains.
 I'm not sure how GEDCOM would properly support this, and it might turn
 out to be an IP violation in some way...
 
-It's also prved to be a very stupid idea, since all the URLs you found
-a decae ago no longer work since th FHL website has been extensively
+It's also proved to be a very stupid idea, since all the URLs you found
+a decade ago no longer work since the FHL website has been extensively
 reworked with no support to find stuff via the old URLs.
 
 There is an official way to cite one of these references, which we

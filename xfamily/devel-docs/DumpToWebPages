@@ -1,0 +1,112 @@
+Implementing the web page dump (from !Family) in xfamily.
+
+The format we use in !Family is very simple and in particular we don't include
+
+a) NOTE objects subsidiary to events (BIRT,CHR,BAPM,DEAT,CREM,BURI,MARR,MARL,DIV)
+
+b) SOUR references (to do these we'd want to generate web pages corresponding
+to the sources and add links with some useful title)
+
+c) objects which are not used by !Family itself (BANN CENS TEXT and
+ lots of others that don't yet occur in our GEDCOM). As these are pretty
+ uncommon (and where we know about Banns, they are in the comment
+ subsidiary to the MARR tag, which is not really what you want, but will
+ at least guarantee that the stuff eventually ends up in the web page).
+
+There are some bugs in the current implementation:
+
+a) we use Julian dates in the GEDCOM, and we don't trim out the escape
+sequence when converting to ISO dates.
+
+b) we don't, anyway, offer the user the choice of date format
+
+c) NOTE objects, which often contain census entries which only work well
+in monospaced fonts, use proprtional fonts (we should probably use <pre>)
+
+d) we create a <META name="date" tag with a content attribute that presumably
+should be the date the pages were produced - yesterday (2017-11-29) the date
+in the attribute was 1998-01-04. That's quite strange...
+
+There is more information that we could (perhaps at the user's option) include
+
+a) dates on the spouse and issue for families
+
+The process is pretty straightforward - we just run through the chain of INDI
+objects and for each one we
+
+a) generate a web page named with the indi-id followed by .htm[l]
+b) add a line to the index.htm[l] file
+
+If we were adding source references we would do a similar job on the
+chain of SOUR objects. Some of our references are just to
+ 1 SOUR @S1@
+while others are like
+ 1 SOUR @S35@
+ 2 PAGE 7
+
+To that end, the reference in each case should
+be of the form
+
+<a href="Snnnn.htm">text</a> [ page number(s) ]
+
+where we extract the text from the actual SOUR object. Our root SOUR
+objects each have a CLAS tag with these values:
+
+1 CLAS VITAL
+1 CLAS NEWSPAPER
+1 CLAS BOOK
+1 CLAS OTHER!Unpublished genealogical notes
+1 CLAS LETTER
+
+except for S43 which has no class (what is the correct class for the IGI ?)
+
+we also use data sourced from the Eccleshill burials CD, and should really
+have that as a SOUR record. Is there a CLAS CD ? By default we can choose to
+use
+
+1 CLAS OTHER!CD-ROM
+1 CLAS OTHER!Web site
+
+interestingly, our SOUR record doesn't have a URL for a web site (the IGI)
+but instead refers to a REPO, and the URL is there. Strictly, I think that
+is correct, but useful ? less so... I don't want to include the REPO for
+most of the sources.
+
+Our understanding of the structure of SOUR records led to sources like
+
+0 @S37@ SOUR
+1 SOUR @S35@
+2 PAGE 26,28
+
+the reason that these were done this way rather than as
+ 1 SOUR @S35@
+ 2 PAGE 7
+with the INDI is that in the case of the
+ 0 @S37@ SOUR
+ 1 SOUR @S35@
+ 2 PAGE 26,28
+references, we include the actual TEXT of the source. In some cases
+the text is all we have in the object, whist in others there is a TITL
+which can be used for the link text. That is probably a GEDCOM FIXME
+which should be addressed first... OK fixed that, all now have a TITL
+
+None of the Family Links or Old Time Worthies sources have a TEXT
+section (as they are much bigger than you'd want to include in the
+GEDCOM). As they are also paper sources, you can't add much to a web
+page for them. However, all the ones we refer to are already in a
+digital form that we could readily turn into web pages. There is
+no reason why we can't add a NOTE item with a URL, if that can be
+made stable.
+
+So before we address all of this we'd like to define the structure
+of the web site towards which this whole process is orientated.
+For the generated pages, that's just
+http://familyhistory.waddingtons.info/WebTree/
+but the other stuff is less clear as we already feel that the
+directory hierarchy of the Family stuff is a bit broken. Some
+sources we cannot reasonably put on our own website (but we
+often include the source URL in the NOTE objects) whilst
+others like FL and OTW we believe to be out of copyright.
+The Builders of Milford not quite... and we don't have a SOUR
+record for that, by the way...
+

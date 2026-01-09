@@ -60,7 +60,7 @@ void xlate_messages(char *lang) {
 // is long enough for our longest translation.
 
   char msgfile[38+strlen(lang)];
-  strcpy(msgfile,"/usr/local/src/xfamily/v019/messages/");
+  strcpy(msgfile,"/usr/local/src/xfamily/v020/messages/");
   strcat(msgfile,lang);
   FILE *msgs;
   if ((msgs = fopen(msgfile,"r")) == NULL) {

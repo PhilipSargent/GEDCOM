@@ -21,9 +21,6 @@ class treeinstance {
   GEDCOM_object *sourlist; // by having direct access to them as class
   GEDCOM_object *repolist; // members.
   GEDCOM_object *trlrlist;
-#ifdef fix0004
-  GEDCOM_object *ephemlist; // not entirely sure if we need this
-#endif
   GEDCOM_object *lastevent;// the object on which a mouse event was last
   // raised - this can be fairly transient, only needed by the callback
   // which deals with the event, so each event can overwrite it
@@ -38,9 +35,6 @@ class treeinstance {
   int famcount;  int maxFAMid;
   int sourcount; int maxSOURid;
   int repocount; int maxREPOid;
-#ifdef fix0004
-  int ephemnext;
-#endif
   bool modified;
 
 public:
@@ -52,6 +46,12 @@ public:
   treeinstance * getprevious() const;
   void setprevious( treeinstance * );
 
+// methods for creating and destroying GEDCOM
+void freshindi( GEDCOM_object* );
+void freshfam( GEDCOM_object* );
+void remove_indi( GEDCOM_object* );
+void remove_fam( GEDCOM_object* );
+
 // methods for loading and saving GEDCOM
   GEDCOM_object* getGEDCOMline( FILE*, GEDCOM_tag**, int*, const int);
   void loadGEDCOMfile( const char *);
@@ -61,13 +61,6 @@ public:
   void setfilename( char* );
   void save() const;
   char* getfilename() const;
-
-#ifdef fix0004
-// methods for adding ephemeral objects, converting ephemeral objects to permanent
-// and inserting objects into the main chains - not a complete set of the methods we'll need
-  void add_ephemera( GEDCOM_object* );
-  int ephemnextref();
-#endif
 
 // methods for extracting stats
   int getindicount() const;
@@ -79,8 +72,15 @@ public:
   int getmaxsour() const;
   int getmaxrepo() const;
 
+// methods for assigning free ids
+  int getnextindi();
+  int getnextfam();
+  int getnextsour();
+  int getnextrepo();
+
 // methods for traversing/maintaining GEDCOM structures
   GEDCOM_id* add_id( char* );
+  void add_id( GEDCOM_id* );
   void drop_id( GEDCOM_id* );
   int GEDCOM_objectforref( char*, GEDCOM_object* );
   GEDCOM_id* GEDCOM_idfromref( char* );
@@ -101,6 +101,7 @@ public:
   mainUI* mainui() const;   // first view in list, then use mainUI::getnext()
   statsUI* statsui() const; // only one stats window
   void addview( mainUI* );
+  void redraw();
   void reopen();
   void setevent( GEDCOM_object* );
   GEDCOM_object* geteventobject() const;

@@ -21,9 +21,6 @@
 #include <stdlib.h>
 
 #include "menucodes.h"
-#ifdef fix0021
-#include "flags.h"
-#endif
 
 #include "classes.h"
 #include "family.h"
@@ -102,7 +99,6 @@ void save_cb( Fl_Menu_ *, void *userdata) {
 
 }
 
-#ifdef fix0013
 void saveas_cb( Fl_Menu_ *, void *userdata) {
 
   printf("Callback saveas_cb\n");
@@ -121,7 +117,6 @@ void saveas_cb( Fl_Menu_ *, void *userdata) {
   tree->save();
 
 }
-#endif
 
 void newview_cb(Fl_Menu_ *, void *userdata) {
 
@@ -191,8 +186,8 @@ Fl_Menu_Item *picked;
   // view->main is the treedisplay, so whoisat is implemented in display.cxx
   clicked = view->main->whoisat(x,y,indid,famd);
   //printf("popup_cb getting clicked pointer %ld\n",(long)clicked);
-  // what we get back there is the actual INDI or FAM object, not the indidisplay
-  // or famdisplay
+  // what we get back in clicked is the actual INDI or FAM object,
+  // but the indidisplay or famdisplay come back in indid or famid which are passed by reference
 
   if (button == 1) {
     if (clicked == NULL) return; // as opposed to a segmentation fault, for example...
@@ -223,10 +218,15 @@ Fl_Menu_Item *picked;
   }
 
   if (clicked->objtype() == INDI_tag) {
-    // printf("popup_cb - an INDI at %ld\n", (long)clicked);
+    printf("popup_cb - an INDI at %ld\n", (long)clicked);
     //sprintf(person_buffer,"%s x %d: y %d",clicked->subobject( NAME_tag )->value(),x,y);
-    sprintf(person_buffer,"%s",clicked->subobject( NAME_tag )->value());
-
+    GEDCOM_object* clickedname;
+    if ((clickedname=(clicked->subobject( NAME_tag )))!=NULL) {
+      sprintf(person_buffer,"%s",clickedname->value());
+    } else {
+      person_buffer[0] = '\0';
+    }
+    printf("person_buffer set to'%s'\n",person_buffer);
     view->whichtree()->setevent( clicked );
     view->whattodraw()->setevent( (void*)indid);
 
@@ -234,7 +234,7 @@ Fl_Menu_Item *picked;
     // so we can diagnose whether to grey out some menu options (eg. 'younger')
     // then need some vague idea of how to grey them out !
 
-    // printf("popup_cb believes we clicked on an INDI, and the indidisplay is %ld, %s\n",(long)indid,indid->name());
+    printf("popup_cb believes we clicked on an INDI, and the indidisplay is %ld, %s\n",(long)indid,indid->name());
     if (indid->younger_valid()) {
       printf("younger is OK\n");
       view->indimenu->black(imenuyounger);
@@ -242,23 +242,22 @@ Fl_Menu_Item *picked;
       printf("younger greyed\n");
       view->indimenu->grey(imenuyounger);
     }
-#ifdef fix0015
-    // if indi has more than one spouse shown, we want to grey out "child"
-    if (indid->child_valid()) {
-      printf("child OK\n");
-      view->indimenu->black(imenuchild);
+    if (indid->older_valid()) {
+      printf("older is OK\n");
+      view->indimenu->black(imenuolder);
     } else {
-      printf("child greyed\n");
-      view->indimenu->grey(imenuchild);
+      printf("younger greyed\n");
+      view->indimenu->grey(imenuolder);
     }
-    if (indid->newfam_valid()) {
+    // this is a temporary kludge - an indidisplay doesn't know its treedisplay
+    // so cannot tell if it is the top person - we have to test that ourselves
+    if ((clicked==view->gettop())||(indid->newfam_valid())) {
       printf("new family OK\n");
       view->indimenu->black(imenunewfam);
     } else {
       printf("new family greyed\n");
       view->indimenu->grey(imenunewfam);
     }
-#endif
 
     // need cast to discard const-ness 
     picked=(Fl_Menu_Item*)((Fl_Menu_Item*)view->indimenu)->popup(x-40,y-10,person_buffer,(Fl_Menu_Item*)NULL,(Fl_Menu_*)NULL);
@@ -281,6 +280,13 @@ Fl_Menu_Item *picked;
     } else {
       // printf("later greyed\n");
       view->fammenu->grey(fmenulater);
+    }
+    if (famd->earlier_valid()) {
+      // printf("earlier is OK\n");
+      view->fammenu->black(fmenuearlier);
+    } else {
+      // printf("earlier greyed\n");
+      view->fammenu->grey(fmenuearlier);
     }
     view->whattodraw()->setevent( (void*)famd);
 
@@ -361,86 +367,27 @@ void edit_cb(Fl_Menu_ *menu, void *userdata) {
   treeinstance* tree = view->whichtree();
   displaytree* clickedtree = view->whattodraw();
   indidisplay* eventindi = (indidisplay*)clickedtree->getevent();
-#ifdef fix0022
-  neweditbox = editUIs->checkopen(tree, eventindi->getperson());
-  if (neweditbox!=NULL) return;
-  // create all ephemerals needed
-  GEDCOM_object *ephem;
+#ifdef fix0024
   GEDCOM_object *person=eventindi->getperson();
-  GEDCOM_object *fam=person->parental_family();
-  if (fam==NULL) {
-    // create a temporary FAM object on this treeinstance:
-    fam = new GEDCOM_object( xref = new GEDCOM_id("E",tree->ephemnextref()), FAM_tag );
-    xref->GEDCOM_setobjectforid( fam );
- #ifdef fix0021
-    fam->setflags(ged_ephemeral,0);
- #endif
-    tree->add_ephemera( fam );
-    printf("Added ephemeral FAM object\n");
- #ifdef fix0021
-    person->add_subobject( ephem = new GEDCOM_object( GEDCOM_tagfromname( "FAMC" ), xref ));
-    ephem->setflags( ged_ephemeral,0 );
-    fam->add_subobject( ephem = new GEDCOM_object( GEDCOM_tagfromname( "CHIL" ), person->getid() ));
-    ephem->setflags( ged_ephemeral,0 );
-  }
- #else
-    person->add_subobject( new GEDCOM_object( GEDCOM_tagfromname( "FAMC" ), xref ));
-    fam->add_subobject( new GEDCOM_object( GEDCOM_tagfromname( "CHIL" ), person->getid() ));
-  }
- #endif
-  GEDCOM_object *parent =  fam->thewife();
-  if (parent==NULL) {
-    // create a temporary INDI object on this treeinstance as our mother
-    parent = new GEDCOM_object( xref = new GEDCOM_id("E",tree->ephemnextref()), INDI_tag );
-    xref->GEDCOM_setobjectforid( parent );
- #ifdef fix0021
-    parent->setflags( ged_ephemeral,0 );
-    parent->add_subobject( ephem = new GEDCOM_object( FAMS_tag, fam->getid()));
-    ephem->setflags( ged_ephemeral,0 );
- #else
-    parent->add_subobject( new GEDCOM_object( FAMS_tag, fam->getid()));
- #endif
-    printf("%s\n",xref->GEDCOM_idname());
-    tree->add_ephemera( parent );
-    // create a WIFE subobject of the fam to point to it
- #ifdef fix0021
-    fam->add_subobject( ephem = new GEDCOM_object( GEDCOM_tagfromname( "WIFE" ), xref ));
-    ephem->setflags( ged_ephemeral,0 );
- #else
-    fam->add_subobject( new GEDCOM_object( GEDCOM_tagfromname( "WIFE" ), xref ));
- #endif
-  }
-  parent = fam->thehusband();
-  if (parent==NULL) {
-    // create a temporary INDI object on this treeinstance as our father
-    parent = new GEDCOM_object( xref = new GEDCOM_id("E",tree->ephemnextref()), INDI_tag );
-    xref->GEDCOM_setobjectforid( parent );
- #ifdef fix0021
-    parent->setflags( ged_ephemeral,0 );
-    parent->add_subobject( ephem = new GEDCOM_object( FAMS_tag, fam->getid()));
-    ephem->setflags( ged_ephemeral,0 );
- #else
-    parent->add_subobject( new GEDCOM_object( FAMS_tag, fam->getid()));
- #endif
-    printf("%s\n",xref->GEDCOM_idname());
-    // create a HUSB subobject of the fam to point to it
- #ifdef fix0021
-    fam->add_subobject( ephem = new GEDCOM_object( GEDCOM_tagfromname( "HUSB" ), xref ));
-    ephem->setflags( ged_ephemeral,0 );
- #else
-    fam->add_subobject( new GEDCOM_object( GEDCOM_tagfromname( "HUSB" ), xref ));
- #endif
-  }
-  
+  neweditbox = editUIs->checkopen(tree, person);
+  if (neweditbox!=NULL) return;
+//  GEDCOM_object *fam=person->parental_family();
   neweditbox = editUIs->open(tree, person);
 #else
   neweditbox = editUIs->open(tree, eventindi->getperson());
+#endif
+#ifdef debugging
+  printf("edit_cb neweditbox %ld, displaytree %ld, person %ld, indidisplay %ld, treeinstance %ld, view %ld\n",
+    (long)neweditbox, (long)clickedtree, (long)person, (long)eventindi, (long)tree, (long)view );
 #endif
 }
 
 #ifdef fix0022
 void childnew_cb(Fl_Menu_ *menu, void *userdata) {
 // called to create a child in a new family of which eventindi->getperson() is one spouse
+// don't #define fix0022 - this is not the way to do this - we need create family
+// and add child to be separate atomic operations. OTOH, some of the code here will
+// be useful in the "New family" callback.
   GEDCOM_id *xref;
   GEDCOM_object *parent;
   GEDCOM_object *spouse;
@@ -458,16 +405,10 @@ void childnew_cb(Fl_Menu_ *menu, void *userdata) {
   GEDCOM_object *ephem;
   GEDCOM_object *person = new GEDCOM_object( xref = new GEDCOM_id("E",tree->ephemnextref()), INDI_tag );
   xref->GEDCOM_setobjectforid( person );
-#ifdef fix0021
-  person->setflags(ged_ephemeral,0);
-#endif
   tree->add_ephemera( person );
   printf("Added ephemeral INDI object\n");
   GEDCOM_object *fam = new GEDCOM_object( xref = new GEDCOM_id("E",tree->ephemnextref()), FAM_tag );
       xref->GEDCOM_setobjectforid( fam );
-#ifdef fix0021
-  fam->setflags(ged_ephemeral,0);
-#endif
   tree->add_ephemera( fam );
   printf("Added ephemeral FAM object\n");
   person->add_subobject( new GEDCOM_object( FAMC_tag, fam->getid()));
@@ -485,9 +426,6 @@ void childnew_cb(Fl_Menu_ *menu, void *userdata) {
       fam->add_subobject( ephem = new GEDCOM_object( WIFE_tag, parent->getid()));
       spouse = new GEDCOM_object( xref = new GEDCOM_id("E",tree->ephemnextref()), INDI_tag );
       xref->GEDCOM_setobjectforid( spouse );
-#ifdef fix0021
-      spouse->setflags(ged_ephemeral,0);
-#endif
       fam->add_subobject( new GEDCOM_object( HUSB_tag, spouse->getid()));
       spouse->add_subobject( new GEDCOM_object( FAMS_tag, fam->getid()));
       spouse->add_subobject( new GEDCOM_object( SEX_tag, "M" ));
@@ -501,9 +439,6 @@ void childnew_cb(Fl_Menu_ *menu, void *userdata) {
       fam->add_subobject( ephem = new GEDCOM_object( HUSB_tag, parent->getid()));
       spouse = new GEDCOM_object( xref = new GEDCOM_id("E",tree->ephemnextref()), INDI_tag );
       xref->GEDCOM_setobjectforid( spouse );
-#ifdef fix0021
-      spouse->setflags(ged_ephemeral,0);
-#endif
       fam->add_subobject( new GEDCOM_object( WIFE_tag, spouse->getid()));
       spouse->add_subobject( new GEDCOM_object( FAMS_tag, fam->getid()));
       spouse->add_subobject( new GEDCOM_object( SEX_tag, "F" ));
@@ -520,39 +455,56 @@ void childnew_cb(Fl_Menu_ *menu, void *userdata) {
 
 void okedit_cb(Fl_Return_Button *, void *userdata) {
 
-indiUI* indibox = (indiUI*)userdata;
-GEDCOM_object* edited = indibox->whois();
-treeinstance* thisinstance = indibox->whichis();
-if (edited==NULL) {
-  // then we were creating a brand-new person, and we need to know
-  // which window it related to. We can then create a new GEDCOM_object
-  // and add it to the indilist chain at an appropriate point. We may also need
-  // to add new objects for each parent - otherwise we need to match them to
-  // existing objects. There is a potential gotcha here: if we have opened this
-  // indibox by clicking "child" on a marriage, the parents will already be filled
-  // in - we need to be sure that we don't get confused by other people with the
-  // same names
-
-  // no, no, no, this is going to be too hard, and will involve loads of extra code
-  // just to save the "expense" of creating a GEDCOM_object we might not use.
-  // What we need is for the "New" and "Child" callbacks to create empty
-  // GEDCOM_objects, perhaps with parent pointers filled in. If we are adding a
-  // child to a single parent, that might involve creating a FAM as well as an INDI.
-  // so, lets stop writing comments here and go off to the relavant place to do that
-  } else {
-  // we were editing a specific person, but we still might need to
-  // create new parents in the relevant tree. Much the same gotcha as above
-  // applies here
+  indiUI* indibox = (indiUI*)userdata;
+  printf("OKedit on indibox %ld\n",(long)indibox);
+  GEDCOM_object* edited = indibox->whois();
+  treeinstance* thisinstance = indibox->whichis();
+  if (edited==NULL) {
+    printf("Called okedit_cb with a NULL edited person - broken !!\n");
+    editUIs->close( indibox );
+    return;
+  }
+  GEDCOM_object* test;
+  test = edited->subobject();
+  while (test!=NULL) {
+    if ((test->objtype())==unsaved_tag) {
+      edited->delete_subobject(test);
+      break;
+    }
+    test = test->next_object();
   }
 // then copy all that stuff into the relevant object
+  indibox->update();
+  test = edited->subobject(FAMS_tag);
+  while (test!=NULL) {
+    famUI* fambox;
+    if ((fambox = (famUIs->fambox(test->followxref())))!=NULL) {
+      fambox->refresh_spouse();
+    }
+    test=test->next_object(FAMS_tag);
+  }
+  
 // editUIs is the (global) list of currently open indiUIs, so close is a method on
 // class editlist which is defined in structure.h/.cxx
   editUIs->close( indibox );
+  // need to redraw every view which is open on this treeinstance
+  thisinstance->redraw();
 }
 
 void commitedit_cb(Fl_Button *, void *userdata) {
-// virtually the same as above (which we should therefore hive off into a
-// separate routine), but without the close( indibox );
+  indiUI* indibox = (indiUI*)userdata;
+  GEDCOM_object* edited = indibox->whois();
+  GEDCOM_object* test;
+  test = edited->subobject();
+  while (test!=NULL) {
+    if ((test->objtype())==unsaved_tag) {
+      edited->delete_subobject(test);
+      break;
+    }
+    test = test->next_object();
+  }
+  indibox->update();
+  indibox->whichis()->redraw();
 }
 
 void restoreedit_cb(Fl_Button *, void *userdata) {
@@ -605,8 +557,33 @@ GEDCOM_object *event, *eventdata;
     edited->delete_subobject( event );
   }
   //printf("Survived deleting all the empty event objects\n");
+
   // can't just delete indibox, must remove it from the linked list:
   editUIs->close( indibox );
+  GEDCOM_object *test=edited->subobject();
+  int status = 0;
+  int count = 0;
+  GEDCOM_tag* tag;
+
+  while (test != NULL) {
+    tag = test->objtype();
+    if (tag==unsaved_tag) {
+      status = 1;
+    } else {
+      if ((tag==FAMC_tag)||(tag==FAMS_tag)) {
+        count += 1;
+      } else {
+        if (tag!=NAME_tag) count += 2;
+      }
+    }
+    test = test->next_object();
+  }
+  if ((count<2)&&(status==1)) {
+    treeinstance* tree = indibox->whichis();
+    printf("Canceled edit on newly created INDI with no reason to retain - deleting it\n");
+    tree->remove_indi( edited );
+    tree->redraw();
+  }    
   //printf("Back from editUIs->close() in callback\n");
 }
 
@@ -623,6 +600,60 @@ void searchma_cb(Fl_Button *, void *userdata) {
 
 void searchpa_cb(Fl_Button *, void *userdata) {
 // called to create a completions box, searching for a partially-typed father's name
+}
+
+void famnew_cb(Fl_Menu_ *menu, void *userdata) {
+// called to create a new FAM attached to an existing INDI as a FAMS
+  famUI *newfambox;
+  mainUI* view = (mainUI*)userdata;
+  treeinstance* tree = view->whichtree();
+  displaytree* clickedtree = view->whattodraw();
+  indidisplay* eventindi = (indidisplay*)clickedtree->getevent();
+  GEDCOM_object *person=eventindi->getperson();
+  GEDCOM_id* indi_id = person->getid();
+  // we will need to add a HUSB or WIFE tag to the FAM depending on the
+  // gender of person and currnetly won't create a FAM if gender is unknown
+  GEDCOM_tag* spouse_tag;
+  int sex=eventindi->getgender();
+  switch (sex) {
+    case SEX_MALE: spouse_tag=HUSB_tag; break;
+    case SEX_FEMALE: spouse_tag=WIFE_tag; break;
+    case SEX_UNKNOWN: printf("Cannot start a family if spouse gender is unknown\n"); return;
+  }
+  int id=tree->getnextfam();
+  GEDCOM_id* fam_id = new GEDCOM_id("F",id);
+  GEDCOM_object* fam = new GEDCOM_object(fam_id,FAM_tag);
+  tree->freshfam( fam );
+  fam_id->GEDCOM_setobjectforid( fam );
+  GEDCOM_object* fams = new GEDCOM_object(FAMS_tag,fam_id);
+  person->add_subobject(fams);
+  GEDCOM_object* spouse = new GEDCOM_object(spouse_tag,indi_id);
+  fam->add_subobject(spouse);
+  tree->redraw();
+  // only after the redraw will there be a famdisplay for the new marriage
+  // but the redraw will have rendered our indisdisplay invalid. However, the
+  // famUI dbox is raised on the treeinstance, not the specific view
+  newfambox = famUIs->open(tree, fam);
+}
+
+void deleteindi_cb(Fl_Menu_ *menu, void *userdata) {
+// called to delete an INDI from the tree
+  bool neednewtop;
+  mainUI* view = (mainUI*)userdata;
+  treeinstance* tree = view->whichtree();
+  displaytree* clickedtree = view->whattodraw();
+  indidisplay* eventindi = (indidisplay*)clickedtree->getevent();
+  GEDCOM_object *person=eventindi->getperson();
+  if (person==(view->getcurrent())) {
+    printf("We advise clicking to choose a new current person first !\n");
+    return;
+  }
+  neednewtop = (person==(view->gettop()));
+  tree->remove_indi(person);
+  if (neednewtop) {
+    view->setcurrent(view->getcurrent());
+  }
+  tree->redraw();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -654,14 +685,28 @@ famUI* fambox = (famUI*)userdata;
 GEDCOM_object* edited = fambox->whatis();
 treeinstance* thisinstance = fambox->whichis();
 if (edited==NULL) {
-  // then we were creating a brand-new family, and we need to know
-  // which window it related to. We can then create a new GEDCOM_object
-  // and add it to the famlist chain at an appropriate point.
-  } else {
-  // we were editing a specific family
+  // in the 2017 move to implement read/write functionality it became
+  // apparent that we should have creation and editing as separate operations
+  // and NEVER call the famUI without a FAM object in the tree. So
+  // getting here would now be an error.
+    printf("Called okfam_cb with a NULL edited person - broken !!\n");
+    famUIs->close( fambox );
+    return;
   }
-// then copy all that stuff into the relevant object
+  // then copy all that stuff into the relevant object
+  fambox->update();
+  printf("Done the update\n");
   famUIs->close( fambox );
+  printf("About to call redraw on treeinstance %ld\n",(long)thisinstance);
+  thisinstance->redraw();
+}
+
+void commitfam_cb(Fl_Button *, void *userdata) {
+
+  famUI* fambox = (famUI*)userdata;
+  fambox->update();
+  fambox->whichis()->redraw();
+  
 }
 
 void cancelfam_cb(Fl_Button *, void *userdata) {
@@ -685,11 +730,6 @@ GEDCOM_object* edited = fambox->whatis();
   famUIs->close( fambox );
 }
 
-void commitfam_cb(Fl_Button *, void *userdata) {
-// virtually the same as above (which we should therefore hive off into a
-// separate routine), but without the close( fambox );
-}
-
 void restorefam_cb(Fl_Button *, void *userdata) {
 // basically do the same field-filling as on opening the famUI.
 // DON'T restore NOTE or SOUR stuff into any extant notesUI boxes ...
@@ -701,6 +741,155 @@ void helpfam_cb(Fl_Button *, void *userdata) {
 
   show_help( userdata );
 }
+
+void buttonaddhusb_cb(Fl_Button *, void *userdata) {
+// called to create a new INDI attached to an existing FAM as HUSB
+  famUI* fambox = (famUI*)userdata;
+  GEDCOM_object* event;
+  treeinstance* tree = fambox->whichis();
+  GEDCOM_object* fam = fambox->whatis();
+//  displaytree* clickedtree = view->whattodraw();
+  indiUI *neweditbox;
+  int id=tree->getnextindi();
+  printf("buttonaddhusb_cb established context and will try ID I%d\n",id);
+  GEDCOM_id* indi_id = new GEDCOM_id("I",id);
+  tree->add_id(indi_id);
+  GEDCOM_object* indi = new GEDCOM_object(indi_id,INDI_tag);
+  indi_id->GEDCOM_setobjectforid( indi );
+  tree->freshindi( indi );
+  printf("buttonaddhusb_cb inserted new indi into tree\n");
+  GEDCOM_object* husb = new GEDCOM_object(HUSB_tag,indi_id);
+  fam->add_subobject(husb);
+  printf("buttonaddhusb_cb inserted HUSB into fam\n");
+  indi->add_subobject(new GEDCOM_object(FAMS_tag,fam->getid()));
+  indi->add_subobject(new GEDCOM_object(SEX_tag,"M"));
+  printf("buttonaddhusb_cb added FAMS and SEX tags to indi\n");
+  tree->redraw();
+  neweditbox = editUIs->open(tree, indi);
+}
+
+void buttonfindhusb_cb(Fl_Button *, void *userdata) {
+// called to find an existing INDI to attach to an existing FAM as HUSB
+  famUI* fambox = (famUI*)userdata;
+  int x = fambox->fam_dbox->x();
+  int y = fambox->fam_dbox->y();
+  gotobox->open( userdata, x+50, y+50, 4+16 );
+}
+
+void buttonaddwife_cb(Fl_Button *, void *userdata) {
+// called to create a new INDI attached to an existing FAM as WIFE
+  famUI* fambox = (famUI*)userdata;
+  GEDCOM_object* event;
+  treeinstance* tree = fambox->whichis();
+  GEDCOM_object* fam = fambox->whatis();
+//  displaytree* clickedtree = view->whattodraw();
+  indiUI *neweditbox;
+  int id=tree->getnextindi();
+  printf("buttonaddwife_cb established context and will try ID I%d\n",id);
+  GEDCOM_id* indi_id = new GEDCOM_id("I",id);
+  tree->add_id(indi_id);
+  GEDCOM_object* indi = new GEDCOM_object(indi_id,INDI_tag);
+  indi_id->GEDCOM_setobjectforid( indi );
+  tree->freshindi( indi );
+  printf("buttonaddwife_cb inserted new indi into tree\n");
+  GEDCOM_object* wife = new GEDCOM_object(WIFE_tag,indi_id);
+  fam->add_subobject(wife);
+  printf("buttonaddwife_cb inserted WIFE into fam\n");
+  indi->add_subobject(new GEDCOM_object(FAMS_tag,fam->getid()));
+  indi->add_subobject(new GEDCOM_object(SEX_tag,"F"));
+  printf("buttonaddhusb_cb added FAMS and SEX tags to indi\n");
+  tree->redraw();
+  neweditbox = editUIs->open(tree, indi);
+}
+
+void buttonfindwife_cb(Fl_Button *, void *userdata) {
+// called to find an existing INDI to attach to an existing FAM as WIFE
+  famUI* fambox = (famUI*)userdata;
+  int x = fambox->fam_dbox->x();
+  int y = fambox->fam_dbox->y();
+  gotobox->open( userdata, x+50, y+50, 8+16 );
+}
+
+void unmarry_cb(Fl_Menu_ *menu, void *userdata) {
+// called to remove a FAM object - only permitted if there are no children
+// attached to the FAM - user must move them first.
+  mainUI* view = (mainUI*)userdata;
+  treeinstance* tree = view->whichtree();
+  displaytree* clickedtree = view->whattodraw();
+  famdisplay* eventfam = (famdisplay*)clickedtree->getevent();
+  GEDCOM_object* fam = eventfam->getfamily();
+  GEDCOM_id* fam_id = fam->getid();
+  tree->remove_fam( fam );
+  tree->redraw();
+}
+
+#ifdef fix0026
+void newchild_cb(Fl_Menu_ *menu, void *userdata) {
+// called to create a new INDI attached to an existing FAM as a CHIL
+  indiUI *neweditbox;
+  mainUI* view = (mainUI*)userdata;
+  treeinstance* tree = view->whichtree();
+  displaytree* clickedtree = view->whattodraw();
+  famdisplay* eventfam = (famdisplay*)clickedtree->getevent();
+  GEDCOM_object* fam = eventfam->getfamily();
+  GEDCOM_id* fam_id = fam->getid();
+  int id=tree->getnextindi();
+#ifdef debugging
+  printf("newchild_cb displaytree %ld, famdisplay %ld, fam %ld, treeinstance %ld, view %ld, new id I%d\n",
+    (long)clickedtree, (long)eventfam, (long)fam, (long)tree, (long)view, id );
+#endif
+  GEDCOM_object* parentforsurname;
+  parentforsurname = fam->thehusband();
+  if (parentforsurname==NULL) parentforsurname = fam->thewife();
+  
+  GEDCOM_id* indi_id = new GEDCOM_id("I",id);
+  tree->add_id( indi_id);
+  GEDCOM_object* indi = new GEDCOM_object(indi_id,INDI_tag);
+  indi_id->GEDCOM_setobjectforid( indi );
+  indi->add_subobject(new GEDCOM_object(unsaved_tag));
+  tree->freshindi( indi );
+  GEDCOM_object* chil = new GEDCOM_object(CHIL_tag,indi_id);
+#ifdef debugging
+  printf("Adding CHIL %ld indi_id %ld @%s@\n", (long)chil,(long)indi_id,indi_id->GEDCOM_idname());
+#endif
+  fam->add_subobject(chil);
+#ifdef debugging
+  printf("Added CHIL %ld for fam %ld\n", (long)chil, (long)fam);
+#endif
+  GEDCOM_object* famc = new GEDCOM_object(FAMC_tag,fam_id);
+#ifdef debugging
+  printf("Adding FAMC %ld @%s@\n", (long)famc, fam->getidname());
+#endif
+  indi->add_subobject(famc);
+#ifdef debugging
+  printf("Added FAMC %ld for indi %ld\n", (long)famc, (long)indi);
+#endif
+  if (parentforsurname!=NULL) {
+    GEDCOM_object* basename=parentforsurname->subobject(NAME_tag);
+    if (basename!=NULL) {
+      char* name=strdup(basename->value());
+      char* surname=strtok(name,"/");
+      surname = strtok(NULL,"/");
+      if (surname!=NULL) {
+        GEDCOM_object* childname = new GEDCOM_object(NAME_tag,new GEDCOM_string("/",surname,"/"));
+        indi->add_subobject(childname);
+      }
+    }
+  }
+  tree->redraw();
+  // only after the redraw will there be an indisplay for the new child, but
+  // the redraw will have rendered our famdisplay invalid. However, the indiUI dbox
+  // is raised on the treeinstance, not the view, so we should not care about either
+#ifdef debugging
+  printf("Redrawn, now open indiUI on tree %ld, indi %ld\n",(long)tree, (long)indi);
+#endif
+  neweditbox = editUIs->open(tree, indi);
+#ifdef debugging
+  printf("newchild_cb neweditbox %ld, displaytree %ld, person %ld, treeinstance %ld, view %ld\n",
+    (long)neweditbox, (long)clickedtree, (long)indi, (long)tree, (long)view );
+#endif
+}
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -743,7 +932,6 @@ void savescr_cb(Fl_Menu_ *menu, void *userdata) {
 //  printf("Got an image at %ld\n",(long)data_p_returned);
 #endif
 
-#ifdef fix0013
   Fl_File_Chooser chooser(".","*.png",Fl_File_Chooser::CREATE,"Save tree as");
   chooser.preview(0);
   chooser.show();
@@ -752,9 +940,6 @@ void savescr_cb(Fl_Menu_ *menu, void *userdata) {
   if (chooser.count()==1) {
     write_png(chooser.value(), data_p, os_w, os_h, 3);
   }
-#else
-  write_png("Test1.png", data_p, os_w, os_h, 3);
-#endif
   fl_end_offscreen();
   fl_delete_offscreen( saver );
 
@@ -784,31 +969,18 @@ void stats_cb(Fl_Menu_ *, void *userdata) {
 
 void find_cb(Fl_Menu_*, void *userdata) {
   mainUI* view = (mainUI*)userdata;
-//  printf("goto raised on instanciation %d\n",(int)instanciation);
-//  probably don't actually need to know which instance, until we need name completion
   int x,y;
   x = view->window->x();
   y = view->window->y();
 
-  gotobox->open( view, x+50, y+55 );
+  // 12 is a bitfield indicating that strategy is to search for all genders (M+F+unknown)
+  gotobox->open( view, x+50, y+55, 12 );
 }
 
 void okfind_cb(Fl_Return_Button*, void *userdata) {
-  mainUI* view = (mainUI*)userdata;
-//  printf("find OK raised on instanciation %d\n",(int)instanciation);
-//  printf("We'll call Lookup_INDI on a tree at %d\n",(int)(instanciation->treeroot()));
-  // need to cast parm to discard const-ness explicitly
-  GEDCOM_object* newperson = view->whichtree()->Lookup_INDI( (char *)gotobox->find_input->value());
-  if (newperson != NULL) {
-    view->setcurrent(newperson);
-    gotobox->findbox->hide();
-    // make sure we didn't leave a completions window lying around
-    completionsbox->finish();
-  }
-  // else: should raise a warning if we didn't find that person
-  // currently just drop back - if this is because we typed some string that
-  // doesn't match any real INDI, then the findUI window just stays open with
-  // no feedback to say "not found".
+  findUI* search = (findUI*)userdata;
+  printf("Passing findUI OK click to search->OK()\n");
+  search->OK();
 }
 
 void binnedfind_cb(Fl_Window*, void *userdata) {
@@ -818,42 +990,17 @@ void binnedfind_cb(Fl_Window*, void *userdata) {
 }
 
 void searchfind_cb(Fl_Button* button, void *userdata) {
-  int strategy=0;
   findUI* searchfrom = (findUI*)userdata;
-  short x,y;
-  x = gotobox->findbox->x();
-  y = gotobox->findbox->y();
-  // this is inelegant - we aren't a method of findUI (although, logically, we should be,
-  // but I don't think callbacks can be methods - or am I just igorrant ?? )
-  if (button==searchfrom->find_fromright) strategy = 1;
-  if (button==searchfrom->find_fuzzy)     strategy = 2;
-  if (button==searchfrom->find_fromleft)  strategy = 3;
-  completionsbox->open( searchfrom->getview()->whichtree(),
-                        (char*)gotobox->find_input->value(),
-                        strategy,
-                        (Fl_Callback*) chosenfind_cb,
-                        (void*) searchfrom->getview(), x+65, y+55 );
+  searchfrom->searchfind(button);
 }
 
 void chosenfind_cb( Fl_Select_Browser* chooser, void *userdata ) {
-// userdata is (void*) of the mainUI class ... which for this callback
-// is always going to be a mainUI (ie. a particular view). erm, see below...
-  mainUI* view = (mainUI*)userdata;
   int chosen = chooser->value();
 //  printf("completions selected item %d\n", chosen);
   GEDCOM_object* newperson = completionsbox->chosen_indi( chosen );
   completionsbox->finish();
-  // anyone chosen in the completionsbox ought to be a real INDI, so we
-  // should never get NULL here, but test anyway:-)
-  // 2013-01-15: this is not going to work !! It's OK when the completions
-  // window was opened in response to a View->GoTo menu item, but we also
-  // use a completions window to fill in details of parents in an indiUI
-  // so we need a way for the completions window to know what it should be
-  // doing with newperson. But we can't just return the pointer - we are a
-  // callback, so the caller is ... kinda weird ...
   if (newperson != NULL) {
-    view->setcurrent(newperson);
-    gotobox->findbox->hide();
+    gotobox->setperson(newperson);
   }
 }
 
@@ -978,7 +1125,7 @@ notesUI* newui;
 // why we set the menu item userdata to ((void*)(this)) in the constructor :-)
 // all these methods apply equally to NOTE objects' and TEXT objects' notesUIs
 
-void changenotes_cb(Fl_Multiline_Input*, void*userdata) {
+void changenotes_cb(Fl_Text_Editor*, void*userdata) {
 notesUI *ui;
   ui = (notesUI*)userdata;
   ui->changed(true);
@@ -1020,6 +1167,8 @@ notesUI *ui;
   //printf("savenotes_cb for notesUI at %ld\n",(long)userdata);
   ui->update();
   //printf("Done update from notesUI to GEDCOM\n");
+  // we should now check if the NOTE we saved was empty, and if so delete it
+  // completely, then call a process to check upwards...
 }
 
 void oknotes_cb(Fl_Menu_*, void*userdata) {
@@ -1098,14 +1247,65 @@ void menu_younger_cb(Fl_Menu_ *menu, void* userdata) {
   thefam->print( 0 );
 
   // at this point we need to rebuild the displaytree and redraw.
-  view->newdisplay();
-  view->window->redraw();
-  while ( (view=(view->getnext()))!=NULL ) {
-    view->newdisplay();
-    view->window->redraw();
-  }
+  tree->redraw();
   // that recalculates display, and forces a redraw. Often, that is enough, but
   // sometimes the redrawn tree will be such that the person we just made younger
+  // is no longer visible. We ought to check for that (if they are visible in the
+  // window at all, we shouldn't scroll, but if they are now entirely out of the
+  // window, we should centre them).
+  
+}
+
+void menu_older_cb(Fl_Menu_ *menu, void* userdata) {
+
+  // the idiom is as above
+
+  mainUI*  view = (mainUI*)userdata;
+  displaytree* clickedtree = view->whattodraw();
+  treeinstance* tree = view->whichtree();
+  GEDCOM_object *sibling = tree->geteventobject();
+  sibling->print( 0 );
+  // find a FAMC subobject of sibling - there can only ever be one
+  //  if there isn't one, then we can't be made older - whinge/exit
+  GEDCOM_object *thefamc = sibling->subobject( FAMC_tag );
+  // should not be possible - menu item is greyed out for this case:
+  if (thefamc == NULL ) {
+    printf("Can't find a FAMC for that INDI\n");
+    return; // whinge we are not a child in any family
+  }
+  thefamc->print( 0 );
+  GEDCOM_object *thefam = thefamc->followxref();
+  if (thefam == NULL) {
+    printf("Can't follow FAMC ref to a FAM\n");
+    return; // we are very broken if this happens
+  }
+  thefam->print( 0 );
+  // indirect to the relevant FAM object. find the first CHIL subobject.
+  GEDCOM_object *chil1 = thefam->subobject( CHIL_tag );
+  if (chil1 == sibling) {
+    printf("That's already the oldest child\n");
+    return; // whinge that we are already the oldest
+  }
+  
+  GEDCOM_object *chil2;
+  while ((chil1->followxref())!=sibling) {
+    chil2 = chil1;
+    chil1 = chil1->next_object (CHIL_tag);
+    if (chil1==NULL) {
+      printf("None of CHIL tags in FAM points back to starting INDI\n");
+      return;
+    }
+  }
+  if (!thefam->swap_subobject( chil2, chil1 )) {
+    printf("swap_subobject returned false - something broke !\n");
+  }
+  printf("Should now be swapped\n");
+  thefam->print( 0 );
+
+  // at this point we need to rebuild the displaytree and redraw.
+  tree->redraw();
+  // that recalculates display, and forces a redraw. Often, that is enough, but
+  // sometimes the redrawn tree will be such that the person we just made older
   // is no longer visible. We ought to check for that (if they are visible in the
   // window at all, we shouldn't scroll, but if they are now entirely out of the
   // window, we should centre them).
@@ -1147,12 +1347,43 @@ void menu_later_cb(Fl_Menu_ *menu, void* userdata) {
   }
   printf("Should now be swapped\n");
   person->print( 0 );
-  view->newdisplay();
-  view->window->redraw();
-  while ( (view=(view->getnext()))!=NULL ) {
-    view->newdisplay();
-    view->window->redraw();
+  tree->redraw();
+}
+
+void menu_earlier_cb(Fl_Menu_ *menu, void* userdata) {
+
+  mainUI*  view = (mainUI*)userdata;
+  displaytree* clickedtree = view->whattodraw();
+  treeinstance* tree = view->whichtree();
+  // so we need to get back to the INDI that has this family, and swap two
+  // FAMS objects. Of course, there are two INDIs, and we want the one that
+  // is uppermost in the displayed tree
+  famdisplay* eventfam = (famdisplay*)clickedtree->getevent();
+  GEDCOM_object* family = eventfam->getfamily();
+  printf("eventfam->getfamily() returns %ld\n",(long)family);
+  GEDCOM_object* person = eventfam->getindi();
+  printf("Trying to swap FAMS objects for \n");
+  person->print(0);
+  GEDCOM_object *fams1=person->subobject( FAMS_tag );
+  if (fams1==family) {
+    printf("That's already the earliest marriage\n");
+    return; // whinge that we are already the earliest
   }
+  GEDCOM_object *fams2;
+  while ((fams1->followxref())!=family) {
+    fams2 = fams1;
+    fams1 = fams1->next_object (FAMS_tag);
+    if (fams1==NULL) {
+      printf("None of FAMS tags in INDI points back to starting FAM\n");
+      return;
+    }
+  }
+  if (!person->swap_subobject( fams2, fams1 )) {
+    printf("swap_subobject returned false - something broke !\n");
+  }
+  printf("Should now be swapped\n");
+  person->print( 0 );
+  tree->redraw();
 }
 
 ////////////////////////////////////////////////////////////////////////////////

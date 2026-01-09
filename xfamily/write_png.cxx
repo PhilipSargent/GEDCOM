@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <zlib.h>
 #include <png.h>
+// using memcpy now seems to need the string library
+#include <cstring>
 
 #include "write_png.h"
 

@@ -26,7 +26,7 @@ class editlist {
   indiUI* last_edit;
 public:
   editlist();
-#ifdef fix0022
+#ifdef fix0024
   indiUI* checkopen( treeinstance*, GEDCOM_object* );
 #endif
   indiUI* open( treeinstance*, GEDCOM_object* );
@@ -42,6 +42,7 @@ class famedlist {
   famUI* last_fam;
 public:
   famedlist();
+  famUI* checkopen( treeinstance*, GEDCOM_object* );
   famUI* open( treeinstance*, GEDCOM_object* );
 //  famUI* new();                    // an empty fam window (shouldn't need)
   void close( famUI* );
@@ -54,9 +55,11 @@ class noteslist {
   notesUI* last_notes;
 public:
   noteslist();
+  notesUI* checkopen( treeinstance*, GEDCOM_object*, GEDCOM_tag* );
   notesUI* open( treeinstance*, GEDCOM_object*, GEDCOM_tag* );
   void close( notesUI* );
   void retitle();
+  notesUI* notesbox( GEDCOM_object* );
 };
 
 

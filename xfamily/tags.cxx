@@ -27,9 +27,7 @@ GEDCOM_tag *CHR_tag = NULL;
 GEDCOM_tag *CREM_tag = NULL;
 GEDCOM_tag *CAUS_tag = NULL;
 GEDCOM_tag *PLOT_tag = NULL;
-#ifdef fix0020
 GEDCOM_tag *AGE_tag = NULL;
-#endif
 GEDCOM_tag *FIDE_tag = NULL;
 GEDCOM_tag *QUAY_tag = NULL;
 GEDCOM_tag *ORIG_tag = NULL;
@@ -54,6 +52,7 @@ GEDCOM_tag *VERS_tag = NULL;
 GEDCOM_tag *GEDC_tag = NULL;
 GEDCOM_tag *HEAD_tag = NULL;
 GEDCOM_tag *TRLR_tag = NULL;
+GEDCOM_tag *unsaved_tag = NULL;
 GEDCOM_tag *root_tag = NULL;
 GEDCOM_tag *heads_tag = NULL;
 GEDCOM_tag *indis_tag = NULL;
@@ -61,6 +60,3 @@ GEDCOM_tag *fams_tag = NULL;
 GEDCOM_tag *sours_tag = NULL;
 GEDCOM_tag *repos_tag = NULL;
 GEDCOM_tag *trlrs_tag = NULL;
-#ifdef fix0004
-GEDCOM_tag *ephem_tag = NULL;
-#endif

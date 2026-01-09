@@ -7,6 +7,7 @@
 #include "fixes.h"
 #include "classes.h"
 #include "family.h"
+#include "structure.h"
 #include "trees.h"
 #include "gui.h"
 #include "objects.h"
@@ -29,9 +30,6 @@ treeinstance::treeinstance() :
   maxSOURid (-1),
   repocount (0),
   maxREPOid (-1),
-#ifdef fix0004
-  ephemnext (0),
-#endif
   modified (false)
 {
 #ifdef debugging
@@ -46,9 +44,6 @@ treeinstance::treeinstance() :
   rootobject->add_subobject( sourlist = new GEDCOM_object( sours_tag ));
   rootobject->add_subobject( repolist = new GEDCOM_object( repos_tag ));
   rootobject->add_subobject( trlrlist = new GEDCOM_object( trlrs_tag ));
-#ifdef fix0004
-  rootobject->add_subobject( ephemlist = new GEDCOM_object( ephem_tag ));
-#endif
   firstview = new mainUI(this); // is this required ?
   statsbox = new statsUI(this);
 #ifdef debugging
@@ -87,6 +82,126 @@ treeinstance * treeinstance::getprevious() const {
 
 void treeinstance::setprevious( treeinstance * newinstance ) {
   previous = newinstance;
+}
+
+// methods for creating and destroying GEDCOM
+
+void treeinstance::freshindi( GEDCOM_object* indi ) {
+// initially when we create a new INDI we will have no name, so no point
+// trying to insert it in collating sequence yet. Move it later...
+  indilist->insert_first( indi );
+}
+
+void treeinstance::freshfam( GEDCOM_object* fam ) {
+// FAM objects are mostly added in order of creation, so just insert at end
+  famslist->add_subobject( fam );
+}
+
+void treeinstance::remove_indi( GEDCOM_object* person ) {
+  GEDCOM_id* indi_id = person->getid();
+  GEDCOM_object *famc = person->parental_family();
+  GEDCOM_object *child = NULL;
+  GEDCOM_object *chil;
+  if (famc!=NULL) {
+    chil = famc->child(&child, false);
+    // the false indicates that we want the chil object, not the INDI it points to
+    printf("Checking indi %s against chil %s\n",indi_id->GEDCOM_idname(),chil->getxref()->GEDCOM_idname());
+    while (chil!=NULL) {
+      if (indi_id==chil->getxref()) {
+        printf("deleteindi_cb deleting CHIL from FAM\n");
+        famc->delete_subobject( chil );
+        break;
+      }
+      chil = famc->child(&child, false);
+    }
+  } else {
+    printf("remove_indi found no FAMC\n");
+  }
+  GEDCOM_object *fams=NULL;
+  fams = person->own_family( fams );
+  GEDCOM_object *spouse;
+  while (fams!=NULL) {
+    if (person==fams->thewife()) {
+      spouse = fams->subobject(WIFE_tag);
+    }
+    if (person==fams->thehusband()) {
+      spouse = fams->subobject(HUSB_tag);
+    }
+    if (fams->delete_subobject( spouse )) {
+      if (fams->garbage_fam()) this->remove_fam( fams );
+    }
+    fams = person->own_family( fams );
+  }
+  notesUI* notebox;
+  notebox = noteUIs->notesbox( person );
+  while (notebox!=NULL) {
+    noteUIs->close(notebox);
+    notebox = noteUIs->notesbox( person );
+  }
+  indiUI* editbox;
+  if ((editbox = (editUIs->editbox(person)))!=NULL) {
+    editUIs->close( editbox );
+  }
+  if (!indilist->delete_subobject( person )) printf("Failed trying to remove indi %ld;\n",(long)person);
+}
+
+void treeinstance::remove_fam( GEDCOM_object* fam ) {
+  // if we are being called as a result of garbage collection on the FAM after
+  // all the cross-referencing subobjects have gone, we are safe to search for
+  // such subobjects, as they are fully gone, not left to give us NULL pointers.
+  // Equally, it is not an error if we don't find them.
+  // if we are called as a result of an "Unmarry", we need to look for the HUSB
+  // and WIFE tags and follow them to remove FAMS from those INDIs. I think we
+  // made a decision not to allow the unmarrying of FAMs which still have CHIL
+  // objects, so we should probably check for those first and return without
+  // doing any damage if they exist (as well as printing a diagnostic).
+
+  GEDCOM_object* link;
+  GEDCOM_object* indi;
+  link = fam->subobject(CHIL_tag);
+  if (link != NULL) {
+    printf("remove_fam called to remove a FAM which still has CHIL - not going to !\n");
+    return;
+  }
+  notesUI* notebox;
+  notebox = noteUIs->notesbox( fam );
+  while (notebox!=NULL) {
+    noteUIs->close(notebox);
+    notebox = noteUIs->notesbox( fam );
+  }
+  famUI* fambox;
+  if ((fambox = (famUIs->fambox(fam)))!=NULL) {
+    famUIs->close(fambox);
+  }
+  link = fam->subobject(HUSB_tag);
+  if (link != NULL) {
+    indi = link->followxref();
+    if (indi != NULL) {
+      link = indi->subobject(FAMS_tag);
+      while (link!=NULL) {
+        if ((link->followxref())==fam) {
+          indi->delete_subobject(link);
+          break;
+        }
+        link = link->next_object(FAMS_tag);
+      }
+    }
+  }
+  link = fam->subobject(WIFE_tag);
+  if (link != NULL) {
+    indi = link->followxref();
+    if (indi != NULL) {
+      link = indi->subobject(FAMS_tag);
+      while (link!=NULL) {
+        if ((link->followxref())==fam) {
+          indi->delete_subobject(link);
+          break;
+        }
+        link = link->next_object(FAMS_tag);
+      }
+    }
+  }
+  if (!famslist->delete_subobject( fam )) printf("Failed trying to remove fam %ld;\n",(long)fam);
 }
 
 // methods for loading and saving GEDCOM
@@ -130,9 +245,9 @@ GEDCOM_object* object;
     }
     *level = i;
 #ifdef debugging
-    if (i==0) {
-      printf("New level 0 object %s at line %d\n",tmpline,GEDCOMcount);
-    }
+//    if (i==0) {
+//      printf("New level 0 object %s at line %d\n",tmpline,GEDCOMcount);
+//    }
 #endif
   }
 
@@ -516,17 +631,6 @@ bool treeinstance::integritycheck() {
 }
 #endif
 
-#ifdef fix0004
-void treeinstance::add_ephemera( GEDCOM_object* thing ) {
-  ephemlist->add_subobject( thing );
-}
-
-int treeinstance::ephemnextref() {
-  this->ephemnext++;
-  return this->ephemnext;
-}
-#endif
-
 void treeinstance::setfilename( char* newfile ) {
   strcpy(filename,newfile);
 }
@@ -552,16 +656,16 @@ FILE* out;
   GEDCOM_object* person;
   mainUI* view;
 
-    headlist->subobject()->output( out, level );
-    //fprintf(out,"end headlist\n");
-    indilist->subobject()->output( out, level );
-    //fprintf(out,"end indilist\n");
-    famslist->subobject()->output( out, level );
-    //fprintf(out,"end famslist\n");
-    sourlist->subobject()->output( out, level );
-    //fprintf(out,"end sourlist\n");
-    repolist->subobject()->output( out, level );
-    //fprintf(out,"end repolist\n");
+    if ((headlist->subobject())!=NULL) headlist->subobject()->output( out, level );
+    printf("end headlist\n");
+    if ((indilist->subobject())!=NULL) indilist->subobject()->output( out, level );
+    printf("end indilist\n");
+    if ((famslist->subobject())!=NULL) famslist->subobject()->output( out, level );
+    printf("end famslist\n");
+    if ((sourlist->subobject())!=NULL) sourlist->subobject()->output( out, level );
+    printf("end sourlist\n");
+    if ((repolist->subobject())!=NULL) repolist->subobject()->output( out, level );
+    printf("end repolist\n");
     trlritem = trlrlist->subobject();
     // first, remove the old NOTE objects saying who were current person(s)
     while (trlritem!=NULL) {
@@ -642,6 +746,26 @@ int treeinstance::getmaxrepo() const {
   return maxREPOid;
 }
 
+int treeinstance::getnextindi() {
+  maxINDIid++;
+  return maxINDIid;
+}
+
+int treeinstance::getnextfam() {
+  maxFAMid++;
+  return maxFAMid;
+}
+
+int treeinstance::getnextsour() {
+  maxSOURid++;
+  return maxSOURid;
+}
+
+int treeinstance::getnextrepo() {
+  maxREPOid++;
+  return maxREPOid;
+}
+
 // methods for traversing/maintaining GEDCOM structures
 
 GEDCOM_id* treeinstance::add_id( char *ref ) {
@@ -654,15 +778,23 @@ GEDCOM_id* newid = new GEDCOM_id( ref );
   else
     last_id->setnext( newid );
   last_id = newid;
-  // I don't believe it ! How could this code ever, ever, ever have worked
-  // without this line:
   return newid;
-  // but it did - for months, until a new compiler was pedantic ...
 // but we also need to keep track of the highest number used for IDs
 // of the form Innn, Snnn, Fnnn, Rnnn used for individuals, sources,
 // families and repositories. We must support arbitrary references
 // in imported GEDCOM, but generate our own on that scheme and not
-// create any duplicates (though we may leave gaps)
+// create any duplicates (though we may leave gaps). None of which
+// is relevant just here... this just keeps a list of what we've seen
+}
+
+// creating id for newly added INDIs or FAMs is a different process, and
+// we create the id before the object
+void treeinstance::add_id( GEDCOM_id* id ) {
+  if (first_id==NULL)
+    first_id = id;
+  else
+    last_id->setnext( id );
+  last_id = id;
 }
 
 void treeinstance::drop_id( GEDCOM_id* oldid ) {
@@ -725,7 +857,7 @@ GEDCOM_object *nameobj;
 // INDIs into the structure in the right place, for when we create a new
 // INDI, so the code will need to exist eventually...)
 
-//  printf("Lookup_INDI called for %s\n",name );
+  //printf("Lookup_INDI called for %s\n",name );
 //  printf("WE *know* Lookup_INDI works: it thinks the treeinstance is %ld\n",(long)this);
   trythis = indilist->subobject();
 //  printf("and it gets the first subobject at %ld\n",(long)trythis);
@@ -748,7 +880,7 @@ GEDCOM_object *nameobj;
     trythis = trythis->next_object();  // shouldn't need to specify ( INDI_tag )
     // because all the objects chained from indilist are INDI
   }
-//  printf("Failed to find person %s\n",name);
+  //printf("Lookup_INDI() failed to find person %s\n",name);
 return NULL; // up to caller to decide what to use instead
 }
 
@@ -959,6 +1091,19 @@ statsUI* treeinstance::statsui() const {
 void treeinstance::addview( mainUI* newview ) {
   newview->setnext( firstview );
   firstview = newview;
+}
+
+void treeinstance::redraw() {
+mainUI * view;
+  view = firstview;
+  printf("treeinstance redraw firstview %ld\n",(long)view);
+  while (view != NULL) {
+    view->newdisplay();
+    printf("Done newdisplay(), will call redraw on %ld\n",(long)view->window);
+    view->window->redraw();
+    view = view->getnext();
+    printf("treeinstance redraw next view %ld\n",view);
+  }
 }
 
 void treeinstance::reopen() {

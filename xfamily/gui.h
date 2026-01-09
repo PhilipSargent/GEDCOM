@@ -169,14 +169,17 @@ class indiUI {
 // was opened in response to the "child of" menu item, we should be able
 // to deduce a surname and we could use "Edit new child Bloggs"
 
-  treeinstance  *which;  // the treeinstance from which this indiUI was opened
-  GEDCOM_object *who;    // pointer to the INDI object representing that person
-#ifdef fix0004
+// we created these three pointers under fix0004, in which they could point to
+// ephemeral objects which were being built. Now that that approach is backed out
+// we have *retained* these three pointers, but now they *may* be NULL and we may
+// not change them as a side effect of anything done in this dbox
   GEDCOM_object *mum;    // pointer to the female parent of the person
   GEDCOM_object *dad;    // pointer to the male parent of the person
   GEDCOM_object *fam;    // pointer to a FAM object for the person and parents
   // each (or all) of the above may be ephemeral objects which exists only whilst indiUI open
-#endif
+// end of not-fix0004-anymore
+  GEDCOM_object *who;    // pointer to the INDI object representing that person
+  treeinstance  *which;  // the treeinstance from which this indiUI was opened
   indiUI        *next;
   indiUI        *previous;
   char buf_indi_title[MAX_indititle];
@@ -184,29 +187,15 @@ class indiUI {
 public:
   Fl_Window *indi_dbox;
   Fl_Input  *indi_name;
-#ifdef fix0017
   Fl_Output  *indi_id;
-#endif
   Fl_Input  *indi_title;
   Fl_Light_Button *indi_male;
   Fl_Light_Button *indi_female;
   Fl_Light_Button *indi_unknown;
   Fl_Input  *indi_ma;
-#ifdef fix0017
   Fl_Output  *indi_ma_id;
-#else
-  Fl_Button *ma_fromright;
-  Fl_Button *ma_fuzzy;
-  Fl_Button *ma_fromleft;
-#endif
   Fl_Input  *indi_pa;
-#ifdef fix0017
   Fl_Output  *indi_pa_id;
-#else
-  Fl_Button *pa_fromright;
-  Fl_Button *pa_fuzzy;
-  Fl_Button *pa_fromleft;
-#endif
   Fl_Button *indi_notes;
   Fl_Button *indi_sources;
   Fl_Button *indi_will;
@@ -248,9 +237,7 @@ public:
   Fl_Tile   *indi_death;
   Fl_Input  *indi_deathdate;
   Fl_Input  *indi_deathtime;
-#ifdef fix0020
   Fl_Input  *indi_deathage;
-#endif
   Fl_Light_Button *indi_deathgreg;
   Fl_Light_Button *indi_deathjul;
   Fl_Light_Button *indi_deathdef;
@@ -302,6 +289,7 @@ public:
   void setdatefields(GEDCOM_object*, Fl_Input*, Fl_Input*, Fl_Button*, Fl_Button* );
   void checknotes(GEDCOM_object*, bool);
   void settitle();
+  void update();
   void show() const;
   void hide() const;
 };
@@ -330,10 +318,12 @@ public:
   Fl_Window *fam_dbox;
   Fl_Output *husb_name;
   Fl_Output *wife_name;
-#ifdef fix0017
   Fl_Output *husb_id;
   Fl_Output *wife_id;
-#endif
+  Fl_Button *husb_add;
+  Fl_Button *husb_find;
+  Fl_Button *wife_add;
+  Fl_Button *wife_find;
   Fl_Button *fam_notes;
   Fl_Button *fam_sources;
   Fl_Tabs   *fam_events;
@@ -388,9 +378,11 @@ public:
   void setprevious( famUI*);
   void clear_details();
   void insert_details(GEDCOM_object*);
+  void refresh_spouse();
   void setdatefields(GEDCOM_object*, Fl_Input*, Fl_Input*, Fl_Button*, Fl_Button* );
   void checknotes(GEDCOM_object*, bool);
   void settitle();
+  void update();
   void show() const;
   void hide() const;
 };
@@ -425,18 +417,29 @@ class findUI {
 public:
   Fl_Window* findbox;
   Fl_Input* find_input;
+  Fl_Output* find_id;
   // the searchfind_cb callback needs to be able to see the search buttons:
   Fl_Button* find_fromright;
   Fl_Button* find_fuzzy;
   Fl_Button* find_fromleft;
   Fl_Button* find_help;
+  Fl_Button* find_cancel;
   Fl_Return_Button* find_ok;
-  mainUI*    view;
+  void*    context;
+  short strategy; // a bitfield restricting how to search and what to do with results
+  // bits 0-1 left/right/fuzzy - gets set in response to which search button pressed
+  // bits 2-3 male/female/any  - gets set according to needs of caller
+  // bits 4-...  0 make current, 16 spouse completion, 32 ...
 
   findUI();
-  void setview( mainUI* );
-  mainUI* getview() const;
-  void open( mainUI*, short, short );
+  void setcontext( void* );
+  void* getcontext() const;
+  treeinstance* whichtree();
+  void open( void*, short, short, short);
+  void searchfind(Fl_Button*);
+  void setperson( GEDCOM_object* );
+  short getstrategy();
+  void OK();
   void finish();
 };
 
@@ -453,7 +456,7 @@ public:
   int widths[6];
 
   completionsUI();
-  void open( treeinstance*, char*, int, Fl_Callback*, void*, short, short );
+  void open( treeinstance*, char*, int, Fl_Callback*, /*void*,*/ short, short );
   void finish();
   GEDCOM_object* chosen_indi( int );
 };

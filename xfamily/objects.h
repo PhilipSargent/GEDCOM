@@ -51,6 +51,11 @@ void        GEDCOM_base_taglist();
 class GEDCOM_id {
 //  static GEDCOM_id *first_id;
 #ifdef fix0023
+  // fix0023 removes the arbitrary 16 char limit on ID strings. In reality, the
+  // GEDCOM spec says there is a 20-char limit, so we could have adopted that,
+  // but people can break the spec. and a buffer overrun is an obvious exploit,
+  // so it is better if we are able to cope with any length we are fed. The ones
+  // we generate ourselves will not get anywhere near 20 chars.
   GEDCOM_string *id;
 #else
   char id[16];                        // this is an arbitrary limit which worries me
@@ -60,7 +65,7 @@ class GEDCOM_id {
   GEDCOM_id     *previous;
 public:
   GEDCOM_id( char *);
-#ifdef fix0004
+#ifdef fix0023
   GEDCOM_id( char*, int );
 #endif
   ~GEDCOM_id();
@@ -81,15 +86,17 @@ class GEDCOM_string {
 public:
   GEDCOM_string( char* );
 #ifdef fix0023
+  // we used to create IDs by sprintf-ing a number into a fixed buffer, but for safety
+  // on import we wanted that to be a string on the heap. That now means we need a method
+  // to generate a heap string from a letter and a number
   GEDCOM_string( char*, int );
 #endif
-// code not under this fix now seems to use these signatures #ifdef fix0004
   GEDCOM_string( char*, char* );
   GEDCOM_string( char*, char*, char* );
-//#endif
   GEDCOM_string( size_t );
   ~GEDCOM_string();
   char* string() const;
+  char* conventionalsurname() const;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -138,26 +145,26 @@ public:
   GEDCOM_object(treeinstance*); // ONLY for creating the root object
   GEDCOM_object(GEDCOM_tag*);
   GEDCOM_object(GEDCOM_tag*, char* );
+  GEDCOM_object(GEDCOM_tag*, GEDCOM_string* );
   GEDCOM_object(GEDCOM_id*, GEDCOM_tag* ); // for level @id@ tag
   GEDCOM_object(GEDCOM_tag*, GEDCOM_id* ); // for level tag @xref@
+  // by analogy with the other routines, add_subobject ought to have been insert_last()
   void add_subobject( GEDCOM_object* );
   bool swap_subobject( GEDCOM_object*, GEDCOM_object* );
   bool delete_subobject( GEDCOM_object* );
   void insert_after( GEDCOM_object* );
   void insert_before( GEDCOM_object* );
+  void insert_first( GEDCOM_object* );
 
 // for destroying objects
   ~GEDCOM_object();
 
-#ifdef fix0021
-// setting and testing flags
-// probably don't actually need the bit values #include "flags.h"
-  bool testflags(unsigned int, unsigned int);
-  void setflags(unsigned int, unsigned int);
-#endif
 
 // for changing objects
   void setid( GEDCOM_id*);
+  void setvalue( GEDCOM_string*);
+  void update( GEDCOM_tag*, char* );
+  void update_event( GEDCOM_tag*, char*, char*, char*, char*, char*, char* );
 
 // for navigating - these will return NULL if no appropriate object
   GEDCOM_object* next_object() const;     // the next object at this level
@@ -184,10 +191,11 @@ public:
   char *getxrefname() const;              // the string value of the xref (without @..@)
 
 // methods appropriate only for FAM objects:
+  bool garbage_fam();                     // returns true if FAM may be deleted as empty
   GEDCOM_object* thewife() const;         // the INDI pointed to by a WIFE subobject
   GEDCOM_object* thehusband() const;      // the INDI pointed to by a HUSB subobject
   GEDCOM_object* thespouseof( GEDCOM_object* ) const; //
-  GEDCOM_object* child(GEDCOM_object**) const;  // successive INDIs pointed to by CHIL
+  GEDCOM_object* child(GEDCOM_object**, bool) const;  // successive CHILs or the INDIs pointed to
 
 // methods appropriate only for INDI objects:
   GEDCOM_object* parental_family() const; // the FAM pointed to by a FAMC subobject

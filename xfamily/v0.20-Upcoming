@@ -1,0 +1,66 @@
+Some things are desirable for this release, but not really "In progress"
+(we can only do one major hack at a time...). These are things we want
+in this release but are "upcoming" rather than "in hand".
+
+* In preferences, we'd like an "exclude GEDCOM 5.3 features"
+  option (or something like "Strict GEDCOM 5.5") which would cause
+  saves to be done without structure in PLAC and with similar
+  changes in any other tags which ceased to be in the more recent
+  standard. In v0.19 we've suggested using the RESN tag, but not in
+  enough detail to understand how this is supposed to work - so
+  need to go back to the 5.5 spec. and work out how this is used
+  (and we already indicate that it is pretty ambiguous).
+
+  So I believe you attach a +1 RESN privacy record to any tag
+  that you don't want exported - this might be an entire INDI
+  or merely individual records within that INDI. There are three
+  implications I can see:
+  1) your software has to separate the concepts of "save" which
+  will save the whole GEDCOM, including all the info in records
+  marked with a RESN; and "export" which would remove sensitive
+  information.
+  2) if an entire INDI is marked with a +1 RESN tag, are we
+  supposed to not export the whole record (in which case you'd
+  then have to remove references to the INDI from FAM records)
+  or do we export just a 0 INDI @id@ with no subordinate
+  structure ? The latter is obviously easier in that you don't
+  have to go round modifying FAM structures, but is less effective
+  in that the existence of an individual is still revealed. Ah,
+  no, you'd still have to export the FAMC and FAMS pointers to
+  avoid complexity... An interesting test would be to see what
+  happens if we import a GEDCOM where a number of INDIs are blanked
+  apart from their FAMC and FAMS
+  3) In 5.5.1 you can also have a +1 RESN in a FAM. This would
+  definitely require that the entire FAM record is not exported
+  and the FAMC/FAMS pointers in involved INDIs be removed. In
+  practice, if a FAM is subject to a restriction notice, then
+  any INDI pointed to by a CHIL record should simply not be exported.
+  That choice will then leave other records potentially hanging
+  and they would also need to be trimmed off both to avoid broken
+  GEDCOM, and the leaking of information which could be reconstructed.
+
+* Implement ADOP tag. Well that's fine for recording that stuff,
+  but how we present adopted children graphically is a whole
+  different can of worms. I think they should be represented
+  both under the birth parents (if known) and the adoptive
+  parents. Probably (especially if both sets of parents appear
+  on the same tree) further relationships and issue should appear
+  only under the adoptive parents.
+
+  You might note that the FAMC tag can appear as +1 in INDI, but
+  also as +1 in BIRT. I think that means it can also appear as
+  +1 in ADOP, though that's not clear from my reading so far...
+  and there's at least one reference to +1 FAMC.+2 ADOP. In 5.4
+  the structure was definitely 0 INDI.1 ADOP.2 FAMC and p71 does
+  suggest that this is the way in 5.5
+
+* decide on a way to represent LGBGT families with (for example)
+  a birth mother and an adoptive mother. GEDCOM *does not cope*
+  with this type of family, but we do need to. GEDCOM's ADOP tag
+  does at least include a field for which parent adopted (which
+  is relevant when a new spouse adopts the other spouse's children
+  by a previous marriage, though I doubt that formal adoption
+  took place in many cases of this is the tree).
+
+
+

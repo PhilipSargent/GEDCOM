@@ -27,9 +27,7 @@ extern void language_cb(Fl_Menu_ *, void *);
 // callback routines from mainUI menu applying to whole tree
 
 extern void save_cb(Fl_Menu_ *, void *);
-#ifdef fix0013
 extern void saveas_cb(Fl_Menu_ *, void *);
-#endif
 extern void newview_cb(Fl_Menu_ *, void *);
 
 // callback routines for mainUI
@@ -62,6 +60,8 @@ extern void commitedit_cb(Fl_Button*, void*);
 extern void helpedit_cb(Fl_Button*, void*);
 extern void searchma_cb(Fl_Button*, void*);
 extern void searchpa_cb(Fl_Button*, void*);
+extern void famnew_cb(Fl_Menu_ *, void *);
+extern void deleteindi_cb(Fl_Menu_ *, void *);
 
 // callback routines for famUI
 
@@ -71,6 +71,12 @@ extern void cancelfam_cb(Fl_Button*, void*);
 extern void restorefam_cb(Fl_Button*, void*);
 extern void commitfam_cb(Fl_Button*, void*);
 extern void helpfam_cb(Fl_Button*, void*);
+extern void buttonaddhusb_cb(Fl_Button*, void*);
+extern void buttonfindhusb_cb(Fl_Button*, void*);
+extern void buttonaddwife_cb(Fl_Button*, void*);
+extern void buttonfindwife_cb(Fl_Button*, void*);
+extern void newchild_cb(Fl_Menu_ *, void *);
+extern void unmarry_cb(Fl_Menu_ *, void *);
 
 // callback routines for genpopup
 extern void savescr_cb(Fl_Menu_ *, void *);
@@ -102,7 +108,7 @@ extern void helpchoices_cb(Fl_Button*, void*);
 extern void menuopennotes_cb(Fl_Menu_ *, void *);
 extern void buttonopennotes_cb(Fl_Button*, void*);
 extern void buttonopentext_cb(Fl_Button*, void*);
-extern void changenotes_cb(Fl_Multiline_Input*, void*);
+extern void changenotes_cb(Fl_Text_Editor*, void*);
 extern void cancelnotes_cb(Fl_Menu_*, void*);
 extern void quitnotes_cb(Fl_Window*, void*);
 extern void clearnotes_cb(Fl_Menu_*, void*);
@@ -114,7 +120,9 @@ extern void oknotes_cb(Fl_Menu_*, void*);
 
 extern void menu_newmarriage_cb(Fl_Menu_*, void*);
 extern void menu_younger_cb(Fl_Menu_*, void*);
+extern void menu_older_cb(Fl_Menu_*, void*);
 extern void menu_later_cb(Fl_Menu_*, void*);
+extern void menu_earlier_cb(Fl_Menu_*, void*);
 
 // callback routines to drive sourceUI
 

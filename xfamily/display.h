@@ -60,10 +60,9 @@ public:
                  ~indidisplay();
 void             setfamc( famdisplay* );
 bool             younger_valid();
-#ifdef fix0015
+bool             older_valid();
 bool             child_valid();
 bool             newfam_valid();
-#endif
 GEDCOM_object   *getperson() const;
 indidisplay     *sibling() const;
 indidisplay     *last() const;
@@ -122,6 +121,7 @@ char          *marrlabel() const;
 indidisplay   *getissue() const;
 void           setissue( indidisplay* );
 bool           later_valid();
+bool           earlier_valid();
 void           displayfam( int, int, int ) const;
 void           centre( int, int, int ) const;
 GEDCOM_object *whoisat( int, int, int, indidisplay*& indid, famdisplay*& famd ) const;

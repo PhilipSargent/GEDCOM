@@ -26,10 +26,6 @@
 #include <FL/Fl_Text_Editor.H>
 
 #include "menucodes.h"
-#ifdef fix0021
-#include "flags.h"
-#endif
-
 #include "classes.h"
 #include "languages.h"
 #include "gui.h"
@@ -63,11 +59,7 @@ barmenu::barmenu(mainUI* view) {
   menu_data[0] = (Fl_Menu_Item){msg_menu_file,     0, 0, 0,  64, 0, 0, 14, 0 };
   menu_data[1] = (Fl_Menu_Item){msg_menu_load,     0, 0, 0,   0, 0, 0, 14, 0 };
   menu_data[2] = (Fl_Menu_Item){msg_menu_save,     0, (Fl_Callback*)save_cb, (void*)(view),   0, 0, 0, 14, 0 };
-#ifdef fix0013
   menu_data[3] = (Fl_Menu_Item){msg_menu_saveas,   0, (Fl_Callback*)saveas_cb, (void*)(view),   0, 0, 0, 14, 0 };
-#else
-  menu_data[3] = (Fl_Menu_Item){msg_menu_saveas,   0, 0, 0,   0, 0, 0, 14, 0 };
-#endif
   menu_data[4] = (Fl_Menu_Item){msg_menu_print,    0, 0, 0, 128, 0, 0, 14, 0 };
   menu_data[5] = (Fl_Menu_Item){msg_menu_newview,  0, (Fl_Callback*)newview_cb, (void*)(view),   0, 0, 0, 14, 0 };
   menu_data[6] = (Fl_Menu_Item){msg_menu_discard,  0, 0, 0,   0, 0, 0, 14, 0 };
@@ -116,17 +108,15 @@ barmenu::barmenu(mainUI* view) {
 indipopupmenu::indipopupmenu(mainUI* view) {
   popup_data[imenubase]    = (Fl_Menu_Item){msg_menu_edit,      0, (Fl_Callback*)edit_cb,             (void*)(view),              0,0,0,14,0 };
   popup_data[imenunotes]   = (Fl_Menu_Item){msg_menu_notes,     0, (Fl_Callback*)menuopennotes_cb,    (void*)(view), 0,0,0,14,0 };
-  popup_data[imenumarry]   = (Fl_Menu_Item){msg_menu_marry,     0, (Fl_Callback*)menu_newmarriage_cb, (void*)(view), 0,0,0,14,0 };
   popup_data[imenuyounger] = (Fl_Menu_Item){msg_menu_younger,   0, (Fl_Callback*)menu_younger_cb, (void*)(view),   0, 0, 0, 14, 0 };
-  popup_data[imenuchild]   = (Fl_Menu_Item){msg_menu_child,     0, 0, 0,   0, 0, 0, 14, 0 };
-#ifdef fix0015
-#ifdef fix0022
-  popup_data[imenunewfam]  = (Fl_Menu_Item){msg_menu_newfam,    0, (Fl_Callback*)childnew_cb, (void*)(view),   0, 0, 0, 14, 0 };
-#else
-  popup_data[imenunewfam]  = (Fl_Menu_Item){msg_menu_newfam,    0, 0, 0,   0, 0, 0, 14, 0 };
-#endif
-#endif
-  popup_data[imenuremove]  = (Fl_Menu_Item){msg_menu_remove,    0, 0, 0, 128, 0, 0, 14, 0 };
+  popup_data[imenuolder]   = (Fl_Menu_Item){msg_menu_older,     0, (Fl_Callback*)menu_older_cb, (void*)(view),   0, 0, 0, 14, 0 };
+  popup_data[imenunewfam]  = (Fl_Menu_Item){msg_menu_newfam,    0, (Fl_Callback*)famnew_cb, (void*)(view),   0, 0, 0, 14, 0 };
+  popup_data[imenustructure]=(Fl_Menu_Item){msg_menu_structure, 0, 0, 0, 192, 0, 0, 14, 0 };
+  popup_data[imenuremove]  = (Fl_Menu_Item){msg_menu_remove,    0, (Fl_Callback*)deleteindi_cb, (void*)(view),   0, 0, 0, 14, 0 };
+  popup_data[imenudetach]  = (Fl_Menu_Item){msg_menu_detach,    0, 0, 0,   0, 0, 0, 14, 0 };
+  popup_data[imenumove]    = (Fl_Menu_Item){msg_menu_move,      0, 0, 0,   0, 0, 0, 14, 0 };
+  popup_data[imenuattach]  = (Fl_Menu_Item){msg_menu_attach,    0, 0, 0,   0, 0, 0, 14, 0 };
+  popup_data[imenuendstruct] = (Fl_Menu_Item){ 0 };
   popup_data[imenuindreps] = (Fl_Menu_Item){msg_menu_indreps,   0, 0, 0,  64, 0, 0, 14, 0 };
   popup_data[imenuancs]    = (Fl_Menu_Item){msg_menu_ancs,      0, 0, 0,   0, 0, 0, 14, 0 };
   popup_data[imenuendreps] = (Fl_Menu_Item){ 0 };
@@ -155,8 +145,13 @@ fampopupmenu::fampopupmenu(mainUI* view) {
   popup_data[fmenubase]    = (Fl_Menu_Item){msg_menu_edit,      0, (Fl_Callback*)famed_cb, (void*)(view),         0,0,0,14,0 };
   popup_data[fmenunotes]   = (Fl_Menu_Item){msg_menu_notes,     0, (Fl_Callback*)menuopennotes_cb, (void*)(view), 0,0,0,14,0 };
   popup_data[fmenulater]   = (Fl_Menu_Item){msg_menu_later,     0, (Fl_Callback*)menu_later_cb, (void*)(view),    0,0,0,14,0 };
+  popup_data[fmenuearlier] = (Fl_Menu_Item){msg_menu_earlier,   0, (Fl_Callback*)menu_earlier_cb, (void*)(view),  0,0,0,14,0 };
+#ifdef fix0026
+  popup_data[fmenuchild]   = (Fl_Menu_Item){msg_menu_child,     0, (Fl_Callback*)newchild_cb, (void*)(view), 0, 0, 0, 14, 0 };
+#else
   popup_data[fmenuchild]   = (Fl_Menu_Item){msg_menu_child,     0, 0, 0,   0, 0, 0, 14, 0 };
-  popup_data[fmenuunmarry] = (Fl_Menu_Item){msg_menu_unmarry,   0, 0, 0, 128, 0, 0, 14, 0 };
+#endif
+  popup_data[fmenuunmarry] = (Fl_Menu_Item){msg_menu_unmarry,   0, (Fl_Callback*)unmarry_cb, (void*)(view), 128, 0, 0, 14, 0 };
   // unmarry is to remove the FAM object entirely. Divorce is a tab in the
   // FAM edit box, and no longer a menu item as it was in !Family
   popup_data[fmenuend]     = (Fl_Menu_Item){ 0 };
@@ -356,10 +351,14 @@ GEDCOM_object* mainUI::getcurrent() const { return person; }
 
 void mainUI::setcurrent( GEDCOM_object* newperson ) {
 bool redraw;
-  if (person == newperson) return;
+  // we may want to set the current person unchanged if we have deleted the top
+  // person in the tree and want to force mainUI to choose a new treeroot
+  // if (person == newperson) return;
   if (newperson == NULL ) {
     // we should never let that happen for a real tree, but when we start with an
     // empty tree, or load a GEDCOM with no INDI objects, it IS going to happen.
+    // also, if we delete the current person, we either need a methond of choosing
+    // a new current person to maintain the display, or (like !Family) we have no current person
     printf("mainUI::setcurrent called with null person, we are going to barf\n");
     // in the event that we did have a current person, this is our only survival
     // route. If there really are no INDIs, we will need some more code ...
@@ -368,7 +367,7 @@ bool redraw;
 // industrial strength version would check that the object is indeed an
 // INDI object.
 #ifdef debugging
-  printf("attempting to set current to this object:\n");
+  printf("attempting to set current to this object %ld:\n",(long)newperson);
   newperson->outline( stdout, 0 );
   newperson->subobject( NAME_tag )->print( 1 ); // diagnose
 #endif
@@ -404,7 +403,7 @@ void mainUI::newdisplay() {
 #endif
   if (display != NULL) delete display;
 #ifdef debugging
-  printf("mainUI::newdisplay Now start new tree from %ld\n", (long)topind);
+  printf("mainUI::newdisplay Now start new tree from %ld with current %ld\n", (long)topind, (long)person);
 #endif
   display = new displaytree( topind, person );
 #ifdef debugging
@@ -440,7 +439,9 @@ void mainUI::centre_current() {
 
 void mainUI::settop() {
   GEDCOM_object *fam;
+  printf("settop person %ld or parent\n",(long)person);
   fam = person->parental_family();
+  printf("Found fam %ld\n",(long)fam);
   if (fam == NULL) { topind = person; return; }
 
   topind = fam->thehusband();
@@ -552,7 +553,7 @@ infoUI::infoUI() {
   }
 // doesn't seem to do anything -removed w->set_non_modal();
 // seems to be a bad idea when added - still have a minimise icon, and using it
-// leaves every window unresponsive with no way to get ifnoUI back  w->set_modal();
+// leaves every window unresponsive with no way to get infoUI back  w->set_modal();
   w->end();
 }
 
@@ -569,17 +570,15 @@ infoUI::infoUI() {
 // more thought to make it work without ID conflicts...]
 
 indiUI::indiUI( treeinstance* thistree, GEDCOM_object* whofor ):
-#ifdef fix0004
-  // fix0004 should be redundant and will be turned off
+  // fix0004 should be redundant and will be turned off, but we think we should retain these pointers
   mum (NULL),
   dad (NULL),
   fam (NULL),
-#endif
+  // end of new pointers
   who (whofor),       // NULL for a new person not yet in the tree
-  // that should no longer occur - we should always create an ephemeral
-  // person and FAM+parents before we open an indiUI
   which (thistree)
 {
+printf("new indiUI on treeinstance %ld\n",(long)which);
 // make editing layout easier (maybe?): should this be an include file?
 #define col0 0
 #define col1 75
@@ -592,20 +591,13 @@ indiUI::indiUI( treeinstance* thistree, GEDCOM_object* whofor ):
 #define dboxwidth col1+fullw+15
 #define smallw 255
 #define redw 310
-#ifdef fix0020
 #define datew 130
 #define timew 90
 #define agew 50
 #define deathgap 60
-#else
-#define datew 200
-#define timew 130
-#endif
 #define buttonw 110
 #define fbw 25
-#ifdef fix0017
 #define idw 75
-#endif
 #define biggap 25
 #define smallgap 5
 #define fb3l col1+redw+5
@@ -637,7 +629,6 @@ indiUI::indiUI( treeinstance* thistree, GEDCOM_object* whofor ):
 #define sourcerow causrow+row
 #define tabheight row+row+bigrow+row+row+row+bigrow+5
 #define tileheight row+bigrow+row+row+row+bigrow+5
-#ifdef fix0019
 #define revrow sourcerow+row+15
 #define helprow sourcerow+row+15
 #define okrow revrow+row+15
@@ -649,31 +640,14 @@ indiUI::indiUI( treeinstance* thistree, GEDCOM_object* whofor ):
 #define appcol 190
 #define revcol 45
 #define dboxheight okrow+row+5
-#else
-#define okrow sourcerow+row+15
-#define canrow sourcerow+row+15
-#define helprow sourcerow+row+15
-#define approw okrow+row+15
-#define revrow okrow+row+15
-#define cancol 45
-#define okcol 190
-#define helpcol 335
-#define appcol 190
-#define revcol 45
-#define dboxheight approw+row+5
-#endif
 // don't seem to use:   Fl_Window* w;
   { Fl_Window* o = indi_dbox = new Fl_Window( dboxwidth, dboxheight, buf_indi_title ); // *not* msg_indi_title :-)
 // don't seem to use:     w = o;
     o->callback((Fl_Callback*)canceledit_cb);
     o->user_data((void*)(this));
-#ifdef fix0017
     indi_name = new Fl_Input(col1, namerow, redw, normh, msg_name);
     // shouldn't be input - how do I do a read-only text field ?
     indi_id = new Fl_Output(fb3l, namerow, idw, normh, "");
-#else
-    indi_name = new Fl_Input(col1, namerow, fullw, normh, msg_name);
-#endif
     indi_title = new Fl_Input(col1, titlerow, smallw, normh, msg_title);
     { Fl_Box* o = new Fl_Box(col0+5, gendertop, col0-5, smallh, msg_gender);
       o->align(FL_ALIGN_RIGHT|FL_ALIGN_INSIDE);
@@ -694,40 +668,10 @@ indiUI::indiUI( treeinstance* thistree, GEDCOM_object* whofor ):
       }
       o->end();
     }
-    indi_ma = new Fl_Input(col1, marow, redw, normh, msg_indi_ma);
-#ifdef fix0017
+    indi_ma = new Fl_Output(col1, marow, redw, normh, msg_indi_ma);
     indi_ma_id = new Fl_Output(fb3l, marow, idw, normh, "" );
-#else
-    { Fl_Button* o = ma_fromright = new Fl_Button( fb3l, marow, fbw, normh, "@<");
-      o->labeltype(FL_SYMBOL_LABEL);
-      o->callback((Fl_Callback*)searchma_cb);
-    }
-    { Fl_Button* o = ma_fuzzy = new Fl_Button( fb3m, marow, fbw, normh, "@<->");
-      o->labeltype(FL_SYMBOL_LABEL);
-      o->callback((Fl_Callback*)searchma_cb);
-    }
-    { Fl_Button* o = ma_fromleft = new Fl_Button( fb3r, marow, fbw, normh, "@>");
-      o->labeltype(FL_SYMBOL_LABEL);
-      o->callback((Fl_Callback*)searchma_cb);
-    }
-#endif
-    indi_pa = new Fl_Input(col1, parow, redw, normh, msg_indi_pa);
-#ifdef fix0017
+    indi_pa = new Fl_Output(col1, parow, redw, normh, msg_indi_pa);
     indi_pa_id = new Fl_Output(fb3l, parow, idw, normh, "" );
-#else
-    { Fl_Button* o = pa_fromright = new Fl_Button( fb3l, parow, fbw, normh, "@<");
-      o->labeltype(FL_SYMBOL_LABEL);
-      o->callback((Fl_Callback*)searchpa_cb);
-    }
-    { Fl_Button* o = pa_fuzzy = new Fl_Button( fb3m, parow, fbw, normh, "@<->");
-      o->labeltype(FL_SYMBOL_LABEL);
-      o->callback((Fl_Callback*)searchpa_cb);
-    }
-    { Fl_Button* o = pa_fromleft = new Fl_Button( fb3r, parow, fbw, normh, "@>");
-      o->labeltype(FL_SYMBOL_LABEL);
-      o->callback((Fl_Callback*)searchpa_cb);
-    }
-#endif
     { Fl_Group* o = new Fl_Group(col0+5, notesrow, dboxwidth-15, bigh);
       o->box(FL_EMBOSSED_BOX);
       { Fl_Button* o = indi_notes = new Fl_Light_Button(b41, notestop, buttonw, smallh, msg_notes);
@@ -882,14 +826,9 @@ indiUI::indiUI( treeinstance* thistree, GEDCOM_object* whofor ):
       { Fl_Tile* o = indi_death = new Fl_Tile(col0, tilerow, dboxwidth, tileheight, msg_death);
         o->color(175);
         o->selection_color(175);
-#ifdef fix0020
         indi_deathdate = new Fl_Input(col1, daterow, datew, normh, msg_event_date);
         indi_deathtime = new Fl_Input(col1+datew+deathgap, daterow, timew, normh, msg_event_time);
         indi_deathage = new Fl_Input(col1+fullw-agew, daterow, agew, normh, msg_event_age);
-#else
-        indi_deathdate = new Fl_Input(col1, daterow, datew, normh, msg_event_date);
-        indi_deathtime = new Fl_Input(col1+fullw-timew, daterow, timew, normh, msg_event_time);
-#endif
         { Fl_Box* o = new Fl_Box(col0+5, caltop, col1-1, smallh, msg_calendar);
           o->align(FL_ALIGN_RIGHT|FL_ALIGN_INSIDE);
         }
@@ -1056,9 +995,7 @@ indiUI::indiUI( treeinstance* thistree, GEDCOM_object* whofor ):
 #undef datew
 #undef timew
 #undef buttonw
-#ifdef fix0017
 #undef idw
-#endif
 #undef fbw
 #undef biggap
 #undef smallgap
@@ -1142,19 +1079,14 @@ void indiUI::setprevious( indiUI* prevui ) {
 void indiUI::clear_details() {
   // this is clearing out the indibox, but NOT removing any ephemeral GEDCOM structures
   // it is used for initialisation, not tidy up !
+  printf("indiUI::clear_details started\n");
   indi_name->value("");
-#ifdef fix0017
   indi_id->value("");
-#endif
   indi_title->value("");
   indi_ma->value("");
-#ifdef fix0017
   indi_ma_id->value("");
-#endif
   indi_pa->value("");
-#ifdef fix0017
   indi_pa_id->value("");
-#endif
   indi_notes->value(0);
   indi_notes->user_data((void*)NULL);
   indi_birthdate->value("");
@@ -1183,9 +1115,7 @@ void indiUI::clear_details() {
   indi_bapmsources->user_data((void*)NULL);
   indi_deathdate->value("");
   indi_deathtime->value("");
-#ifdef fix0020
   indi_deathage->value("");
-#endif
   indi_deathplace->value("");
   indi_deathsite->value("");
   indi_deathcause->value("");
@@ -1210,6 +1140,7 @@ void indiUI::clear_details() {
   indi_burinotes->user_data((void*)NULL);
   indi_burinotes->value(0);
   indi_burisources->user_data((void*)NULL);
+  printf("indiUI::clear_details finished\n");
 }
 
 void indiUI::insert_details( GEDCOM_object* thisindi ) {
@@ -1217,43 +1148,36 @@ GEDCOM_object *event;
 GEDCOM_object *thing; // deeper subobjects
 GEDCOM_object *parent;
 GEDCOM_object *fam=NULL;
-#ifdef fix0021
-GEDCOM_object *ephem;
-#endif
 char *val;
 
   this->clear_details();
   who = thisindi;
+  printf("indiUI::insert_details started\n");
 
 // if who is NULL No - we can't call this on NULL - even for a new person we will
 // need to know if there is already a parent (or both) defined, and we have no way
-// to get to those if we aren't being passed a kosher GEDCOM_object*. So the creating
-// of ephemeral INDI and FAM objects needs to be done first, and we need some
-// additional info to tell us whether each parent is mutable.
+// to get to those if we aren't being passed a kosher GEDCOM_object*.
+// We will need to code a new way to create the indiUI for new person - one into
+// which we can explicitly pass GEDCOM_objects (which could be NULL) for parents
+// and parents are going to be ALWAYS immutable in this dbox.
+// So, as of v 0.20 we should never be called for a NULL who
 
 #define fillin( field, object, tag ) if ((thing=(object->subobject(tag)))!=NULL) field->value( thing->value() )
 
-#ifdef fix0017
   indi_id->value( who->getidname() );
-#endif
 
-  if ((thing=(thisindi->subobject(NAME_tag)))!=NULL) {
+  fillin( indi_name, thisindi, NAME_tag );
+  fillin( indi_title, thisindi, TITL_tag );
 
-    fillin( indi_name, thisindi, NAME_tag );
-    fillin( indi_title, thisindi, TITL_tag );
-
-    if ((thing = thisindi->subobject( SEX_tag )) == NULL)
-      indi_unknown->setonly();
-    else {
-      val = thing->value();
-      switch (*val) {
-        case 'F': indi_female->setonly(); break;
-        case 'M': indi_male->setonly();break;
-        default : indi_unknown->setonly();
-      }
+  if ((thing = thisindi->subobject( SEX_tag )) == NULL)
+    indi_unknown->setonly();
+  else {
+    val = thing->value();
+    switch (*val) {
+      case 'F': indi_female->setonly(); break;
+      case 'M': indi_male->setonly();break;
+      default : indi_unknown->setonly();
     }
-  } else {
-    printf("insert_details finds indi NAME is null\n");
   }
 
   // need convenience functions for some things like mother: to find
@@ -1262,45 +1186,34 @@ char *val;
 
   fam = thisindi->parental_family();
   printf("insert_details found fam %ld/mum/dad:\n",fam);
-  fam->print( 0 );
+  if (fam!=NULL) {
+    fam->print( 0 );
 
-  parent =  fam->thewife();
-  this->mum = parent;
-  this->mum->print( 0 );
-  printf("insert_details found fam/mum %ld/dad:\n",mum);
+    parent =  fam->thewife();
+    mum = parent;
+    if (mum!=NULL) mum->print( 0 );
+    printf("insert_details found fam/mum %ld/dad:\n",mum);
 
-  if (parent != NULL ) {
-    fillin( indi_ma, parent, NAME_tag );
-#ifdef fix0017
-#ifdef fix0021
-    if (parent->testflags(0,ged_ephemeral)) indi_ma_id->value(parent->getidname());
-#else
-    indi_ma_id->value(parent->getidname());
-#endif
-#endif
+    if (parent != NULL ) {
+      fillin( indi_ma, parent, NAME_tag );
+      indi_ma_id->value(parent->getidname());
+    }
+    else {
+      printf("insert_details finds thewife is NULL\n");
+    }
+    parent = fam->thehusband();
+    dad = parent;
+
+    printf("insert_details found fam/mum/dad %ld:\n",dad);
+    if (dad!=NULL) dad->print( 0 );
+
+    if (parent != NULL ) {
+      fillin( indi_pa, parent, NAME_tag );
+      indi_pa_id->value(parent->getidname());
+    } else {
+      printf("insert_details finds thehusband is NULL\n");
+    }
   }
-  else {
-    printf("insert_details finds thewife is NULL\n");
-  }
-  parent = fam->thehusband();
-  this->dad = parent;
-
-  printf("insert_details found fam/mum/dad %ld:\n",dad);
-  this->dad->print( 0 );
-
-  if (parent != NULL ) {
-    fillin( indi_pa, parent, NAME_tag );
-#ifdef fix0017
-#ifdef fix0021
-    if (parent->testflags(0,ged_ephemeral)) indi_pa_id->value(parent->getidname());
-#else
-    indi_pa_id->value(parent->getidname());
-#endif
-#endif
-  } else {
-    printf("insert_details finds thehusband is NULL\n");
-  }
-
   thing = thisindi->subobject( NOTE_tag );
   if (thing!=NULL) {
     if ((thing->subobject()!=NULL)||(thing->value()!=NULL)) indi_notes->value(1);
@@ -1315,6 +1228,13 @@ char *val;
   // And then you have to watch for 1 DEAT yes, which is a valid event which has no subobjects,
   // but does have a value. Although GEDCOM specs only mention this usage in association with
   // DEAT, it could equally apply to other events (although it is wholly redundant for BIRT).
+  // Note that at the moment we have no way to generate or show the user the existence of a "yes"
+  // It looks as though the way forward must once again be to add "dummy" objects to a dummy
+  // chain which isn't seen in the "save file" process. That chain needs to be parsed if the
+  // users hits "save" in this dbox, and any non-empty objects get added to thisindi (possibly
+  // replacing ones already there). The conceptual difference should be that the chain upon
+  // which we hold the dummy objects should be associated with *this dbox* and not something
+  // global.
   event = thisindi->subobject( BIRT_tag );
   if (event!=NULL) {
     this->setdatefields( event, indi_birthdate, indi_birthtime, indi_birthgreg, indi_birthjul );
@@ -1368,9 +1288,7 @@ char *val;
   event = thisindi->subobject( DEAT_tag );
   if (event!=NULL) {
     this->setdatefields( event, indi_deathdate, indi_deathtime, indi_deathgreg, indi_deathjul );
-#ifdef fix0020
    fillin( indi_deathage, event, AGE_tag);
-#endif
     fillin( indi_deathplace, event, PLAC_tag);
     if (thing!=NULL) fillin( indi_deathsite, thing, SITE_tag);
     fillin( indi_deathcause, event, CAUS_tag);
@@ -1421,6 +1339,7 @@ char *val;
   indi_burinotes->user_data((void*)event);
   indi_burisources->user_data((void*)event);
   indi_events->value(indi_birth);
+  printf("indiUI::insert_details finished\n");
 }
 #undef fillin
 
@@ -1447,6 +1366,9 @@ int i;
 void indiUI::checknotes( GEDCOM_object* raised_on, bool ui_open) {
 // called when a notesUI starts up or exits, so we can check which events
 // have a NOTE object extant, and light up the appropriate button(s).
+// FIXME we know this code doesn't do all it should - if a notesUI is
+// already open, we fail to notice when we open the relevant indiUI or
+// famUI.
 GEDCOM_object *note; // deeper subobjects
 GEDCOM_tag *which;
 int light;
@@ -1510,8 +1432,10 @@ void indiUI::settitle() {
 
   if (who==NULL) {
     // edit window for new person - no object yet
+    printf("In v 0.20 we were not expecting to be called to settitle with NULL who\n");
     title += msg_newperson;
   } else {
+    printf("indiUI::settitle wants idname for %ld\n",(long)who);
     title += who->getidname();
 /*    GEDCOM_object* name = who->subobject( NAME_tag );
     if ( name == NULL ) {
@@ -1525,16 +1449,32 @@ void indiUI::settitle() {
       } */
   }
   // now put the title somewhere it won't evaporate as title goes out of scope:
+  printf("indiUI::settitle %s\n",title.c_str());
   strncpy(buf_indi_title, title.c_str(), MAX_indititle);
   indi_dbox->label(buf_indi_title);
 }
 
-/* starting to implement true editing functionality
 void indiUI::update() {
-// update the GEDCOM from the edited details
-// do we have a modified flag ?
-
-... soon */
+  who->update(NAME_tag,(char*)(indi_name->value()));
+  who->update(TITL_tag,(char*)(indi_title->value()));
+  char* gender;
+  if ((indi_male->value())==1) gender = strdup("M");
+  if ((indi_female->value())==1) gender = strdup("F");
+  if ((indi_unknown->value())==1) gender = strdup("");
+  who->update(SEX_tag,gender);
+  who->update_event(BIRT_tag, (char*)(indi_birthdate->value()), (char*)(indi_birthtime->value()),
+    (char*)(indi_birthplace->value()), (char*)(indi_birthsite->value()), NULL, NULL );
+  who->update_event(CHR_tag, (char*)(indi_chrdate->value()), (char*)(indi_chrtime->value()),
+    (char*)(indi_chrplace->value()), (char*)(indi_chrsite->value()), NULL, NULL );
+  who->update_event(BAPM_tag, (char*)(indi_bapmdate->value()), (char*)(indi_bapmtime->value()),
+    (char*)(indi_bapmplace->value()), (char*)(indi_bapmsite->value()), NULL, NULL );
+  who->update_event(DEAT_tag, (char*)(indi_deathdate->value()), (char*)(indi_deathtime->value()),
+    (char*)(indi_deathplace->value()), (char*)(indi_deathsite->value()), (char*)(indi_deathage->value()), (char*)(indi_deathcause->value()) );
+  who->update_event(CREM_tag, (char*)(indi_cremdate->value()), (char*)(indi_cremtime->value()),
+    (char*)(indi_cremplace->value()), (char*)(indi_cremsite->value()), NULL, NULL );
+  who->update_event(BURI_tag, (char*)(indi_buridate->value()), (char*)(indi_buritime->value()),
+    (char*)(indi_buriplace->value()), (char*)(indi_burisite->value()), NULL, NULL );
+}
 
 void indiUI::show() const {
   indi_dbox->show();
@@ -1557,6 +1497,7 @@ famUI::famUI( treeinstance* thistree, GEDCOM_object* famfor ):
                       // if UI is used that way (probably won't be...)
   which (thistree)
 {
+printf("new famUI on treeinstance %ld\n",(long)which);
 // make editing layout easier (maybe?):
 #define col0 0
 #define col1 75
@@ -1566,11 +1507,15 @@ famUI::famUI( treeinstance* thistree, GEDCOM_object* famfor ):
 #define bigrow 35
 #define smallh 24
 #define fullw 390
-#ifdef fix0017
-#define redw 310
+//#define redw 310
+#define redw 280
 #define idcol col1+redw+5
-#define idw 75
-#endif
+//#define idw 75
+#define idw 105
+#define addcol col1+redw+5
+#define addw  50
+#define findcol col1+redw+5+addw+5
+#define findw 50
 #define dboxwidth col1+fullw+15
 #define datew 200
 #define timew 130
@@ -1598,7 +1543,6 @@ famUI::famUI( treeinstance* thistree, GEDCOM_object* famfor ):
 #define sourcerow siterow+row
 #define tabheight row+row+bigrow+row+row+bigrow+5
 #define tileheight row+bigrow+row+row+bigrow+5
-#ifdef fix0019
 #define revrow sourcerow+row+15
 #define helprow sourcerow+row+15
 #define okrow revrow+row+15
@@ -1610,33 +1554,48 @@ famUI::famUI( treeinstance* thistree, GEDCOM_object* famfor ):
 #define appcol 190
 #define revcol 45
 #define dboxheight okrow+row+5
-#else
-#define okrow sourcerow+row+15
-#define canrow sourcerow+row+15
-#define helprow sourcerow+row+15
-#define approw okrow+row+15
-#define revrow okrow+row+15
-#define cancol 45
-#define okcol 190
-#define helpcol 335
-#define appcol 190
-#define revcol 45
-#define dboxheight approw+row+5
-#endif
 // don't seem to use:   Fl_Window* w;
   { Fl_Window* o = fam_dbox = new Fl_Window( dboxwidth, dboxheight, buf_fam_title ); // *not* msg_fam_title :-)
 // don't seem to use:     w = o;
     o->callback((Fl_Callback*)cancelfam_cb);
     o->user_data((void*)(this));
-#ifdef fix0017
     husb_name = new Fl_Output(col1, husbrow, redw, normh, msg_husband);
     husb_id = new Fl_Output(idcol, husbrow, idw, normh, "");
     wife_name = new Fl_Output(col1, wiferow, redw, normh, msg_wife);
     wife_id = new Fl_Output(idcol, wiferow, idw, normh, "");
-#else
-    husb_name = new Fl_Output(col1, husbrow, fullw, normh, msg_husband);
-    wife_name = new Fl_Output(col1, wiferow, fullw, normh, msg_wife);
-#endif
+    husb_add = new Fl_Button(addcol,husbrow,addw,normh,msg_add);
+        husb_add->down_box(FL_DOWN_BOX);
+        husb_add->type(0);
+        husb_add->selection_color(FL_BLACK);
+        husb_add->labelfont(1);
+        husb_add->callback((Fl_Callback*)buttonaddhusb_cb);
+        husb_add->user_data((void*)(this));
+        husb_add->hide();
+    husb_find = new Fl_Button(findcol,husbrow,findw,normh,msg_findspouse);
+        husb_find->down_box(FL_DOWN_BOX);
+        husb_find->type(0);
+        husb_find->selection_color(FL_BLACK);
+        husb_find->labelfont(1);
+        husb_find->callback((Fl_Callback*)buttonfindhusb_cb);
+        husb_find->user_data((void*)(this));
+        husb_find->hide();
+    wife_add = new Fl_Button(addcol,wiferow,addw,normh,msg_add);
+        wife_add->down_box(FL_DOWN_BOX);
+        wife_add->type(0);
+        wife_add->selection_color(FL_BLACK);
+        wife_add->labelfont(1);
+        wife_add->callback((Fl_Callback*)buttonaddwife_cb);
+        wife_add->user_data((void*)(this));
+        wife_add->hide();
+    wife_find = new Fl_Button(findcol,wiferow,findw,normh,msg_findspouse);
+        wife_find->down_box(FL_DOWN_BOX);
+        wife_find->type(0);
+        wife_find->selection_color(FL_BLACK);
+        wife_find->labelfont(1);
+        wife_find->callback((Fl_Callback*)buttonfindwife_cb);
+        wife_find->user_data((void*)(this));
+        wife_find->hide();
+
     { Fl_Group* o = new Fl_Group(col1, notesrow, fullw, bigh);
       o->box(FL_EMBOSSED_BOX);
       { Fl_Button* o = fam_notes = new Fl_Light_Button(b42, notestop, buttonw, smallh, msg_notes);
@@ -1892,10 +1851,8 @@ void famUI::setprevious( famUI* prevui ) {
 void famUI::clear_details() {
   husb_name->value("");
   wife_name->value("");
-#ifdef fix0017
   husb_id->value("");
   wife_id->value("");
-#endif
   fam_marrydate->value("");
   fam_marrytime->value("");
   fam_marryplace->value("");
@@ -1940,9 +1897,12 @@ GEDCOM_object *indi;
     if (indi!=NULL) fillin( husb_name, indi, NAME_tag );
     // if indi *is* NULL, then the GEDCOM is broken and we should probably
     // do something about that (if only report the fact)
-#ifdef fix0017
     husb_id->value( indi->getidname());
-#endif
+  } else {
+    printf("Will try to swap husb id box for add/find buttons\n");
+    husb_id->hide();
+    husb_add->show();
+    husb_find->show();
   }
 
   // dereference to WIFE INDI
@@ -1950,9 +1910,12 @@ GEDCOM_object *indi;
   if (thing!=NULL) {
     indi = thing->followxref();
     if (indi!=NULL) fillin( wife_name, indi, NAME_tag );
-#ifdef fix0017
     wife_id->value( indi->getidname());
-#endif
+  } else {
+    printf("Will try to swap wife id box for add/find buttons\n");
+    wife_id->hide();
+    wife_add->show();
+    wife_find->show();
   }
 
   // we do not in practice expect that thing would have been null for both
@@ -2027,6 +1990,48 @@ GEDCOM_object *indi;
 
 }
 #undef fillin
+
+void famUI::refresh_spouse( ) {
+
+GEDCOM_object *spouse;
+GEDCOM_object *thing;
+
+  printf("famUI::refresh_spouse\n");
+  spouse = fam->subobject( HUSB_tag );
+  if (spouse!=NULL) {
+    spouse = spouse->followxref();
+    if (spouse!=NULL) {
+      // indi should never be null if there was a HUSB tag... but the name might be empty
+      if ((thing=(spouse->subobject(NAME_tag)))!=NULL) husb_name->value( thing->value() );
+      husb_id->value( spouse->getidname());
+      husb_name->show(); // may or may not need this to redraw
+      husb_id->show();
+      husb_add->hide();
+      husb_find->hide();
+    } else {
+      husb_id->hide();
+      husb_add->show();
+      husb_find->show();
+    }
+  }
+  spouse = fam->subobject( WIFE_tag );
+  if (spouse!=NULL) {
+    spouse = spouse->followxref();
+    if (spouse!=NULL) {
+      // indi should never be null if there was a WIFE tag... but the name might be empty
+      if ((thing=(spouse->subobject(NAME_tag)))!=NULL) wife_name->value( thing->value() );
+      wife_id->value( spouse->getidname());
+      wife_name->show(); // may or may not need this to redraw
+      wife_id->show();
+      wife_add->hide();
+      wife_find->hide();
+    } else {
+      wife_id->hide();
+      wife_add->show();
+      wife_find->show();
+    }
+  }
+}
 
 void famUI::setdatefields( GEDCOM_object* event, Fl_Input* date, Fl_Input* time, Fl_Button* greg, Fl_Button* jul ) {
 GEDCOM_object* thing;
@@ -2108,6 +2113,18 @@ void famUI::settitle() {
   // now put the title somewhere it won't evaporate as title goes out of scope:
   strncpy(buf_fam_title, title.c_str(), MAX_famtitle);
   fam_dbox->label(buf_fam_title);
+}
+
+void famUI::update() {
+  fam->update_event(MARR_tag, (char*)(fam_marrydate->value()), (char*)(fam_marrytime->value()),
+    (char*)(fam_marryplace->value()), (char*)(fam_marrysite->value()), NULL, NULL );
+  printf("Updated MARR and returned\n");
+  fam->update_event(ENGA_tag, (char*)(fam_engagedate->value()), (char*)(fam_engagetime->value()),
+    (char*)(fam_engageplace->value()), (char*)(fam_engagesite->value()), NULL, NULL );
+  printf("Updated ENGA and returned\n");
+  fam->update_event(DIV_tag, (char*)(fam_divorcedate->value()), (char*)(fam_divorcetime->value()),
+    (char*)(fam_divorceplace->value()), (char*)(fam_divorcesite->value()), NULL, NULL );
+  printf("Updated DIV and returned\n");
 }
 
 void famUI::show() const {
@@ -2215,7 +2232,8 @@ findUI::findUI() {
   { Fl_Window* o = findbox = new Fl_Window(500, 65, msg_find_title);
     o->labeltype(FL_NO_LABEL);
     o->user_data((void*)(this));
-    find_input = new Fl_Input( 65, 5, 355, 25, msg_find );
+    find_input = new Fl_Input( 65, 5, 305, 25, msg_find );
+    find_id = new Fl_Output( 375, 5, 40, 25, "");
     { Fl_Button* o = find_fromright = new Fl_Button( 420, 5, 25, 25, "@<");
       o->labeltype(FL_SYMBOL_LABEL);
       o->callback((Fl_Callback*)searchfind_cb);
@@ -2232,35 +2250,135 @@ findUI::findUI() {
       o->down_box(FL_DOWN_BOX);
       o->labelfont(1);
     }
+    { Fl_Button* o = find_cancel = new Fl_Button(190, 35, 100, 25, msg_cancel);
+      o->down_box(FL_DOWN_BOX);
+      o->labelfont(1);
+      o->callback((Fl_Callback*)binnedfind_cb);
+    }
     { Fl_Return_Button* o = find_ok = new Fl_Return_Button( 320, 35, 100, 25, msg_ok );
       o->down_box(FL_DOWN_BOX);
       o->labelfont(1);
       o->callback((Fl_Callback*)okfind_cb);
     }
-    o->callback((Fl_Callback*)binnedfind_cb);
     o->hotspot( find_ok, 0);
     o->end();
   }
 }
 
-void findUI::setview( mainUI* raisedon ) {
-  find_ok->user_data( (void*)raisedon );
-  view = raisedon;
+void findUI::setcontext( void* raisedon ) {
+  find_ok->user_data( (void*)this );
   find_fromleft->user_data((void*)this);
   find_fromright->user_data((void*)this);
   find_fuzzy->user_data((void*)this);
 }
 
-mainUI* findUI::getview() const {
-  return view;
+void* findUI::getcontext() const {
+  return context;
 }
 
-void findUI::open( mainUI* raisedon, short suggestedx, short suggestedy ) {
+treeinstance* findUI::whichtree() {
+  printf("Attempting to get treeinstance for findUI %ld, via context %ld\n",(long)this,(long)context);
+  switch (strategy>>4) {
+    case 0:
+      // for People->Find... context was the view
+      return ((mainUI*)context)->whichtree();
+    case 1:
+      // for famUI Find context is the famUI
+      return ((famUI*)context)->whichis();
+    default:
+      return NULL;
+  }
+}
+
+void findUI::open( void* raisedon, short suggestedx, short suggestedy, short callerstrategy ) {
+  strategy = callerstrategy;
+  context = raisedon;
   find_input->value("");
-  setview( raisedon );        // this sets the user_data passed to okfind_cb
+  find_id->value("");
+  setcontext( raisedon );        // this sets the user_data passed to callbacks
   findbox->position(suggestedx, suggestedy);
   findbox->show();
   find_input->take_focus();
+}
+
+void findUI::searchfind(Fl_Button* button) {
+  short x,y;
+  x = findbox->x();
+  y = findbox->y();
+  strategy &= 0xfffc; // make sure no bits left from previous clicks
+  if (button==find_fromright) strategy |= 1;
+  if (button==find_fromleft)  strategy |= 2;
+  if (button==find_fuzzy)     strategy |= 3;
+  completionsbox->open( this->whichtree(),
+                        (char*)find_input->value(),
+                        strategy,
+                        (Fl_Callback*) chosenfind_cb,
+                        //(void*) searchfrom->getview(),
+                        x+65, y+55 );
+}
+
+void findUI::setperson( GEDCOM_object* person ) {
+  if (person!=NULL) {
+    GEDCOM_object* name = person->subobject(NAME_tag);
+    if (name!=NULL) find_input->value( name->value() );
+    find_id->value( person->getidname() );
+  }
+}
+
+short findUI::getstrategy() {
+  return strategy;
+}
+
+void findUI::OK() {
+  printf("findUI::OK()\n");
+  // when this no longer barfs utterly, we should move for checking multiple matches and opening a
+  // completions box to choose.
+  printf("So the indi we want to lookup is %s\n",(char *)gotobox->find_input->value());
+  printf("and we are trying to look it up in this treeinstace %ld\n",(long)this->whichtree());
+  GEDCOM_object* newperson = this->whichtree()->Lookup_INDI( (char *)gotobox->find_input->value());
+  printf("got a newperson %ld\n",(long)newperson);
+  if (newperson != NULL) {
+    // make sure we didn't leave a completions window lying around
+    completionsbox->finish();
+    switch (strategy>>4) {
+      case 0: {
+        findbox->hide();
+        // for People->Find... context was the view
+        ((mainUI*)context)->setcurrent(newperson);
+        return;
+      }
+      case 1: {
+        char* gender;
+        GEDCOM_object* test = newperson->subobject( SEX_tag );
+        if (test!=NULL) gender=test->value(); else gender=strdup("U");
+        // for famUI Find context is the famUI
+        GEDCOM_object* fam = ((famUI*)context)->whatis();
+        switch (strategy&12) {
+          case 4:
+            if (*gender!='M') return; else {
+              GEDCOM_object* husb = new GEDCOM_object(HUSB_tag,newperson->getid());
+              fam->add_subobject(husb);
+              newperson->add_subobject(new GEDCOM_object(FAMS_tag,fam->getid()));
+              findbox->hide();
+              break;
+            }
+          case 8:
+            if (*gender!='F') return; else {
+              GEDCOM_object* wife = new GEDCOM_object(WIFE_tag,newperson->getid());
+              fam->add_subobject(wife);
+              newperson->add_subobject(new GEDCOM_object(FAMS_tag,fam->getid()));
+              findbox->hide();
+              break;
+          }
+        }
+        ((famUI*)context)->refresh_spouse();
+        this->whichtree()->redraw();
+        return;
+      }
+      default:
+        return;
+    }
+  }
 }
 
 void findUI::finish( ) {
@@ -2279,8 +2397,7 @@ void findUI::finish( ) {
 // it is the intention to generalise this code so that instead of raising a window,
 // it raises a canvas within a pre-existing window (which may resize). This means
 // it will be usuable *within* other UI classes, and such classes will be built
-// for the Goto/FIndPerson interface and also for parent connections in the indiUI
-// dbox and spouse connection in the marryUI (which doesn't exist, yet...)
+// for the Goto/FindPerson interface and also for spouse connection in the famUI
 
 completionsUI::completionsUI() {
 // the constructor does *not* set up and fill in a window/browser, just creates
@@ -2294,9 +2411,12 @@ void completionsUI::open( treeinstance* tree,
                           char* partialname,
                           int strategy,
                           Fl_Callback* completionok_cb,
-                          void* raisedon,
+                          //void* raisedon,
                           short suggestedx, short suggestedy ) {
 GEDCOM_object* found_indi;
+GEDCOM_object* thing;
+bool accept_indi;
+char* gender;
 completion_item* item;
 completion_item* last;
 int openheight; openheight = 0;
@@ -2311,6 +2431,7 @@ int openheight; openheight = 0;
   // when we are already open, we must first close:
   if (completionswin != (Fl_Window*) NULL) this->finish();
   scantree = tree;
+  if (scantree==NULL) printf("blew it - NULL treeinstance to search\n");
   searchfor = partialname;
   searchmethod = strategy;
   { Fl_Window* o = completionswin = new Fl_Window( 400, 500, msg_completions_title );
@@ -2320,7 +2441,7 @@ int openheight; openheight = 0;
       o->labeltype(FL_NO_LABEL);
       // the callback on the Select_Browser is called when user chooses
       o->callback(completionok_cb);
-      o->user_data(raisedon);
+      //o->user_data(raisedon);
       Fl_Group::current()->resizable(o);
     }
     // the callback on the Fl_Window is called if the user closes it
@@ -2329,24 +2450,36 @@ int openheight; openheight = 0;
   }
   found_indi = (GEDCOM_object*) NULL;
   last = first;
-  if (scantree==NULL) printf("blew it - NULL treeinstance to search\n");
-  switch (strategy) {
+  printf("Search strategy %d bits %d\n",strategy,strategy&&3);
+  switch (strategy&3) {
     case 1: found_indi = scantree->INDI_fromright( found_indi, searchfor ); break;
-    case 2: found_indi = scantree->INDI_fuzzymatch( found_indi, searchfor ); break;
-    case 3: found_indi = scantree->INDI_fromleft( found_indi, searchfor ); break;
+    case 2: found_indi = scantree->INDI_fromleft( found_indi, searchfor ); break;
+    case 3: found_indi = scantree->INDI_fuzzymatch( found_indi, searchfor ); break;
     default: printf("strategy unset !\n"); found_indi = (GEDCOM_object*) NULL;
   }
   while (found_indi != (GEDCOM_object*) NULL) {
-    item = new completion_item( found_indi );
-    openheight++;
-    if (last == (completion_item*) NULL) first=item; else last->setnext( item );
-    item->setwidths( widths );
-    last=item;
-    completions->add(item->display(), (void*)0);
-    switch (strategy) {
+    // test gender against requirements
+    accept_indi = false;
+    if ((strategy&12)==12) {
+      accept_indi = true;
+    } else {
+      thing = found_indi->subobject( SEX_tag );
+      if (thing!=NULL) gender=thing->value(); else gender=strdup("U");
+      if ((strategy&4)==4) if (*gender=='M') accept_indi = true;
+      if ((strategy&8)==8) if (*gender=='F') accept_indi = true;
+    }
+    if (accept_indi) {  
+      item = new completion_item( found_indi );
+      openheight++;
+      if (last == (completion_item*) NULL) first=item; else last->setnext( item );
+      item->setwidths( widths );
+      last=item;
+      completions->add(item->display(), (void*)0);
+    }
+    switch (strategy&3) {
       case 1: found_indi = scantree->INDI_fromright( found_indi, searchfor ); break;
-      case 2: found_indi = scantree->INDI_fuzzymatch( found_indi, searchfor ); break;
-      case 3: found_indi = scantree->INDI_fromleft( found_indi, searchfor ); break;
+      case 2: found_indi = scantree->INDI_fromleft( found_indi, searchfor ); break;
+      case 3: found_indi = scantree->INDI_fuzzymatch( found_indi, searchfor ); break;
     }
   }
   // at this point, if first is still NULL, there were no hits and we should not
@@ -2765,17 +2898,22 @@ notesUI::notesUI( treeinstance* whichtree, GEDCOM_object* newobject, GEDCOM_tag*
   // collected. So we need to ensure that there is a NOTE or TEXT object hanging
   // from that event throughout the time that the notesUI is open:
   //printf("NotesUI widgets complete\n");
-  // if ( (textobject = editobject->subobject( edittag )) == NULL) {
   textobject = editobject->subobject( edittag );
   if (textobject == NULL) {
-    //printf("creating new NOTE object\n");
+#ifdef debugging
+    printf("creating new NOTE object\n");
+#endif
     textobject = new GEDCOM_object( edittag );
-    //printf("Created ok at %ld, as subobject of %ld\n",(long)textobject,(long)editobject);
+#ifdef debugging
+    printf("Created ok at %ld, as subobject of %ld\n",(long)textobject,(long)editobject);
+#endif
     editobject->add_subobject( textobject );
   }
-  // else printf("Found extant NOTE object at %ld\n",(long)textobject);
+#ifdef debugging
+  else printf("Found extant NOTE object at %ld\n",(long)textobject);
+#endif
   this->status(true);
-  // OK, that (possibly empty) object will continue to exist thoughout the life
+  // OK, that (possibly empty) object will continue to exist throughout the life
   // of the notesUI, and can be used to restore the original text contents of
   // the window. When the window is closed, the text will be put into the object
   // (and CONC or CONT subobjects) replacing any previous contents, or, if there
@@ -2786,7 +2924,10 @@ notesUI::notesUI( treeinstance* whichtree, GEDCOM_object* newobject, GEDCOM_tag*
   // were created probably still exists and we should *not* garbage collect.
   window->size(720,80+(this->restore())*15);
 // we had the equivalent of this before fix0007 - do we need it, and if so, how ?
-//  input->when(FL_WHEN_CHANGED);
+// this says when to call the callback on the Text_Buffer* input which is "whenever it is changed"
+// however, in FLTK 1.3 (which is what we think we are now building against) this stuff seems to
+// have all changed...
+  scroll->when(FL_WHEN_CHANGED);
 }
 
 void notesUI::status( bool extant) {
@@ -2823,8 +2964,12 @@ notesUI::~notesUI() {
 #ifdef destructorlogs
   printf("~notesUI %ld, editobject %ld, textobject %ld, text in textobject %s, first subobject at %ld\n",(long)this,(long)editobject,(long)textobject,textobject->value(),(long)textobject->subobject());
 #endif
-  if ( ((textobject->value())==NULL) && ((textobject->subobject())==NULL) ) {
-    editobject->delete_subobject(textobject);
+  if (textobject!=NULL) {
+    if ( ((textobject->value())==NULL) && ((textobject->subobject())==NULL) ) {
+      editobject->delete_subobject(textobject);
+    }
+  } else {
+    printf("Yeay ! We would have barfed at this point as textobject was NULL so textobject->value()==segfault\n");
   }
   this->status(false);
   // if the textobject continues to exist, we needn't worry that our pointer
@@ -2844,12 +2989,18 @@ int notesUI::restore() {
   // input is our editor buffer, start off with it empty:
   input->text("");
   note = textobject; //  = editobject->subobject( edittag );
-  //printf("notesUI::restore passed %d\n",(int)note);
+#ifdef debugging
+  printf("notesUI::restore passed %ld\n",(long)note);
+#endif
   while (note != NULL ) {
-    //printf("parsing a non-null NOTE %d\n",(int)note);
+#ifdef debugging
+    printf("parsing a non-null NOTE %ld\n",(long)note);
+#endif
     string = note->value();
     if (string!=NULL) {
-      //printf("value of NOTE object was %s\n",string);
+#ifdef debugging
+      printf("value of NOTE object was %s\n",string);
+#endif
       len=strlen(string);
       input->replace(pos,pos,string);
       pos += len;
@@ -2857,7 +3008,9 @@ int notesUI::restore() {
     sub = note->subobject();
     if (sub==note) { printf("object at %p is subobject of itself\n",note); return 0; }
     if (sub != NULL) {
-      //printf("non-null subobject\n");
+#ifdef debugging
+      printf("non-null subobject\n");
+#endif
       while ((sub->objtype())==CONC_tag) {
          string = sub->value();
          if (string!=NULL) { // (which it is allowed to be - a blank line)
@@ -2871,7 +3024,9 @@ int notesUI::restore() {
     }
     while (sub != NULL) {
       if ((sub->objtype())==CONT_tag) {
-        //printf("Concatenating a CONT into buffer\n");
+#ifdef debugging
+        printf("Concatenating a CONT into buffer\n");
+#endif
         input->replace(pos,pos,"\n"); lines++;
         pos++;
         string = sub->value();
@@ -2882,7 +3037,9 @@ int notesUI::restore() {
         }
         conc = sub->subobject();
         while (conc!=NULL) {
-           //printf("Concatenating a CONC into buffer\n");
+#ifdef debugging
+           printf("Concatenating a CONC into buffer\n");
+#endif
            if ((conc->objtype())==CONC_tag) {
              string = conc->value();
              if (string!=NULL) { // (which it is allowed to be - a blank line)
@@ -2902,50 +3059,69 @@ int notesUI::restore() {
     if (note==debug) { printf("object at %p is its own next_object\n",note); break; }
   } // loop concatenates all edittag objects into one
   size = pos;
-  // printf("NOTE object has text of %d chars, %d lines\n", size, lines);
+#ifdef debugging
+  printf("NOTE object has text of %d chars, %d lines\n", size, lines);
+#endif
   return lines;
 }
 
 void notesUI::update() {
 // update the GEDCOM from the edited text
   if (!modified) return; // save a load of effort here kiddies !
-  //printf("saving modified notes back into GEDCOM\n");
+#ifdef debugging
+  printf("saving modified notes back into GEDCOM\n");
+#endif
 // bin the old notes object(s)
   GEDCOM_object *oldnotes;
   oldnotes = editobject->subobject( edittag );
   if (oldnotes != textobject) printf("notesUI::update proceeding under a misapprehension\n");
   while (oldnotes!=NULL) {
-    //printf("Deleting %ld (tag %s) as a subobject of %ld (tag %s)\n",(long)oldnotes,oldnotes->tagname(),(long)editobject,editobject->tagname());
+#ifdef debugging
+    printf("Deleting %ld (tag %s) as a subobject of %ld (tag %s)\n",(long)oldnotes,oldnotes->tagname(),(long)editobject,editobject->tagname());
+#endif
     editobject->delete_subobject( oldnotes );
-    //printf("Deleted OK, checking for additional %s objects\n",edittag->GEDCOM_namefromtag());
+#ifdef debugging
+    printf("Deleted OK, checking for additional %s objects\n",edittag->GEDCOM_namefromtag());
+#endif
     oldnotes = editobject->subobject( edittag );
   }
   size = input->length(); // this isn't updated automatically ...
   if (size==0) { // we must still ensure that we retain an empty NOTE/TEXT
-    //printf("now creating replacement %s\n",edittag->GEDCOM_namefromtag());
+#ifdef debugging
+    printf("now creating replacement %s\n",edittag->GEDCOM_namefromtag());
+#endif
     textobject = new GEDCOM_object( edittag );
     editobject->add_subobject(textobject);
-    //printf("new %s at %d as subobject of %d\n",edittag->GEDCOM_namefromtag(),(int)textobject,(int)editobject);
+#ifdef debugging
+    printf("new %s at %ld as subobject of %ld\n",edittag->GEDCOM_namefromtag(),(long)textobject,(long)editobject);
+#endif
     return; // nothing else to do if all text now gone
   }
-  //printf("now creating replacement %s of finite size\n",edittag->GEDCOM_namefromtag());
+#ifdef debugging
+  printf("now creating replacement %s of finite size %d\n",edittag->GEDCOM_namefromtag(), size);
+#endif
   char *line, *ptr, *end;
 // don't seem to use: GEDCOM_object *noteobject;
   line = (char*) input->text(); // discard const-ness
   end = line + size;
-  ptr = line; while (*ptr!='\n') ptr++;
+  ptr = line; while ((*ptr!='\n')&&(ptr<end)) ptr++;
   *ptr = '\0';
   textobject = new GEDCOM_object( edittag, line );
   *ptr = '\n'; // we are fiddling with the real buffer here, so restore that
-  ptr++; line = ptr;
+  ptr++;
   while (ptr<end) {
+    line = ptr;
     while ((*ptr!='\n')&&(ptr<end)) ptr++;
     *ptr = '\0';
     textobject -> add_subobject( new GEDCOM_object( CONT_tag, line ));
     *ptr = '\n'; // we are fiddling with the real buffer here, so restore that
-    ptr++; line = ptr;
+    ptr++;
   }
-  editobject -> add_subobject( textobject );
+  if (editobject==NULL) {
+    printf("notesUI::update trying to add textobject %ld to a null editobject\n",(long)textobject);
+  } else {
+    editobject -> add_subobject( textobject );
+  }
 }
 
 notesUI* notesUI::getnext() const {

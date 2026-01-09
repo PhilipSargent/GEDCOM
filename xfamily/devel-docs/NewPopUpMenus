@@ -1,0 +1,319 @@
+In v018 we have fix0012 in callback.cxx for indiUI, but this seems to have
+been removed in v019 in favour of a combination of fix0021 and fix0022.
+
+v012 was to support the marriage->Later process, and since this still works
+in v019 we clearly achieved our result without fix0012. But what we have
+instead looks complex and I'm not understanding it (it is tied up with this
+business of creating ephemeral objects whewn we edit).
+
+fix0021 is inside fix0022, at least in the indiUI callbacks ...
+
+So, part of the objective was to split the old "child" into
+"child-in-new-family" and "new-child-in-family" processes.
+Child-in-new-family was only useful for a click on an INDI,
+whereas new-child-in-family was useful for a click on an INDI
+with only one FAMS, or a click on a FAM. Currently a click on
+an INDI with no FAMS greys out "child-in-new-family" rather
+than "new-child-in-family" which seems clearly the wrong way
+round.
+
+The idea of the old fixes was that either of these "new child"
+callbacks would create an indiUI edit box, but that in the case
+of child-in-new-family, one parent would be blank and left
+mutable. We were ding this by a system of ephemeral objects
+that might be made permanent or binned ... It was looking ugly
+and I have a better way forward (probably).
+
+In !Family, if you have an INDI and want to give him a child in
+a new family, when he had one family you'd choose to add a child,
+and change one parent by simply editing the name in the resulting
+dbox. This is actually a bit opaque and because the code allows
+you to do this, it also allows things that can cause damatic
+breakage of your tree by side effects you may not have foreseen.
+
+Our idea is to provide a more explicit interface and to prevent
+editing from having structural side effects. So parent names
+should be immutable in indiUI edit boxes.
+
+The currnet child-in-new and new-child-in menu items are perhaps
+not quite explicit enough. I think the interface to create a new
+child should always work by clicking on the equals sign (or date)
+of an existing family and there should be no way to create a child
+from an individual. From the INDI there should be a menu item to
+create a new family. Currently that is done with the "Marry" menu
+item in !Family which I think requires a spouse to work. Since we
+may want to add a child whose other parent is unknown, we need in
+xfamily to explicitly be able to create a FAM object with no
+second parent, in order to hang a child from it. So we want to
+have a meni item on an indi to "create family". The process should
+allow for adding a spouse, but should not require it.
+
+Once you have created a family without knowing a spouse, but not yet
+added a child , you have a situation which !Family would automatically
+garbage collect - a FAM with only one HUSB, WIFE or CHIL would be
+culled. We don't want that to happen here ! !Family may also cull a
+FAM even if there is hard information we want to keep - we might know
+that someone married on a date or at a place, but not know the spouse
+(and there may be no issue), so any of the MARR, MARL and similar tags
+should prevent a FAM from being culled. I can envisage knowing that
+someone had a second marriage but knowing nothing about the first, in
+which case we should still be able to create a FAM for the first
+marriage, to signify its known existence.
+
+So we do need a click on the canvas to return an event from which
+we can deal separately with clicks on an INDI on a FAM and on blank
+canvas. In v019 these produce the follwing menus:
+
+INDI                     FAM                         blank canvas
+Edit                     Edit                        Save Window as graphic
+Notes                    Notes
+Marry                    Later
+Younger                  New child in family
+New child in family      Unmarry
+Child in new family
+Remove
+-----
+Reports (submenu)
+
+So we want to remove both the add child entries from the INDI popup,
+and change "Marry" to "Add family". Currently clicking "Marry" does
+nothing, as does clicking on any of the add child entries.
+
+With "Edit" on either, you get a dbox in which both spouses are
+mutable. This needs to change ! You should only be able to
+change a person's name in an edit dbox on them as an INDI.
+
+What exactly is supposed to happen when you click "Unmarry" ?
+if you have a FAM with two spouses, and no children, it is
+fairly straightforward - the FAM object will just disappear.
+But if there are children, what happens ? In !Family, the
+children remain attached to the INDI you clicked on which is
+soewhat counter-conceptual.
+
+So the first thing would be to remove the option to "Unmarry"
+a FAM if there were any children. First you would need to create
+a new family, attach all the children to that one, then
+remove the other one. This is unambiguous and avoids people
+disappearing from view unexpectedly. There must, I suppose,
+be an option to simply remove children from a family, without
+attaching them elsewhere - it might seem simpler to require
+that you just delete them if you have no relationships, and
+recreate them when you find where they belong, but this again
+gives you the minimal tree issue. A tree with only one person
+would now become a problem...
+
+So on an INDI "Remove" needs to be split into "Delete" and
+"Detach from this family" with possibly "Move to another family".
+Need a better menu title than "Position". Maybe "Structure" ?
+
+Child creation items and Marry need to be replaced by "New family"
+
+We have "Younger" here, but "Older" in !Family. There's no real
+reason we should not have both. Similarly for "Later" in FAM.
+
+INDI                       FAM                        blank
+Edit                       Edit                       Save graphic
+Notes                      Notes                      Find person
+Younger                    Later
+Older                      Earlier
+New family                 New child
+Structure -> Delete        Unmarry
+             Detach
+             Move
+             Attach
+----------
+Reports ->   Ancestors
+
+It may be that both INDI and FAM want a "Structure" next level menu
+so Younger/Older and Later/Earlier can go therein. Of course,
+"New family" or "New child" are also structural, but we can't have
+everyting suddenly drop a level - these operations are "creative"
+rather than "corrective" and need to be in the top level.
+If you are hiding the relative date moving options into a submenu,
+it gets tedious to move someone a long way (more Younger/Older ones
+than Later/Earlier - multiple marriages are much less common than
+big families) so maybe provide ways to move multiple places...
+
+So both "New family" and "New child" have the potential need to
+create a new person but also potentially to attach an existing one.
+
+The natural default perhaps differs in each case... but it would be
+easier for a dbox to come up assuming that you will be creating a
+new person. You could then have a button for "locate existing INDI".
+
+When a name is displayed in any of these boxes, we'd also have a
+field next to it dislaying an INDI id unless it was a newly created
+person, in which case it would be blank, and that would constitute
+our "flag".
+
+At the moment I have removed "Unmarry" completely from the spec. as
+it is a very ambiguous term if you have a complete family. Lets
+consider the case where Alan is married to Betty with children
+Ernest, Fred, Graham, Harry and Ian. We discover that Alan actually
+married twice, to Cynthia and Daphne, that Ernest was Betty's child
+in another marriage and Betty was never married to Alan, Fred is Cynthia's
+child by a previous marriage, Graham is her child by Alan, Harry is Alan's
+child by Daphne and Ian was a complete mistake by a previous researcher.
+How will we find it easiest to go about fixing all this ? Yes, we want
+to "Unmarry" Alan and Betty, but we only want Ernest to stay with Betty.
+Then we want to marry Alan to Cynthia and Daphne, move Fred to Cynthia's
+first marriage, Graham to Alan's marriage with her and Harry to Alan's
+marriage with Daphne, whilst detaching Ian from the family (or possibly
+deleting him completely). Obviously a single "Unmarry" is not going to
+come close.
+
+So we'd want a "New Family" for Alan+Cynthia. Then we'd want to "Move"
+Graham to this marriage. We'd want to create (or refer to) Cynthia's
+previous marriage - if create, then we'd not necessarily know her husband,
+so "New Family" on her might initially create a FAM with just a WIFE.
+We'd want to "Move" Fred to that family. The we'd want to make a "New
+Family" of Alan+Daphne, "Move" Harry, and "Detach" (or "Delete") Ian.
+
+"Detach" would leave an individual isolated from any other structure,
+but still in the tree. That's an entirely valid situation (we may know
+that smeone existed and was clearly part of the extended family but
+not be able to deduce where they fit - we still need the INDI to
+accumulate facts about the person which may lead us to see where
+to fit them in. So that would mean that for an INDI with no FAMC,
+you might need an "Attach" menu items to connect them to an existing
+family. That's a lot more explicit than the !Family approach of simply
+typing in parents' names in the edit dbox and having the marriage
+created as a side-effect.
+
+We'd now have Alan married to Betty with the one child Ernest and
+need to "Unmarry" these two. That still leaves the difficulty of
+breaking a
+FAM
+HUSB
+WIFE
+CHIL
+So, in fact, we'd make a "New Family" for Betty (with or wthout a
+known husband), move Ernest to that family and then delete the
+Alan+Betty marriage.
+
+So, yes, OK, it looks as though it makes sense not be able to
+"Unmarry" until a marriage has no children. And at that point
+"Unmarry" becomes unambiguous. Just destroy the FAM and remove the
+relevant FAMS from each INDI pointed to by HUSB and WIFE. Any
+other tags in the FAM are just binned. "Unmarry" would be greyed out
+for any FAM with one or more CHIL.
+
+"Attach" would be greyed out for any person with a FAMC pointer.
+
+It's clear that "Move" and "Attach" need an interface to locate
+a family (ie. a FAM object). This would proceed by typing in
+one spouse and hitting a completions button, which would offer
+up a list of all the marriages involving that spouse. We would
+not be able to create a family by attaching someone to someone else
+as a parent, we would need explicitly to do "New Family" on that
+person first. This is definitely a case where the job might be easier
+when you have two views. It would be nice to be able to select the
+family to which to attach someone by clicking on it. Even nicer to
+bypass the menus and just drag and drop (to some family not necessarily
+in the same view, but definitely in the same tree, at least for now...
+in the long term this sort of thing would be the way to join two
+trees together, but that is horrendously fraught as you'd have to
+renumber everyone to avoid clashing IDs and perhaps eliminate
+duplicate people over the pair of trees... this would not be v0.20
+probably more like v39.201...).
+
+However, that does raise the issue of indetifying two people in
+the tree as being the same person and merging as needed - we had
+to do that manually with Samuel Bell, and that was fairly easy as
+there were no further duplicated people to eliminate. GEDCOM has
+a tag for precisely the purpose of identifying two members of
+your tree as being the same person. The way forward with this can
+of worms would presumably be to equate people as necessary and
+then have a "Resolve identities" process in which the code would
+parse the tree and work out if the identities would create conflicts
+(ie. other people that might be identical, or people you've marked
+as identical but have (for example) one or more different parents).
+
+So, once we have those menus (which probably means clearing out most
+of the stuff from fix0004 fix0021 and fix0022 first) then we can
+start on the new stuff, which means a revised layout for the
+indiUI and famUI dboxes (not major revision, but making names
+immutable where required). Next would probably be the means to
+save back from indiUI and famUI (neither of which would entail
+adding or removing objects, though, if you continue to keep the
+list of INDIs sorted, it would mean doing the code for that).
+Do we already save notes back OK ? Are notes UTF-8 ? I suspect
+not, since we are using the native FLTK editor... Ah, but now
+we are in FLTK 1.3, so Fl_Text_Editor is indeed fully UTF-8.
+
+
+OK, those menus are driven by these messages:
+
+menu_edit
+en::Edit
+
+menu_notes
+en::Notes
+
+menu_younger
+en::Younger
+
+menu_reports
+en::Reports
+
+we're replacing (using the same keys)
+
+menu_child
+en::New child in family
+
+menu_newfam
+en::Child in new family
+
+menu_remove
+en::Remove
+
+
+by
+
+menu_child
+en::New child
+
+menu_newfam
+en::New family
+
+menu_remove
+en::Delete
+
+We're adding:
+
+menu_older
+en::Older
+
+menu_earlier
+en::Earlier
+
+menu_structure
+en::Structure
+
+menu_move
+en::Move
+
+menu_detach
+en::Detach
+
+menu_attach
+en::Attach
+
+and deprecating (which means we stop using but don't remove from the file)
+
+menu_marry
+en::Marry
+
+for the time being, also
+
+menu_unmarry
+en::Unmarry
+
+
+So we changed the messages files for that, and have changed some of
+the menu structure, but have not added the
+Structure -> Delete
+             Detach
+             Move
+             Attach
+

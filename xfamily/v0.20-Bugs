@@ -1,0 +1,336 @@
+v 0.20 Bugs
+
+Trying to fetch all older bugs in here (as some of them will have gone now)
+
+Build process bugs:
+
+You have to remember to run "make depend" - otherwise obscure make failures occur
+
+make thinks things are up to date if you changed fixes.h - this might just be that
+you need explicitly to run make clean; makedepend ?
+
+MakeFile doesn't have a recipe for the messages (and thinks things are up to
+date even if you have changed the messages files they are not a dependency)
+
+The location of the messages file is hard-coded into xlate.cxx which means
+we don't build correctly when we increment version number
+
+The zip and tgz targets have not been made for several years and probably
+don't do what you want.
+
+need some way to ensure that the required libraries are installed and give
+more helpful error messages if they aren't. There seems to be an issue in
+the libaries changing name in a way that needs manual intervention (eg.
+lijpeg62 moving to libjeg8).
+
+====================================================================================
+
+Showstopper (catastrophic data loss) bugs:
+
+I left an indiUI open for ages, mainly to copy and paste the location/site
+to other dboxes. When I closed it with the close window icon, the program
+segfaulted with the loss of a score or more people.
+
+-------------
+
+Added a number of people, then opened an indi dbox, added a date of birth,
+opened the notes ui to list the source of the info, clicked on "Save and Close"
+and got a segfault. Since it's quite big, I've saved the debug stream from the
+click on Elizabeth Welch onwards. One thing that would help is if the debug
+line pointer to subobject of object on which add_subobject operates listed
+the tags of the objects with which it is dealing. We seem to call add subobject
+six times. Since I added a date/place of birth, that should be BIRT, DATE and PLAC
+then opened NOTE and added one line, so I'm not sure what the other two were.
+However, it seems to be related to deleting an existing NOTE object that is
+the issue. Added better debug, but failed to reproduce the barf.
+
+It looks as though we are trying to save a new NOTE object, and delete an
+old one. The old one was empty, and the one we delete looks to be the one
+we are adding. So the conditions seem to be (1) open notes UI on a previously
+non-existant NOTE (2) add text, and make sure it is only one line (by hitting
+delete at the end of the text we pasted) (3) hit "Save and exit".
+
+OK this time I lost four+ hours and had been pasting some lookups straight to the
+GEDCOM rather than saving all the text in files, so it *will* take at least a couple
+of hours to do that lot again. Really need to make this reproducible so I can know
+it is fixed...
+
+When we get this failure it is always replacing a NOTE. delete_subobject reports
+delete subobject called for
+1 NOTE
+so we are trying to remove the NOTE object (of an INDI, as it happens)
+and the NOTE is always one temporariy created when we open a notesUI on
+an INDI which previously didn't have a NOTE.
+The NOTE is the target of the next pointer of the preceding subobect
+and the debugging indicates that when we get to that subobject again, its
+next pointer is indeed zero, as we'd expect
+
+After some code revision, we seem to have cured this one, though the extent of
+testing so far is a bit limited.
+
+-------------
+
+My suspicion is that this one is somehow related to the last one. However, it
+may be more reproducible. Open an indiUI, fill stuff in and then "Apply". Don't
+change anything else, but open other indiUIs and edit or add people. Save your
+file ! Now close the indiUI that you'd left open (typically so you could copy
+and paste locations and the like). When it is trying to save away the first
+event object that has no values (in my case BAPM) it segfaults. We do test for
+NULL values being returned by the subobject( BAPM_tag ) code, so it looks like
+a pointer to invalid data.
+
+Haven't seen this since the fix above, but I suspect that fix _didn't_ address
+whatever is going on here, so perhaps some effort to reproduce it would be
+useful.
+
+-------------
+
+If you click on "save as" you get a file chooser dialogue and the file is
+saved where you specify. If you click "save", then to protect your original
+data during testing, we save to a predefined temporary location "/var/test.ged".
+If this location is not writeable by the user (which was the case) we fail
+silently, leaving the user thinking he has safely saved the current tree
+when in fact he hasn't. The above showstopper then loses you far more hours
+of work than you had expected.
+
+====================================================================================
+
+Routine (no catastrophic data loss) bugs:
+
+We obtained a tree of /Brettell/ which consistently crashed the program at
+the same point in loading with a long NOTE. This occurred not only with a
+large number of CONC lines, but still occurred when I changed those all
+to CONT. The error message said "buffer overflow detected". Need to look
+first at how we handle lines using CONC. We must turn CONT into just
+newlines in a big buffer when we open a notesUI, but this error was much
+ealier than that, while the GEDCOM was still loading.
+
+-------------
+
+I am deeply suspicious that the number of individuals and probably the
+number of families (on the statistics dbox) are not being updated as we
+grow the tree. The maximum IDs probably are...
+
+-------------
+
+There are long standing problems with the way the canvas is positioned on
+canvas resize, window resize and change of current person. We do not seem
+to manage to keep the window filled with the canvas. fix0001 was supposed
+to address this and has clearly never succeeded. A start to addressing this
+would be a bit of documentation on what variables control this positioning.
+
+-------------
+
+Maximise sets a flag somewhere, in such a way that we believe we are still
+maximsied if we have enlarged the canvas, but the window didn't changed size
+(and could be bigger whilst still fitting on the screen). So clicking maximise
+again does not make it bigger, as it should, but back to the prvious smaller
+size).
+
+Currently maximise sometimes (maybe always) make the windown borders go away
+so one cannot manually resize the window.
+
+-------------
+
+completionsUI probably doesn't need to be resizeable horizontally, but if
+it is, it ought to have a horizontal scrollbar.
+
+-------------
+
+Under FLTK, The "About" dbox has a minimise icon - it probably shouldn't.
+The "Find Person" dbox does - it definitely shouldn't. Ditto the completions
+window, I think. I'm not sure how we control these.
+
+-------------
+
+If you open a "Find person" dbox, then minimise it and forget, then try
+to open it again via the menu, you get the original dbox restored and
+raised (good) but without the input focus (bad). Will go away if we
+prevent it being minimised in the first place.
+
+-------------
+
+StatsUI and infoUI currently don't fit their text and need to be bigger.
+
+-------------
+
+We allow multiple views, but closing any one of them closes the whole
+program (and we don't refuse to close if the tree has been modified).
+
+-------------
+
+If you have multiple views, there's no way to tell which one is going
+to be affected by clicking in a completions window or findUI. Indeed,
+in v0.20 there is no way to distinguish a findUI that will change
+current person from one that will define a spouse into a famUI dbox.
+
+The findUI interface is intended to be short-lived, and you are only
+allowed one open, so the scope for confusion is not that great, but
+we should have something more meaningful in the title bar.
+
+-------------
+
+If we close a NOTE editor window via its "close" icon when the text is modified, we don't
+ask "are you sure?". That's OK for an explicit "Quit", but most users would expect to be
+asked on a close-window (indeed, many would expect to be asked, even for "Quit"). This
+might be an easy fix, because we do indeed have a "modified" flag - but with the new code
+in Fl_Text_Editor (not Fl_Multiline_Input) do we actually maintain the flag or is so much
+done by FLTK that we never see events when changes are made ?
+
+-------------
+
+Similarly, we never ask "are you sure" on an indiUI or famUI either, but this is more
+difficult, because there are umptyone fields that are changed (or not) under FLTK's
+aegis, so it is much harder to tell if anything has been changed unless we wade through
+everything comparing strings. This may prove to be the way to go anyway, as we ought to
+do those tests to avoid memory fragmentation.
+
+-------------
+
+For both the above, we need a generic binstuffUI which says something like "closing this
+window will discard data, are you sure ?" With "OK", "Cancel" and "Save" buttons. The
+callback for the latter is going to need to open a "SaveAs" dialogue in a few cases (ie.
+when we are closing the last mainUI and we don't have a known filename to save to).
+
+-------------
+
+If you open a "Find person" dbox, then minimise it and forget, then try to open it again
+via the menu, you get the original dbox restored and raised (good) but without the
+input focus (bad).
+
+-------------
+
+The "About" window could usefully tell you not just the version of xfamily, but also the version
+of fltk it was built with. And maybe the glibc and gcc versions ? You have to draw the line
+somewhere... Of course, the OS may make a difference too.
+But these would be useful details for bug reports. It would make the "About" dbox bigger, which is
+not that bad a thing when you look at how small the font for GPL stuff is...
+However, everything in the About window is produced by manual edits of MessageSrc (and remembering
+to run the tools), so we have a history of the information in there being well out of date anyway.
+
+-------------
+
+The message source for the copyright dbox ends with
+"family-maint@pennine.demon.co.uk" and this is how it appears in both messages
+files, but this appears as "family-maint" in the dbox. Why is this message being truncated ?
+
+-------------
+
+If the  GEDCOM has lots of references to SOUR @54@, but no 0 @S54@ SOUR
+record (as we did owing to a bug in the GEDCOM), loading the file does
+not report the issue (and I believe the integrity check code fails to spot
+it, too).
+
+---------------
+
+We had a version of our main tree which on one occasion caused
+!Family (rpcemu2) to data abort towards the end of loading the
+file. It didn't do it again next time... But if we load it into
+XFamily, all seems fine. But if we navigate to make William
+Gibbins Welch current, we get a segfault. This implies that
+some pointer we use is likely uninitialised.
+
+We need to do a lot more robust checking when loading a file
+so that we can spot when we have failed to initialise one or
+more pointers. See "v019-DanglingPointers"
+
+-------------
+
+Somewhere we had a GEDCOM "tedmarr.ged" from which we isolated a small
+extract which exhibited a problem. Not sure what in the file causes the
+problem, but suspicions fall on 0 @ref@ NOTE object, and multiple
+<n> SOUR @ref@ objects within single objects. Otherwise it looks quite
+innocuous. The fault can be shown to occur with any 0 @ref@ NOTE object
+in the file. I don't know if this is valid GEDCOM, but we ought at least
+to be able to give a meaningful message and ignore the line.
+
+-------------
+
+In v019, help system fails saying
+ Unable to follow the link "/usr/local/src/xfamily/html015/prefUI.html" - No such file or directory.
+ So something bad is hard coded here - the help files ought to be installed in something like
+ /opt/share/xfamily (but do we need to maintain separate help pages for different versions ?
+ I don't think so, only in a development environment would we ever have multiple versions
+ on the same distro).
+
+-------------
+
+When loading a file, we occasionally emit fl_message error messages (as printf's, in fact,
+which is in itself a bug). These do not give a line number in the GEDCOM, which would be a
+very useful feature, as it would mean you could go and check to see if there is indeed a bug
+in the GEDCOM (and perhaps fix it) or if its a bug in the program (ditto). In fact, the case
+which elicited this comment was both: I was reading a GEDCOM file with arbitrarily long lines
+(when GEDCOM specifies a limit of 256) which is a bug in the GEDCOM, but not spotting that
+this was the case and throwing away the rest of the line or inserting virtual CONC tags
+(which is therefore a bug in the program). MAX_GEDCOM_LINE is set in family_h - defensive
+coding is needed to prevent buffer overruns and random data being interpreted as tags.
+
+I think I started coding to have line number available, but may not have finished (in v018)
+
+-------------
+
+Even with a big tree, the completions window opens quickly, if there are people
+to fill in. The problem is when in fact there are no matches at all - no window
+opens and there is no "can't find anyone" message to tell the user that he should
+stop waiting and try something else.
+
+-------------
+
+The tag name in GEDCOM_tag is stored fixed length (as GEDCOM_id) was. We
+should either test the length (and whinge) or implement this as
+a GEDCOM_string.
+
+---------------
+
+Menu on a marriage and choose edit, you get a famUI dbox. Do the same
+again and it is supposed to pop the existing famUI to the front and give
+it the focus. Currently it opens a second famUI on the same FAM. I
+thought CheckOpen() was supposed to prevent this ?
+
+---------------
+
+When we click on any of the famUI or indiUI tabs (birth, baptism,
+christening, death, cremation, burial, marriage, engagement, divorce)
+the bit of the tab that shows that keyword goes grey instead of
+retaining the tab colour. Did it always do this ? I'd prefer it
+didn't... Priority low.
+
+-------------
+
+Bugs which may have been fixed by changes we've made but need checking in
+case the changes have not been extensive enough...
+
+display.cxx: fams->followxref() dereferenced to NULL
+a potentially useful error message (especially since it is followed by a coredump) which
+would be a lot more useful if it stated the text form of the xref being followed (it's
+almost certainly a bug in the gedcom, not the code). The fix should be to remove the
+xref from the structure, rather than just passing the NULL back to the calling code ?
+Possibly by the time this bug is trapped, the code has already made enough bad assumptions
+to cause a fatal error - in which case we need better validation code when loading the
+file. In no case should a bug in the gedcom be allowed to cause a segfault !
+OK, (1) This error message now says what it is trying to dereference (just before it
+segfaults )-: (2) In this case, the problem was caused by an arbitrary limit on the
+size of a cross reference id of 8 characters. Marked as "an arbitrary limit which
+worries me". The fix has been to increase it to 16 characters, but this is still
+just as arbitrary, and could be exceeded. We need to make these ids arbitrary
+strings (ie. pointers to arbitrary strings) to prevent buffer overruns like this.
+And even then, we need to ensure that we don't load a structure with hanging xrefs ...
+
+-------------
+
+In v0.17, FLTK 1.3.0, if you resize the window or move it, then choose a
+new current person, the window reopens with its bottom left corner where
+it was before the resize. Not sure if this still occurs - I think we tried
+to avoid closing and reopening the window (which let the Window manager make
+arbitrary decisions about where the window should be - and sometimes it was
+on the other monitor on a desktop which is really confusing).
+
+-------------
+
+
+
+
+
+
+
+

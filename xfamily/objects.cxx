@@ -124,9 +124,6 @@ GEDCOM_id::GEDCOM_id( char *newid ) {
   next = NULL;
 }
 
-// we're backing off from fix0004, but fix0023 needs this code. Note quite sure how we did
-// this when id was a char[16] without needing this signature
-//#ifdef fix0004
 GEDCOM_id::GEDCOM_id( char *prefix, int suffix ) {
 #ifdef fix0023
   id = new GEDCOM_string( prefix, suffix );
@@ -136,7 +133,6 @@ GEDCOM_id::GEDCOM_id( char *prefix, int suffix ) {
   object = NULL;
   next = NULL;
 }
-//#endif
 
 GEDCOM_id::~GEDCOM_id() {
 
@@ -201,7 +197,6 @@ GEDCOM_string::GEDCOM_string( char* prefix, int suffix ) {
 }
 #endif
 
-//#ifdef fix0004
 GEDCOM_string::GEDCOM_string( char* prefix, char* suffix ) {
   thestring = (char*)malloc( strlen(prefix)+strlen(suffix)+1 );
   if (thestring!=NULL) {
@@ -219,7 +214,6 @@ GEDCOM_string::GEDCOM_string( char* prefix, char* meat, char* suffix ) {
     strcat( thestring, suffix );
   }
 }
-//#endif
 
 GEDCOM_string::GEDCOM_string( size_t size ) {
   thestring = (char*)malloc( size );
@@ -234,6 +228,15 @@ GEDCOM_string::~GEDCOM_string() {
 
 char* GEDCOM_string::string() const {
   return (char*)thestring;
+}
+
+char* GEDCOM_string::conventionalsurname() const {
+  char *p;
+  p = strtok(thestring,"/");
+  if (p!=NULL) {
+    p = strtok(NULL,"/");
+  }
+  return p;
 }
 
 
@@ -325,6 +328,17 @@ GEDCOM_object::GEDCOM_object(GEDCOM_tag *newtag, char *value ):
   } else val = new GEDCOM_string( value);
 }
 
+GEDCOM_object::GEDCOM_object(GEDCOM_tag *newtag, GEDCOM_string* value ):
+  tag (newtag),
+  val (value),
+  id (NULL),
+  ref (NULL),
+  sub (NULL),
+  next (NULL),
+  myparent(NULL) {
+}
+
+
 GEDCOM_object::GEDCOM_object(GEDCOM_tag *newtag, GEDCOM_id *objref ):
   tag (newtag),
   val (NULL),
@@ -335,7 +349,9 @@ GEDCOM_object::GEDCOM_object(GEDCOM_tag *newtag, GEDCOM_id *objref ):
   myparent(NULL)
 //
 // called for tags with a cross reference like            1 CHIL @xref@
-{ }
+{
+  printf("Constructor for %s, @%s@\n",tag->GEDCOM_namefromtag(),ref->GEDCOM_idname());
+}
 
 GEDCOM_object::GEDCOM_object(GEDCOM_id *objid, GEDCOM_tag *newtag ):
   tag (newtag),
@@ -347,23 +363,31 @@ GEDCOM_object::GEDCOM_object(GEDCOM_id *objid, GEDCOM_tag *newtag ):
   myparent(NULL)
 //
 // called for tags with an identifier like                0 @id@ INDI
-{ }
+{ 
+  printf("Constructor for %s, @%s@\n",id->GEDCOM_idname(),tag->GEDCOM_namefromtag());
+}
 
 void GEDCOM_object::add_subobject( GEDCOM_object *newobj ) {
 
 // adds newobj as the last subobject of this
 
   GEDCOM_object *subchain=sub;
-  //printf("pointer to subobject of object on which add_subobject operates is %ld\n",(long)sub);
+#ifdef debugging
+  printf("pointer %ld",(long)sub);
+  if (subchain!=NULL) {
+    printf(" to first subobject %s",sub->tag->GEDCOM_namefromtag());
+  }
+  printf(" of object %s on which add_subobject operates\n",tag->GEDCOM_namefromtag());
+#endif
   if (subchain!=NULL) {
     while ((subchain->next)!=NULL) {
       subchain = subchain->next;
-      //printf("Next in subobject chain %ld\n",(long)subchain);
+      printf("Next in subobject chain %ld\n",(long)subchain);
     }
     subchain->next = newobj;
   } else {
     sub = newobj;
-    //printf("What we are adding is first subobject\n");
+    printf("What we are adding is first subobject\n");
   }
   newobj->setparent(this);
 }
@@ -375,7 +399,7 @@ bool GEDCOM_object::swap_subobject( GEDCOM_object *first, GEDCOM_object *second 
 // on subobjects of the same type (CHILs in a FAM or FAMS in an INDI),
 // should we enforce that ?
 // OK, we return false if first doesn't precede second or if either isn't a
-// subobjecty of this. but we are being wholly general and they could be
+// subobject of this. but we are being wholly general and they could be
 // any type of subobject.
 
   GEDCOM_object *a1; // will be the object whose next->first
@@ -459,6 +483,12 @@ bool GEDCOM_object::delete_subobject( GEDCOM_object *oldobj ) {
 // we need a remove_subobject method, and if we have that, we should probably
 // implement delete_subobject to use it
 
+  if (oldobj==NULL) {
+    printf("Bad call to delete_subobject - NULL passed!\n");
+    return false;
+  }
+  printf("delete subobject called for\n");
+  oldobj->outline( stdout, 1);
   GEDCOM_object *subchain=sub;
   GEDCOM_object *sublast=NULL;
   GEDCOM_object *cull;
@@ -466,12 +496,12 @@ bool GEDCOM_object::delete_subobject( GEDCOM_object *oldobj ) {
   // to remove all *its* subobjects, too, so call recursively - ah but this then leaves them
   // inaccessible to deletion, so we should rename this code
   while ((cull=(oldobj->subobject()))!=NULL) {
-    //printf("Subobject to cull - delete_subobject should tell you what\n");
+    printf("Subobject to cull - delete_subobject should tell you what\n");
     oldobj->delete_subobject(cull);
     // no, no, you daft bugger, don't "delete cull;" 'cos the delete_subobject call does "delete oldobj;" already
   }
-  if (oldobj->subobject()!=NULL) printf("Removing an object (tag %s) which still has subobjects (first with tag %s), even though we have just supposedly remove them\n",oldobj->tagname(),oldobj->subobject()->tagname());
-  // printf("Trying to remove a subobject of %ld\n", (long)this);
+  if (oldobj->subobject()!=NULL) printf("Removing an object (tag %s) which still has subobjects (first with tag %s), even though we have just supposedly removed them\n",oldobj->tagname(),oldobj->subobject()->tagname());
+  printf("Trying to remove a subobject of %ld\n", (long)this);
   // industrial strength code could check that (oldobj->parent() == this, and probably
   // ought to set oldobj's parent to NULL)
   if ((oldobj->myparent)!=this) printf("Bad remove %ld (tag %s) parent not this %ld (tag %s)\n",(long)oldobj,oldobj->tagname(),(long)this, this->tagname());
@@ -482,7 +512,7 @@ bool GEDCOM_object::delete_subobject( GEDCOM_object *oldobj ) {
   while (subchain!=NULL) {
     if (subchain==oldobj) {
       // sublast will be null if this is the first object in the list:
-      //printf("Apparently valid remove subobject %ld of %ld\n",(long)oldobj,(long)this);
+      printf("Apparently valid remove subobject %ld of %ld\n",(long)oldobj,(long)this);
       if (sublast==NULL) {
         // this implies we haven't set sublast, so oldobj is first in the chain
         sub = oldobj->next;
@@ -491,6 +521,7 @@ bool GEDCOM_object::delete_subobject( GEDCOM_object *oldobj ) {
       }
       oldobj->next = NULL;
       oldobj->myparent =  NULL; // these stop the destructor from complaining
+      printf("Believe we removed oldobj %ld from chain, now deleting\n",(long)oldobj);
       delete oldobj;
       return true;
     }
@@ -535,6 +566,15 @@ GEDCOM_object *preobj;
   this->setparent( oldobj->parent() );
 }
 
+void GEDCOM_object::insert_first( GEDCOM_object *newobj ) {
+
+// adds newobj as the first subobject of this
+  newobj->setparent(this);
+  newobj->next=sub;
+  sub = newobj;
+}
+
+
 GEDCOM_object::~GEDCOM_object() {
 #ifdef destructorlogs
   printf("~GEDCOM_object %ld, val %ld, next %ld, sub %ld (last two ought to be NULL already)\n",(long)this,(long)val,(long)next,(long)sub);
@@ -552,28 +592,111 @@ GEDCOM_object::~GEDCOM_object() {
   if (next!=NULL) printf("GEDCOM_object %ld (tag %s) being killed with extant next pointer!!\n",(long)this,this->tagname());
 }
 
-#ifdef fix0021
-// setting and testing flags
-// probably don't actually need the bit values #include "flags.h"
-
-bool GEDCOM_object::testflags(unsigned int setmask, unsigned int clearmask) {
-  return ((flags & setmask)|((~flags)&clearmask));
-}
-
-void GEDCOM_object::setflags(unsigned int set, unsigned int clear) {
-  flags = flags|set;
-  flags = flags&(~clear);
-}
-#endif
-
 // for changing objects: note that changing the id of an object is a *dangerous*
 // thing. Are we sure there is no different GEDCOM_id pointing at this object ?
 // The call will be needed when merging trees, as conflicting ids will need to be
 // changed, but *extreme care* will be required :-)
 
 void GEDCOM_object::setid( GEDCOM_id *newid ) {
-  // should we catch the error that object->id!=NULL ?
+  // once an object (which must be an INDI, FAM, SOR or REPO) has an ID, it should never change
+  // So should we catch the error that this->id!=NULL ?
   id = newid;
+}
+
+void GEDCOM_object::setvalue( GEDCOM_string *newvalue ) {
+  // only here can we see if the existing value was non-null, so it must
+  // be our job to free that
+  if (val!=NULL) {
+    delete val;
+  }
+  val = newvalue;
+}
+
+void GEDCOM_object::update( GEDCOM_tag* tag, char* value ) {
+
+  printf("update called on %ld for tag %s value %s\n", this, tag->GEDCOM_namefromtag(), value);
+  GEDCOM_object *thing;
+  if ((thing=(this->subobject(tag)))!=NULL) {
+#ifdef debugging
+    printf("Update thinks thing is non-null %ld\n",(long)thing);
+#endif
+    if (strlen(value)>0) {
+      if ((thing->value())!=NULL) {
+#ifdef debugging
+        printf("So we're comparing %s with %s\n",thing->value(),value);
+#endif
+        if (strcmp(thing->value(),value)) {
+          thing->setvalue(new GEDCOM_string(value));
+        } // else nothing to do, object is unchanged
+      } else {
+        thing->setvalue(new GEDCOM_string(value));
+      }
+    } else {
+      // remove the subobject (or remove its value if it has subobjects)
+      if (thing->subobject()!=NULL) {
+#ifdef debugging
+        printf("update thinks thing %ld has at least one subobject %ld\n",(long)thing,(long)thing->subobject());
+#endif
+        thing->setvalue(NULL);
+      } else {
+#ifdef debugging
+        printf("update thinks thing %ld can be deleted\n",(long)thing);
+#endif
+        this->delete_subobject(thing);
+      }
+    }
+  } else {
+    if (strlen(value)>0) {
+      thing = new GEDCOM_object( tag, value );
+      this->add_subobject(thing);
+    }
+  }
+}
+
+void GEDCOM_object::update_event( GEDCOM_tag* tag, char* date, char* time, char* place, char* site, char* age, char* cause ) {
+  GEDCOM_object* object[4];
+  if ((object[0]=(this->subobject(tag)))==NULL) {
+    object[0] = new GEDCOM_object(tag);
+    this->add_subobject( object[0] );
+  }
+  if ((object[1]=(object[0]->subobject(DATE_tag)))==NULL) {
+    object[1] = new GEDCOM_object(DATE_tag,"");
+    object[0]->add_subobject( object[1] );
+  }
+  if ((object[2]=(object[1]->subobject(TIME_tag)))==NULL) {
+    object[2] = new GEDCOM_object(TIME_tag,"");
+    object[1]->add_subobject( object[2] );
+  }
+  object[1]->update(TIME_tag, time );
+  object[0]->update(DATE_tag, date );
+  if ((object[1]=(object[0]->subobject(PLAC_tag)))==NULL) {
+    object[1] = new GEDCOM_object(PLAC_tag,"");
+    object[0]->add_subobject( object[1] );
+  }
+  GEDCOM_tag* site_tag=SITE_tag;
+  if (tag==BURI_tag) site_tag = CEME_tag;
+  if ((object[2]=(object[1]->subobject(site_tag)))==NULL) {
+    object[2] = new GEDCOM_object(site_tag,"");
+    object[1]->add_subobject( object[2] );
+  }
+  object[1]->update(site_tag, site );
+  object[0]->update(PLAC_tag,place);
+  if (tag==DEAT_tag) {
+#ifdef debugging
+    printf("Dealing with extra tags for death event AGE %s CAUS %s\n", age, cause );
+#endif
+    if ((object[1]=(object[0]->subobject(AGE_tag)))==NULL) {
+      object[1] = new GEDCOM_object(AGE_tag,"");
+      object[0]->add_subobject( object[1] );
+    }
+    object[0]->update(AGE_tag, age );
+    if ((object[1]=(object[0]->subobject(CAUS_tag)))==NULL) {
+      object[1] = new GEDCOM_object(CAUS_tag,"");
+      object[0]->add_subobject( object[1] );
+    }
+    object[0]->update(CAUS_tag, cause );
+  }    
+  this->update(tag,"");
 }
 
 ////////////////// navigation primitives ///////////////////
@@ -602,11 +725,28 @@ GEDCOM_object* GEDCOM_object::subobject( GEDCOM_tag* scantag ) const {
 
 GEDCOM_object* nextsub;
 
-  if ((nextsub=sub)==NULL) return NULL;
+#ifdef debugging
+  printf("We're looking for a subobject %s\n",scantag->GEDCOM_namefromtag());
+#endif
+  if ((nextsub=sub)==NULL) {
+#ifdef debugging
+  printf("But this %ld has no subjects at all - returning NULL\n",(long)this);
+#endif
+    return NULL;
+  }
+#ifdef debugging
+  printf("Yes, object %ld has at least one subobject %ld\n",(long)this,(long)nextsub);
+#endif
   while ((nextsub->tag)!=scantag) {
+#ifdef debugging
+    printf("current tag is %s next would be %ld\n",nextsub->tag->GEDCOM_namefromtag(),(long)nextsub->next);
+#endif
     nextsub = nextsub->next;
     if (nextsub==NULL) return NULL;
   }
+#ifdef debugging
+  printf("Believe we matched the tag %s\n",nextsub->tag->GEDCOM_namefromtag());
+#endif
   return nextsub;
 }
 
@@ -722,6 +862,7 @@ GEDCOM_id* GEDCOM_object::getid() const {
 
 char* GEDCOM_object::getidname() const {
   if (id!=NULL) return id->GEDCOM_idname();
+  printf("About to return a NULL for idname in a GEDCOM Object type %s\n",tag->GEDCOM_namefromtag());
   return NULL;
 }
 
@@ -732,6 +873,9 @@ GEDCOM_id *GEDCOM_object::getxref() const {
 }
 
 GEDCOM_object *GEDCOM_object::followxref() const {
+#ifdef debugging
+  printf("followxref starting with ref %ld %s\n",(long)ref, ref->GEDCOM_idname());
+#endif
   return ref->GEDCOM_objectfromid();
 }
 
@@ -743,10 +887,20 @@ char *GEDCOM_object::getxrefname() const {
 
 // methods appropriate only for FAM objects:
 
+bool GEDCOM_object::garbage_fam() {
+// to be called to see if a FAM object is empty of people
+ if (tag!=FAM_tag) { printf("garbage_fam bad call\n"); return false; } //bad call !
+  int i=0;
+  if ((this->subobject( WIFE_tag ))!= NULL) i++;
+  if ((this->subobject( HUSB_tag ))!= NULL) i++;
+  if ((this->subobject( CHIL_tag ))!= NULL) i++;
+  return (i==0);
+}
+
 GEDCOM_object* GEDCOM_object::thewife() const {
 // to be called to follow the WIFE pointer of a FAM
 GEDCOM_object *wife;
- if (tag!=FAM_tag) return NULL; //bad call !
+ if (tag!=FAM_tag) { printf("thewife bad call\n"); return NULL; } //bad call !
   wife = this->subobject( WIFE_tag );
   if (wife==NULL) return NULL;
   wife = wife->followxref();
@@ -756,7 +910,7 @@ GEDCOM_object *wife;
 GEDCOM_object* GEDCOM_object::thehusband() const {
 // to be called to follow the HUSB pointer of a FAM
 GEDCOM_object *husb;
- if (tag!=FAM_tag) return NULL; //bad call !
+ if (tag!=FAM_tag) { printf("thehusband bad call\n"); return NULL; } //bad call !
   husb = this->subobject( HUSB_tag );
   if (husb==NULL) return NULL;
   husb = husb->followxref();
@@ -775,7 +929,7 @@ GEDCOM_object* spouse;
   return spouse->followxref();
 }
 
-GEDCOM_object* GEDCOM_object::child( GEDCOM_object **older ) const {
+GEDCOM_object* GEDCOM_object::child( GEDCOM_object **older, bool follow ) const {
 // to be called to follow the CHIL pointers of a FAM
 // call initially with the argument set to NULL as in
   //  GEDCOM_object *chil = NULL; GEDCOM_object *fam;
@@ -785,27 +939,42 @@ GEDCOM_object* GEDCOM_object::child( GEDCOM_object **older ) const {
   //    nextchild = fam->child( &chil );
 
 GEDCOM_object *chil;
- if (tag!=FAM_tag) return NULL;// bad call !
-  if (*older==NULL)
+  if (tag!=FAM_tag) return NULL;// bad call !
+  if (*older==NULL) {
+    printf("child looking for first CHIL subobject\n");
     chil = this->subobject( CHIL_tag );
-  else
+  } else {
+    printf("child looking for next CHIL subobject\n");
     chil = (*older)->next_object( CHIL_tag );
+  }
   if (chil == NULL) return NULL;
+  printf("child found a CHIL object, saving state and returning %ld\n",(long)chil->followxref());
   *older = chil;
-  return chil->followxref();
+  if (follow) {
+    return chil->followxref();
+  } else {
+    return chil;
+  }
 }
 
 // methods appropriate only for INDI objects:
 
 GEDCOM_object* GEDCOM_object::parental_family() const {
 // to be called to follow the FAMC pointer of an INDI
+   printf("seeking parental family of %ld\n",(long)this);
+   if (this==NULL) return NULL;
 GEDCOM_object* famc;
 // if (tag!=INDI_tag) return NULL; // bad call test not needed in subclass
   famc = this->subobject( FAMC_tag );
-  printf("parental_family found %ld\n",(long)famc);
+#ifdef debugging
+//  printf("parental_family FAMC found %ld @%s@\n",(long)famc,famc->getidname());
+  printf("parental_family FAMC found %ld\n",(long)famc);
+#endif
   if (famc==NULL) return NULL;
   famc = famc->followxref();
-  printf("parental_family found %ld\n",(long)famc);
+#ifdef debugging
+  printf("parental_family found %ld\n",(long)famc );
+#endif
   if (famc==NULL) return NULL; // this is broken GEDCOM - every @xref@ should
   //have a corresponding @id@ in the file
   return famc;

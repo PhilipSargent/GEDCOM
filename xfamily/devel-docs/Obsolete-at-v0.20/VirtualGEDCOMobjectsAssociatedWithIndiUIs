@@ -1,0 +1,200 @@
+The way of creating INDIs envisaged in this document is no longer the way
+we intend to do things - this file is therefore OBSOLETE and will be removed
+from devel-docs when we have demonstrated a better method..
+
+when we are editing an individual, there exists an instance of class indiUI,
+whose member data objects "who" and "which" link to a GEDCOM_object in a
+treeinstance. If we are using indiUI to create a _new_ person, then who
+will be NULL.
+
+We have a method indiUI::clear_details() to clear all the details from
+an indiUI, which is what we'd use if we got a "revert" event on the dbox
+when who was NULL. It does not, itself, clear who or which.
+
+We have a method indiUI::insert_details( GEDCOM_object* thisindi )
+which calls clear_details(), then fills in a dbox with values taken
+from thisindi, also setting who to thisindi. This is what we use when
+we initially create the indiUI to edit an individual (the constructor
+sets who and which, but doesn't call insert_details() ). We need to
+pass GEDCOM_object* thisindi since who may be NULL - but actually,
+if who is NULL, then we should never be calling insert_details, as
+there are, by definition, no details to insert. On a revert
+event (after an "are you sure?") we'd call this to re-insert the
+original values from the GEDCOM_object - in that case we should also
+not need to pass thisindi, as we can use who.
+
+However, in !Family, when we add a child, we do fill in certain
+data - viz. the surname of the father, if this is known. That datum
+does not come from thisindi/who, and we wouldn't be using insert_details,
+since we're only setting one field, and it's not from who. That will
+need a method to indiUI::setsurname().
+
+So, on a "Save" event, we'd want to go through all those same values
+and see if they have been changed. If not, do nothing for that value
+(we don't want to waste effort, nor create gratuitous heap fragmentation).
+For any value which has been changed, we need to change the relevant
+bit of the GEDCOM_object, which typically means destroying the old bit
+and creating a new one. If the old bit was NULL, just create a new one.
+If the new field is empty, just destroy the old one. There is a complexity
+here if you remove a final subobject - eg, if you remove the DATE from
+a BIRT/CHR/BAPM/DEAT/BURI/CREM which had no PLAC etc. then you would
+*also* want to remove the main tag.
+
+to do this, we'll want an indiUI::update_details() method. I see no
+point in passing it a GEDCOM_object* thisindi, as the method has full
+access to the who value.
+
+Now we see certain UI subtleties. If we have not changed any field,
+the "revert" button should be inactive. If we just opened an indiUI
+to create a new person, the "revert" button should never get created
+at all, as (a) it's pretty meaningless - you'd just revert to a blank
+dbox with perhaps a surname filled in, but (b) there is no GEDCOM_object
+from which to fetch data to revert (we don't automatically create an
+empty indi object, since there is no point in doing so until the user
+hits "save"). That's no longer true - in fix0004, we aim to create
+ephemeral GEDCOM objects for each INDI and FAM represented by an indiUI
+or famUI, and not present in the original structure. Read on ... but
+be aware that we decided fix004 was not in the right place and have
+backed at least some of it out.
+
+This possibly means that out indiUI class needs a boolean which says
+whether the dbox was created for a newly created indi. Although, in
+practice, can't we just test for who==NULL ?
+
+OK, this is what we have set out to do. In okedit_cb, the first thing
+we do is set edited = indibox->whois() which gets the who GEDCOM_object.
+If it is NULL, we need to create the new indi GEDCOM_object and
+populate it. Then we'll close the indiUI, and redraw the tree.
+
+Apart from closing indibox we do all that for commitedit_cb, too,
+so we should use a common method.
+
+ie. in both callbacks we need
+
+GEDCOM_object* edited = indibox->whois();
+treeinstance* thisinstance = indibox->whichis();
+
+then call indiUI::update_details.
+
+So, that's straightforward. Except it isn't...
+
+A favourite way to corrupt your tree in !Family is to change the name
+of one or both parents. If you have a child and have tied it into the
+wrong family, this is what you do. It doesn't go away and change the
+parent's name (this would then affect another INDI and all the other
+children), instead, it goes away and ties this child to a different
+family. If it was an only child, and there was only one parent, the
+old family may need to be removed. If it has a new pairing of parents
+for which there was not previously a family, such a family needs to be
+created. What can go wrong here is that we are doing this based on
+the *name* of the new parent (or parents), which, in !Family, was
+guaranteed unique (in theory), but in xfamily one of our major aims
+is to remove this restriction. So we do need to do more validation
+here.
+
+We have also decided that in the majority of circumstances, the
+names of parents in an edit dbox should be *immutable* and a
+different mechanism should be provided for changing the family
+membership of an INDI - the method currently under consideration
+is not really what is outlined below...
+
+What we suggested was that parents' details are immutable by default,
+and changing a parent requires explicitly enabling with a "change
+parent" button. You can then look for an existing parent with the
+usual completions mechanism, but the completions list should be
+supplemented with a "create new person" entry. This, of course,
+is opening a can of worms, since the logical response to create
+such a new person, is to open another indiUI... but meanwhile, in
+our existing indiUI, we need a real GEDCOM_object to point at for
+the parent, and merely opening a new indiUI doesn't create one.
+
+At this point, we perhaps need to rethink our strategy of not
+creating a new indi object until a user clicks on "save"... It
+leaves us trying to implement a list of things that are "pending"
+which we will have to go round and round up later. Messy.
+
+This is particularly going to be an issue when we are starting a
+new tree, as any new person we create will not have any other
+people to choose as parents, so we will typically be creating
+three new persons as a consequence of opening this one indibox.
+
+Yuck ! So yes, we need to change strategy and have a definite
+INDI object *whenever* we open an indibox. Even this is a little
+problematical, since the current !Family strategy is to keep all
+INDI objects in surname-alphabetical order in the linked list.
+But until we have a surname, we can't do this... [we also don't
+have any sorting mechanism coded in xfamily to add the INDI]
+
+OK, so maybe we don't worry about this. If we open an indiUI
+for an individual which has no parents, we could create a
+GEDCOM_object for each person that doesn't yet exist (so,
+up to three - the who indi, and both parents). When we click
+"Commit" or "Save", then we try to match to an existing indi
+for each one. If we get a *unique* match, then we can discard
+our temporary GEDCOM_object and update pointers to the existing
+one. If we get a multiple match, we need the user to disambiguate,
+possibly with a completions window. There is always a risk that
+we get a unique match when the user was expecting to create a
+new person (this is usually how it goes pear-shaped in !Family).
+Once we have a unique match, we insert the temporary person as a
+permanent one in the ordered list of INDIs (we don't yet have code
+to do that). Temporary INDI-tagged GEDCOM_objects
+would have a temporary INDI id, so that constantly creating
+"virtual" parents which are then left blank and not inserted
+into the structure don't consume id numbers. The indiUI would
+not link to the parents by an @I<num>@ reference, but would
+have a pointer to the (full or ephemeral) INDI GEDCOM_object.
+Is that what we do now ?
+
+Not quite, or, well, indirectly...
+
+When we fill in details for an existing person, we follow a
+reference from the INDI to a FAMC (if there is one), and
+then from the referenced FAM to fam->thehusband and
+fam->thewife. These are pointers to the GEDCOM_objects,
+and may, of course, be returned NULL if the FAM has no
+HUSB or WIFE. This is also going to become a bit dire
+now that we have our first LGBGT family where both parents
+are female - GEDCOM does not actually support this and
+various ad hoc methods sem to be in use.
+
+[aside: in !Family, there is no way to create a FAM with
+multiple CHIL objects, but neither HUSB or WIFE. However,
+that is a perfectly valid situation, and we can't rely on
+imported GEDCOM not having such FAMs, and we really ought
+to be able to produce one ourselves. If we have two siblings,
+but no parents, and we make one sibling the current person,
+its likely to display a tree where only the current person
+(and not any siblings) is shown - another can of worms in
+prospect here...]
+
+What we are now proposing is that when we find that
+fam = thisindi->parental_family() is NULL, we create a
+wholly ephemeral FAM object and set our pointer to point
+at that. This will be created with NULL parental pointers
+(but it will always get a valid child pointer, as that will
+be pointing to the (long-term or ephemeral) INDI which is
+the subject of the indiUI. For each NULL parental pointer,
+we will similarly create a temporary INDI GEDCOM_object,
+pointers to which we can use. When we hit commit or save,
+we may substitute all these pointers according to the
+values we have had entered (if any) in the two parent
+fields. Then if we are closing the indiUI (for Save, not
+for Commit) then we garbage collect any ephemeral INDI
+and FAM objects that we created which have not "become real".
+
+2017-09-22 did we indeed code that ? It sounds very much like
+what might be creating these green <unnamed> INDIs which are
+occasionally appearing visibly on the tree and causing
+segfaults if clicked on... I think the whole idea of "ephemeral"
+FAM and INDI objects is now seen as a seriously misguided
+concept.
+
+If we save the file whilst these ephemeral objects are
+around (including pointers by reference from real objects)
+we must be dead careful not to save any ephemeral objects,
+including pointers which are subobjects of real objects
+(so a 0 FAM @F<#>@ for a real family may contain a
+1 HUSB @E<#>@ pointer to an ephemeral indi, and we must
+save neither the ephemeral indi nor the pointer to it.)
+

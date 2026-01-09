@@ -51,6 +51,24 @@ button. Something very odd is going on ...
 On precise, with fltk 1.3, we have (so far) had a maximise button every time.
 However, quite often, the main window will change the physical screen (within
 the desktop) when resized by an internal event (like a new current person).
-The window should *never* resize or move any any internal change. This seems
+The window should *never* resize or move on any internal change. This seems
 to be because we effectively close and reopen the window, which lets the window
-manager make decisions for us...
+manager make decisions for us... and I think we cured that some time ago, haven't
+been seeing it in utopic with FLTK 1.3.
+
+If you maximise, the window border vanishes and you can't resize by dragging
+an edge.
+
+However, an issue that we have is that if you maximise the window with a small
+tree, then change current person so that the canvas gets bigger, the window
+stays the same size, and still believes it is maximised. It should either:
+
+a) continue to believe that it is maximised, and automagically expand either
+as big as the screen or as big as the canvas (whichever is smaller)    or
+
+b) stay the smae size, but cease to believe it is maximised, so that clicking
+on maximise again actually maximises it.
+
+Whenever it changes size, it should also scroll so the canvas occupies the whole
+area of the window. I've failed to fix tis one for getting on two decades :-(
+

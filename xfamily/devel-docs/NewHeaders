@@ -1,0 +1,105 @@
+Because we have't had read/write editing capabilty, we have
+maintained the GEDCOM under RISCOS !Family all these years,
+and hte file headers reflect this. Now we can do the work in
+X!Family, we can updtae these (and the program should save
+files with the new headers, rather than me just chaning the
+file...)
+
+0 HEAD
+1 SOUR !Family_for_RISC_OS
+2 VERS 2.2.7 20170913
+1 GEDC
+2 VERS 5.3
+2 FORM LINEAGE-LINKED
+2 LANG English
+1 LANG English
+1 SUBM @A1@
+1 SCHEMA
+2 INDI
+3 _NINO
+4 LABL NATIONAL_INSURANCE_NUMBER
+4 DEFN United Kingdom National Insurance Number
+4 ISA IDNO
+1 SCHEMA
+2 INDI
+3 _NHSNO
+4 LABL NATIONAL_HEALTH_NUMBER
+4 DEFN United Kingdom National Health Service Number
+4 ISA IDNO
+
+An obvious issue is that we use a mix of VERS 5.3 and VERS 5.5
+Do we believe there is any reason not to mention both ?
+
+I have never specified a language. Even the 5.5 spec. doesn't
+actually say how to specify UTF-8... 5.5.1 does
+
+1 CHAR UTF-8
+
+The 1 SCHEMA construct was taken out of 5.5, which is a pity,
+as we have no other formal way of keeping these national ID
+numbers. Although, having said that, 5.5.1 includes the IDNO
+tag for "National ID number" which can have a subordinate
+structure the most useful of which would be +1 TYPE, eg.
+for dad:
+
+1 IDNO TH 91 11 70 D
+2 TYPE UK National Insurance Number
+1 IDNO KOMZ 30/3
+2 UK National Health Service Number
+
+those should have date ranges - NHS numbers were originally Identity Card
+nubers (so issued c 1939), then were retained for NHS use, then all got
+changed.
+
+0 HEAD
+1 SOUR X!Family
+2 VERS 0.20 2017-09-29
+1 GEDC
+2 VERS 5.3 + 5.5.1
+2 FORM LINEAGE-LINKED
+2 LANG English
+1 CHAR UTF-8
+1 LANG English
+1 SUBM @A1@
+1 SCHEMA
+2 INDI
+3 _NINO
+4 LABL NATIONAL_INSURANCE_NUMBER
+4 DEFN United Kingdom National Insurance Number
+4 ISA IDNO
+1 SCHEMA
+2 INDI
+3 _NHSNO
+4 LABL NATIONAL_HEALTH_NUMBER
+4 DEFN United Kingdom National Health Service Number
+4 ISA IDNO
+
+Whilst we're here, we can note down how we are supposed to support
+some features.
+
+
+
+Adoption
+
+0 @I1@ INDI
+1 FAMC @F1@
+1 FAMC @F2@
+2 PEDI Adopted
+1 ADOP
+2 FAMC @F2@
+2 DATE ...
+
+this will break both Family and X!Family which do not expect
+to see a FAMC twice at the top level. Elsewhere in the spec.
+it loks as though the first (top-level) FAMC for the adoptive
+partnership is optional. The trouble with that is that we use
+the top-level one to show the tree graphically.
+
+There is an additional bit of structure to show which partner
+adopted (HUSB/WIFE/BOTH) but again, this fails to cope with
+a same-sex civil partnership ...
+
+Military, police or other service rank
+
+TITL is supposed for be for "Nobility title", not rank.
+rank is supposed to go after the NAME as a +1

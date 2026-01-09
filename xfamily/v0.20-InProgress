@@ -1,0 +1,149 @@
+Currently, if you click "help" in various places, X!Family
+tries to open an html document in a window. Unfortunately, it
+is looking for documentation in "/usr/local/src/xfamily/html015/..."
+
+We seem to have lost ALL the documentation directories from
+/usr/local/src :-( We have the v 0.14 ones on the public website
+(with screen shots looking very dated from KDE 3) in html014
+and a set in xdoc which seem to be from v 0.13. Whilst the 0.15
+version that we are asking for would indeed be an improvement on
+v 0.14, even that will be pretty dated. It may be worth looking
+on the old spey drives, but I guess v 0.15 never got put on the
+server we need some old drives that might have /usr/local/src...
+
+/distro/saucy has some more recent screenshots for the docs,
+but no docs at all. This is all a tad embarassing, as the docs
+were fairly good and were being kept up to date. The screenshots
+are not an issue as we are going to change all those anyway. It
+is the html that would be useful. I suppose v 0.14 is a starting
+point... So html014 coped to html015
+
+-----------------------------------------------------------------
+
+We decided that the "ephemerals" approach to editing functionality
+is going to lead into a maze of problems with pointers to things
+that never really had more than a "virtual" existence, so everything
+that was related to that has been purged.
+
+So our starting point for v 0.20 has fix 004 erased, fix0021
+erased, and fix0022 switched off. fix0024 is on, and fix0023 is
+addressing a different issue and should remain on. However, a
+part of fix0023 won't get tested until we have the functionality
+to add new INDIs or FAMs (mind you, some of the code it replaces
+was subject to the same proviso - there is probably quite a bit
+of code which doesn't get exercised yet..)
+
+Subversion really is going to be a good idea soon...
+
+So, if you read v019/v0.19-InProgress, all of points
+1-4 are now backed out or were never written,
+
+The second half of that file addresses crashing with an
+empty tree, and points out one way forward by debugging
+the case where we load a tree where the person noted as
+current doesn't exist. We don't crash straight away, so
+there is a time when we are in a state with the things
+which will cause a crash in place, but no actual segfault
+yet. The segfault happens when we click on the main canvas
+and the code goes off trying to find which indi or fam was
+clicked - presumably by setting off blindly into the tree
+which it thinks will be on the end of a pointer which is NULL.
+
+There is quite a bit of stuff in v0.19-Upcoming, virtually
+none of which was coming up (except for the removal of LVG
+and the making of ID strings into heap strings to avoid the
+risk of buffer overruns, both of which are done).
+So here's a new version:
+
+DONE:
+* Make saving text back into NOTE objects work. We thought it
+  did but apparently something was left unfnished. This ought
+  to be relatively straightforward as the save operation is
+  pretty much atomic already. Beware of keeping a NOTE object
+  open for editing when the object above it gets destroyed.
+  This ought to be fairly obvious when you come to destruct
+  the owning object (we clearly have a way of knowing when a
+  NOTE is being edited as we make the little tick go red in
+  the dbox for editing the owning object...).
+
+  What we appear to have missed is any update to the "modified"
+  boolean when changes are made. Since this remains false, when
+  we save back to GEDCOM, the code goes "Oh, it's not modified,
+  so do nothing". Doh ! We don't clear that flag on "restore"
+  either, and we don't add "(modified)" to the title. Come to
+  that, the window title is just "X!Family Maintree.ged" whilst
+  the object on which the notes are raised is in an output field
+  within the window. That looks nice, but you can't choose the
+  notes window you want from the task bar if the title doesn't
+  reflect that notes "owner". Ideally, "save back to GEDCOM"
+  and "Restore from GEDCOM" should be greyed when the notes
+  have not been changed yet...
+
+  OK, what we have is unchanged from when things worked - we
+  set up a callback 
+
+void changenotes_cb(Fl_Multiline_Input*, void*userdata) {
+notesUI *ui;
+  ui = (notesUI*)userdata;
+  ui->changed(true);
+}
+
+  and the changed(whether) method of the indiUI changes the modified boolean.
+  But it is no longer a Fl_multiline_Input - now it is a Fl_TextEditor.
+  However, the scroll->callback((Fl_Callback*)changenotes_cb); is fine, but
+  we had for some reason commented out
+  scroll->when(FL_WHEN_CHANGED);
+  and without that, the callback was not being called when the buffer as changed.
+  Uncommenting that line fixed the issue and notes are now saved back
+
+  * what we should do, now we know what code is being called, is that we
+    should see if modified==whether and *only on a change of state*, we
+    should set or remove a visible "modified" flag on the window (probably
+    in the title bar). Since a "restore from GEDCOM" probably doesn't get
+    a callback (or, if it does, it will be the same code and will come with
+    whether=true) we need, *after* we restored the text, to undet the modified
+    flag and any visible "Modified" wording on the window.
+
+DONE
+* NewPopUpMenus  this file outlines a way forward to avoid the
+  need for these ephemeral objects. By making names of spouses
+  (parents) immutable in the famUI and indiUI dboxes, we will
+  make various object creation operations atomic. The penalty
+  looks to be a need to tolerate FAM objects with only one
+  subobject. 
+
+
+* So underlying the new popup menu items 
+
+  New Family
+  New Child
+
+  will be dboxes which, on "apply" or "save" will atomically create
+  (or connect to) the appropriate person or family and not create
+  anything else by side effects. If the result is a "connect" rather
+  than a "create" it will be by a conscious action, not by random
+  coincidence of name. So needs a "find existing person" button.
+
+* we plan to make divorce dates appear as a second field on the tree
+  so a marriage might appear as = 1903 - 1915. While we are there,
+  make marriage date appear in a different colour if there is an ANUL
+  event (which means that the marriage was declared never to have existed)
+
+* similarly, if birth date is missing and we have a CHR or BAPM date,
+  make that appear on the tree instead of the birth date, but in a
+  different colour. If we have both, show the earlier. And ditto for
+  BURI/CREM.
+
+* it would be useful when the user does a "save file" to check for open
+  editing dboxes (and whether these have had changes). If so, we'd like
+  a "save changes from open dboxes first ?" dialogue which would be
+  equivalent to clicking "Apply" in all the open dboxes before starting
+  the file save. Of course, this is somewhat pointless until Apply/Save
+  in those dboxes actually does something... but at least the Notes
+  windows ought to manage that soon.
+
+Apply/Save on indiUI is now working. famUI will use pretty much the
+same code so should be here Real Soon Now (TM).
+
+
+

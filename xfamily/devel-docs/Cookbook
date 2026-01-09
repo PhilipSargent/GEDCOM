@@ -1,0 +1,60 @@
+Common things we need to do, which might be best made
+into complete methods to avoid repetition. We'll list
+these as we come across them, rather than exhaustively.
+Once you've written a method, you can then go through
+an remove the code duplication at leisure.
+
+Check a gender
+
+1) on an INDI:
+
+char* gender;
+GEDCOM_object* test = indi->subobject( SEX_tag );
+if (test!=NULL) gender=test->value(); else gender=strdup("U");
+
+if (*gender=='M') ...
+
+Find a FAM object from an INDI's FAMC or FAMS:
+already written:
+
+  GEDCOM_object *person = <however you find this person>
+  GEDCOM_object *famc = person->parental_family();
+
+To find a specific CHIL object matching an INDI id
+
+;  GEDCOM_id* indi_id = person->getid();
+  GEDCOM_object *child = NULL:
+  GEDCOM_object *chil;
+  chil = famc->child(&child);
+  while (chil!=NULL) {
+    if (person==chil->getxref()) return chil;
+    chil = famc->child(&child);
+  }
+
+in which "child" maintains our position in the list of CHILs between calls
+
+To find a spouse {HUSB, WIFE} object matching an INDI id without knowing the gender of person
+
+  GEDCOM_object *fams=NULL;
+  fams = person->own_family( fams );
+  while (fams!=NULL) {
+    if (person==fams->thewife()) {
+      spouse = person->subobject(WIFE_tag);
+    }
+    if (person==fams->thehusband()) {
+      spouse = person->subobject(HUSB_tag);
+    }
+    // if spouse is NULL here we have broken GEDCOM (which
+    // do whatever it is you need the spouse for ... eg:
+    if fams->delete_subobject( spouse ) {
+      if fams->garbage_fam() tree->remove_fam( fams );
+    }
+    // or
+    return spouse;
+
+    fams = person->own_family( fams );
+  }
+
+To then delete a spouse from a FAM it's a simple object removal,
+but then you *may* want to garbage collect the FAM if it no longer
+contains any cross-referenceing tags {HUSB,WIFE,CHIL}
