@@ -1,0 +1,33 @@
+Problems v011 alpha
+
+when we do a "save", the tree.filename gets updated, and subsequent
+windows reflect the new filename in their titles. But existing ones
+are not updated. Arguably, this is OK, since "save" should not
+change the filename (but for testing purposes, it does).
+
+However, it is useful to note that "save as" *should* remember to
+reopen/retitle windows that reflect the filename in their title bar.
+
+Currently, closing any of the views kills the program. Since we can
+now have new views, it is probably a priority to be able to kill
+them cleanly without an exit(0) :-)
+
+We need to find how to force window updates without doing a hide and
+reopen - there are two problems with this:
+
+a) under Gnome, everything shifts down and right a bit
+b) on a language change, all the windows on different virtual screens
+ reopen on the current one.
+
+Progressing up a deep tree eventually results in the window going
+uniform grey with no-one displayed. This is quite recoverable by
+using "Find Person". I suspect that the work area size is getting
+too big for the size of int being used to hold it.
+
+Fixed 2000-04-14
+
+Despite coding to prevent a section of tree appearing twice when
+cousins have married and their common ancestor is on the tree, this
+still occurs. You should note that although the section of tree
+*doesn't* appear twice in !Family, the tree is distorted in that
+the space for a second appearance *is* allowed for.

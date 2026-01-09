@@ -1,0 +1,19 @@
+> !Future
+
+Develop an algorithm to generate an ancestor view akin to the one
+produced for the display on the Doc's 71st birthday. You probably
+don't need boxes round each family.
+
+New menu item to give a choice of what to display in the main window:
+"descendants", "ancestors", "both". These options need to apply *per
+window*, so you could have the same current person in each of two views, one
+showing ancestors, and one descendants, for example.
+
+-------
+
+Report scripting: need a macro language to specify the layout of a report
+which can be generated along the lines of the current main all-person report,
+but with particular formatting. This would be useful in !Family, too.
+
+The ability to select a subset of the total populace from which to generate
+a report would be useful.

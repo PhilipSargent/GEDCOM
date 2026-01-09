@@ -1,0 +1,128 @@
+main.o: main.cxx classes.h family.h structure.h trees.h \
+ /usr/include/stdio.h /usr/include/features.h /usr/include/sys/cdefs.h \
+ /usr/include/gnu/stubs.h \
+ /usr/lib/gcc-lib/i586-mandrake-linux/2.95.3/include/stddef.h \
+ /usr/lib/gcc-lib/i586-mandrake-linux/2.95.3/include/stdarg.h \
+ /usr/include/bits/types.h /usr/include/libio.h \
+ /usr/include/_G_config.h /usr/include/bits/stdio_lim.h \
+ /usr/include/bits/stdio.h gui.h /usr/src/fltk-1.0.9/FL/Fl.H \
+ /usr/src/fltk-1.0.9/FL/Enumerations.H /usr/src/fltk-1.0.9/FL/Fl_Box.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Widget.H /usr/src/fltk-1.0.9/FL/Fl_Button.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Check_Button.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Light_Button.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Return_Button.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Group.H /usr/src/fltk-1.0.9/FL/Fl_Input.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Input_.H /usr/src/fltk-1.0.9/FL/Fl_Output.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Menu_Bar.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Menu_.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Menu_Item.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Menu_Button.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Scroll.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Scrollbar.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Slider.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Valuator.H /usr/src/fltk-1.0.9/FL/Fl_Tabs.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Tile.H /usr/src/fltk-1.0.9/FL/Fl_Window.H \
+ languages.h objects.h /usr/include/string.h xlate.h
+structure.o: structure.cxx classes.h family.h structure.h trees.h \
+ /usr/include/stdio.h /usr/include/features.h /usr/include/sys/cdefs.h \
+ /usr/include/gnu/stubs.h \
+ /usr/lib/gcc-lib/i586-mandrake-linux/2.95.3/include/stddef.h \
+ /usr/lib/gcc-lib/i586-mandrake-linux/2.95.3/include/stdarg.h \
+ /usr/include/bits/types.h /usr/include/libio.h \
+ /usr/include/_G_config.h /usr/include/bits/stdio_lim.h \
+ /usr/include/bits/stdio.h gui.h /usr/src/fltk-1.0.9/FL/Fl.H \
+ /usr/src/fltk-1.0.9/FL/Enumerations.H /usr/src/fltk-1.0.9/FL/Fl_Box.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Widget.H /usr/src/fltk-1.0.9/FL/Fl_Button.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Check_Button.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Light_Button.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Return_Button.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Group.H /usr/src/fltk-1.0.9/FL/Fl_Input.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Input_.H /usr/src/fltk-1.0.9/FL/Fl_Output.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Menu_Bar.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Menu_.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Menu_Item.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Menu_Button.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Scroll.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Scrollbar.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Slider.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Valuator.H /usr/src/fltk-1.0.9/FL/Fl_Tabs.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Tile.H /usr/src/fltk-1.0.9/FL/Fl_Window.H \
+ languages.h objects.h /usr/include/string.h
+trees.o: trees.cxx /usr/include/stdio.h /usr/include/features.h \
+ /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h \
+ /usr/lib/gcc-lib/i586-mandrake-linux/2.95.3/include/stddef.h \
+ /usr/lib/gcc-lib/i586-mandrake-linux/2.95.3/include/stdarg.h \
+ /usr/include/bits/types.h /usr/include/libio.h \
+ /usr/include/_G_config.h /usr/include/bits/stdio_lim.h \
+ /usr/include/bits/stdio.h classes.h family.h trees.h gui.h \
+ /usr/src/fltk-1.0.9/FL/Fl.H /usr/src/fltk-1.0.9/FL/Enumerations.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Box.H /usr/src/fltk-1.0.9/FL/Fl_Widget.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Button.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Check_Button.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Light_Button.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Return_Button.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Group.H /usr/src/fltk-1.0.9/FL/Fl_Input.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Input_.H /usr/src/fltk-1.0.9/FL/Fl_Output.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Menu_Bar.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Menu_.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Menu_Item.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Menu_Button.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Scroll.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Scrollbar.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Slider.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Valuator.H /usr/src/fltk-1.0.9/FL/Fl_Tabs.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Tile.H /usr/src/fltk-1.0.9/FL/Fl_Window.H \
+ languages.h objects.h /usr/include/string.h strings.h tags.h
+callback.o: callback.cxx /usr/src/fltk-1.0.9/FL/Fl.H \
+ /usr/src/fltk-1.0.9/FL/Enumerations.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Menu.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Menu_Item.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Widget.H /usr/src/fltk-1.0.9/FL/Fl_Button.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Menu_Button.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Menu_.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Return_Button.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Window.H /usr/src/fltk-1.0.9/FL/Fl_Group.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Multiline_Input.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Input.H /usr/src/fltk-1.0.9/FL/Fl_Input_.H \
+ classes.h family.h structure.h gui.h /usr/src/fltk-1.0.9/FL/Fl_Box.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Check_Button.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Light_Button.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Output.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Menu_Bar.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Scroll.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Scrollbar.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Slider.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Valuator.H /usr/src/fltk-1.0.9/FL/Fl_Tabs.H \
+ /usr/src/fltk-1.0.9/FL/Fl_Tile.H languages.h display.h trees.h \
+ /usr/include/stdio.h /usr/include/features.h /usr/include/sys/cdefs.h \
+ /usr/include/gnu/stubs.h \
+ /usr/lib/gcc-lib/i586-mandrake-linux/2.95.3/include/stddef.h \
+ /usr/lib/gcc-lib/i586-mandrake-linux/2.95.3/include/stdarg.h \
+ /usr/include/bits/types.h /usr/include/libio.h \
+ /usr/include/_G_config.h /usr/include/bits/stdio_lim.h \
+ /usr/include/bits/stdio.h objects.h /usr/include/string.h xlate.h \
+ callback.h strings.h tags.h
+strings.o: strings.cxx strings.h
+objects.o: objects.cxx /usr/include/string.h /usr/include/features.h \
+ /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h \
+ /usr/lib/gcc-lib/i586-mandrake-linux/2.95.3/include/stddef.h \
+ /usr/include/stdio.h \
+ /usr/lib/gcc-lib/i586-mandrake-linux/2.95.3/include/stdarg.h \
+ /usr/include/bits/types.h /usr/include/libio.h \
+ /usr/include/_G_config.h /usr/include/bits/stdio_lim.h \
+ /usr/include/bits/stdio.h classes.h family.h objects.h tags.h \
+ /usr/include/stdlib.h /usr/include/sys/types.h /usr/include/time.h \
+ /usr/include/endian.h /usr/include/bits/endian.h \
+ /usr/include/sys/select.h /usr/include/bits/select.h \
+ /usr/include/bits/sigset.h /usr/include/sys/sysmacros.h \
+ /usr/include/alloca.h tags.cxx taginc.cxx
+xlate.o: xlate.cxx /usr/include/stdio.h /usr/include/features.h \
+ /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h \
+ /usr/lib/gcc-lib/i586-mandrake-linux/2.95.3/include/stddef.h \
+ /usr/lib/gcc-lib/i586-mandrake-linux/2.95.3/include/stdarg.h \
+ /usr/include/bits/types.h /usr/include/libio.h \
+ /usr/include/_G_config.h /usr/include/bits/stdio_lim.h \
+ /usr/include/bits/stdio.h /usr/include/string.h \
+ /usr/src/fltk-1.0.9/FL/Fl.H /usr/src/fltk-1.0.9/FL/Enumerations.H \
+ /usr/src/fltk-1.0.9/FL/fl_message.H /usr/src/fltk-1.0.9/FL/fl_ask.H \
+ xlate.h classes.h family.h strings.h xlatestr.cxx

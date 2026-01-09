@@ -1,0 +1,292 @@
+Problems v011 alpha
+
+when we do a "save", the tree.filename gets updated, and subsequent
+windows reflect the new filename in their titles. But existing ones
+are not updated. Arguably, this is OK, since "save" should not
+change the filename (but for testing purposes, it does).
+
+However, it is useful to note that "save as" *should* remember to
+reopen/retitle windows that reflect the filename in their title bar.
+
+Currently, closing any of the views kills the program. Since we can
+now have new views, it is probably a priority to be able to kill
+them cleanly without an exit(0) :-)
+
+We need to find how to force window updates without doing a hide and
+reopen - there are two problems with this:
+
+a) under Gnome, everything shifts down and right a bit (its doing it
+under KDE now as well) - this may be cured with fltk 1.09
+b) on a language change, all the windows on different virtual screens
+ reopen on the current one (arguably we wouldn't be doing language
+ changes once there were lots of windows open, but since we provide
+ this functionality, it ought to work. Anyway, it is symptomatic of
+ other potential problems for the future...
+
+------
+
+Progressing up a deep tree eventually results in the window going
+uniform grey with no-one displayed. This is quite recoverable by
+using "Find Person". I suspect that the work area size is getting
+too big for the size of int being used to hold it. Are we constrained
+to use that size of int by the FLTK package ? If so, we are truly
+buggered...
+
+------
+
+Clicking on a person to make them current usually changes the work
+area size. The current person should then be centred in the work
+area (unless he is very near the left edge...) by changing the offset.
+If the work area is shrunk, both vertical and horizontal offsets need
+to be set to ensure that the displayed area lies within the work area,
+which may entail shrinking the window
+
+Fixed 2000-04-14
+
+Despite coding to prevent a section of tree appearing twice when
+cousins have married and their common ancestor is on the tree, this
+still occurs. You should note that although the section of tree
+*doesn't* appear twice in !Family, the tree is distorted in that
+the space for a second appearance *is* allowed for.
+
+-------------
+
+Aesthetics
+
+gnome-libs-devel-1.2.4/devel-docs/suggestions.txt says that
+
+the leftmost menu in an app should be "File" and within that the order
+should be as below. Looking at some example KDE apps, the items are
+similar, but the order different. Comparing with what we have (the
+gaps are only to make things line up a bit, they're not in the real
+menus, unlike the separators, which are real):
+
+Gnome (general)      KDE (Killustrator)       X!Family
+
+New Window
+----------
+New                  New
+Open                 Open                     Load
+Save                 Open Recent
+Save as...           -----------
+Revert               Save                     Save
+----------           Save as...               Save as...
+                     Close
+                     -----------
+                     Import
+                     Export
+                     -----------
+Print                Print                    Print
+Print Setup                                   -----------
+----------           Document Info            New View
+                     -----------              Discard
+                     New Window               Statistics
+Close                -----------
+Exit                 Exit                     Quit
+
+We don't actually have a "New" entry ... we presumably should !
+What is the difference between "Close" and "Exit" ? I could see this
+for a multiple view - one would close that view, and the other would
+close all views. On this basis, one would feel that "Close" should
+immediately follow "New View". Discard is analogous to "New", but not
+quite the same - its more like doing a "Close" then a "New". Gnome's
+"Revert" effectively means reload the existing file, discarding any
+changes. This is a bit difficult if we have multiple views, and the
+current person in any one of them was not in the original tree. I
+think it is better to have the user do "Discard" which should close
+all the Views except one, then do a "Load".
+
+Our "Statistics" is parallel with Killustrators "Document Info",
+which suggests this is the right menu for it.
+
+We probably do need a "print setup" eventually, to set font stuff.
+This would be better as a dbox, rather than lots of menu items as
+in !Family at the moment.
+
+So our revised menu order might be:
+
+Load
+Save
+Save as...
+Discard
+----------
+Print
+Print Setup...
+----------
+Statistics
+----------
+New View
+Close      (greyed if this is the only view)
+Exit
+
+with maybe an additional section corresponding to "import/export".
+The former would be for merging trees, the latter for exporting
+some selected section of the existing tree. Both these are rather
+advanced usages, and we should be in no hurry to add the functionality !
+
+The second menu is "<any MDI child menus>" where MDI is "Multiple
+Document I(nterface?). This is supposed to contain a list of the
+documents which are loaded, presumably allowing their windows to
+be opened and closed without ceasing from editing them ?
+
+Their suggestions for what comes under the "Edit" menu is really
+orientated to something close to a text editor, and we pretty much
+lose touch with them here... However, this menu includes things like
+"Add" and "Find", which pretty much corresponds to our "People" menu.
+But we don't do any sort of "Change" in a drop down menu - this is
+all through menus popped up over a person or marriage.
+
+The furthest right menu is supposed to be "Help", as ours is. For
+Gnome, it seems to be expected that the Help menu looks a bit like:
+
+GPhoto:      ggv:               Glade:               Gnorpm:
+
+Help:        Help:              Help:                Help:
+ Authors      GGv User's Guide   Quick Start Guide    About
+ License      About              Manual               ---------
+ Version                         FAQ                  Introduction
+ Manual                          ---------            The main window
+                                 About                The query window
+                                                      The instal window
+                                                      The find window
+                                                      The web find window
+
+So, a high degree of consistency there :-) (not)
+
+Some typical KDE Help menus:
+
+KChart:
+
+Help:
+ Contents
+ What's this?
+ ------------
+ Report Bug...
+ ------------
+ About kchart...
+ About KDE...
+
+KEdit and many others are exactly similar, others have fewer components
+... but "Contents" just starts the very top level KDE help system
+which doesn't directly lead to any help about KChart itself :-(
+
+I have to say that I most like the Help menu for Gnorpm. It gives help
+about itself, not its environment, and the menu takes you directly to
+help about the window you want. This would tie in with the idea of
+adding a "Help" button to the child dialogue boxes such as "edit person",
+"edit marriage" and "Choices". The "Notes" windows have a menu bar anyway,
+and so could have the same drop-down Help menu as the main window.
+
+If the means of providing help is to fire up a relevant browser with an
+html manual image, then of course the user can then page around inside
+this as needed or could enter it without needing to have X!Family up at
+all. This clearly cuts down application bloat. How would we work a
+mechanism for starting help in the relevant language ? Presumably the
+files would live in /usr/doc/HTML/xfamily in subdirectories /en, /fr etc.
+Is there an equivalent to "Filer_Run" ? We want to use the MIME-type of
+an html file to start the user's default browser with the help page
+/usr/doc/HTML/xfamily/en/mainwindow.html or whatever ...
+
+BTW, we could equally well do this for !Family from a "Help" menu item
+on both the iconbar icon and the main window, and indeed we could add
+"Help" buttons to the main dboxes.
+
+Bugger, bugger, bugger - I've just typed a whole morning's
+stream-of-consciousness on providing help into here and then managed to crash
+!Zap
+
+OK, the gist is that kde programs call a routine invokeHTMLHelp( file, topic)
+which is provided by kdelibs/kdecore/kapp.cpp thus:
+
+void KApplication::invokeHTMLHelp( QString filename, QString topic ) const
+{
+  if ( fork() == 0 )	
+    {		
+	  if( filename.isEmpty() )
+	    filename = aAppName + "/index.html";
+
+	 QString path = KApplication::kde_htmldir().copy() + "/";
+
+         // first try the locale setting
+         QString file = path + klocale->language() + '/' + filename;
+         if( !QFileInfo( file ).exists() )
+               // not found: use the default
+               file = path + "default/" + filename;
+
+	  if( !topic.isEmpty() )
+		{
+                 file.append( "#" );
+                 file.append(topic);
+		}
+	
+	  /* Since this is a library, we must conside the possibilty that
+	   * we are being used by a suid root program. These next two
+	   * lines drop all privileges.
+	   */
+	  setuid( getuid() );
+	  setgid( getgid() );
+	  const char* shell = "/bin/sh";
+	  if (getenv("SHELL"))
+		shell = getenv("SHELL");
+         file.prepend("kdehelp ");
+         execl(shell, shell, "-c", file.data(), 0L);
+	  exit( 1 );
+    }
+}
+
+or at least, that was it in kde1. kdehelp doesn't exist in kde2, which uses
+Knoqueror instead. Other programs asked to provide help start up Netscape,
+presumably because the environment variable BROWSER is set to /usr/bin/netscape.
+
+We need to examine our environment to see what is available: presumably we
+would like to use Konqueror, the Gnome help system or the user's default
+browser which might well be almost anything.
+
+The mechanism is
+a) fork - one fork just resumes whatever it was doing and the one which gets
+a return of zero shells out:
+b) drop any privileges we might have through suid (we probably should do this
+even though we are not a library)
+c) shell to the browser we chose
+
+An initialisation routine would find the choice of browser, or we could let
+the user set his own choice.
+
+The Xinit stuff does a series of "which <name>" for browsers, looking for
+
+ netscape
+ lynx
+
+which we could do too, looking for kdehelp, khelpcenter (which actually
+invokes konqueror), gnome-help-browser ... but this doesn't tell us which
+desktop we are actually running on, merely gives us an idea of what desktops
+are available. Its perfectly possible to run gnome-help-browser on KDE and
+kdehelp/khelpcenter on Gnome ?
+
+Both KDE and Gnome integrated help systems find things automatically, but
+not in the same place.
+ghelp:   means file:/usr/share/gnome/help/<thing>
+help:    means file:/opt/kde2/share/doc/HTML/<language>/<thing>
+
+so we should probably provide help in /usr/share/xfamily/help/HTML/<language>
+and provide links:
+
+ln -s /usr/share/xfamily/help/HTML/en /opt/kde2/share/doc/HTML/en/xfamily
+ln -s /usr/share/xfamily/help/HTML/fr /opt/kde2/share/doc/HTML/fr/xfamily  ... etc.
+ln -s /usr/share/xfamily/help/HTML/en /usr/share/gnome/help/xfamily
+
+------
+
+Later, Gnome suggests "binding" child windows to a main window so that they
+can be hidden if the main window is minimised. I'm not sure I think this
+is sensible. The main reason I'm going to minimise my main window is to
+get more desktop space to do editing on things like notes windows... [on
+the other hand, you might note that if you close the main window in !Family,
+the notes window of the current person also closes]
+
+Most of the rest is about using the gnome libraries - which we aren't.
+We would like our look-and-feel to fit in well with both Gnome and KDE
+apps, whilst supporting our old !Family users with a few options to use
+very RISC OS idioms (and not the absolutely dreadful Gnome/GIMP-style
+file open/save dialogue, for example !)
+

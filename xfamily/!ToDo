@@ -1,0 +1,40 @@
+ToDo::
+
+You probably need to reread and understand ../Display4
+Then try to figure out what of that we have already done - presumably none
+
+Missing dboxes:
+
+  Marry
+
+  Person chooser (from wildcard find)
+
+Dboxes requiring a rework:
+
+  People->Find  needs a "find a list" button or similar
+
+  Possibly famUI - we might want to add tabs for
+    Banns
+    Marriage Licence
+    Annulment           though these are uncommon
+
+  notesUI needs a "Restore" button and an "OK (save & close)" button.
+  the code to support these is already written.
+
+---------------
+
+We do not have the great screed of code needed to:
+
+remove a single object and any tags which cross reference to it
+ (code now written to remove a single subobject from an object. Note
+  that the object still exists, it is merely no longer a subobject, so is
+  "out of the structure". Cross references to it should still work.)
+insert an object, which, for an INDI, means finding the right point
+ alphabetically
+massacre the tree
+
+We possibly have a problem with:
+
+managing a display with no people at all in it (try loading an
+ empty GEDCOM and see how spectacularly X!Family crashes :-)
+

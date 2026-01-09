@@ -1,0 +1,128 @@
+No message file for this language
+OK
+Cancel
+Apply
+Save
+Clear
+Restore from GEDCOM
+Save back to GEDCOM
+OK (Save and close)
+X!Family
+in
+untitled
+X!Family
+<unnamed>
+About this program
+File
+Load
+Save
+Save as ...
+Print
+New View
+Discard
+Statistics
+Quit
+People
+New ...
+Find ...
+Reports
+Standard
+Family groups
+Web Pages ...
+Settings
+Language
+Choices ...
+Save Choices
+Help
+Introduction
+Main window
+Person dbox
+Family events dbox
+Choices dbox
+GEDCOM files
+About
+Edit
+Notes
+Marry
+Older
+Earlier
+Child
+Remove
+Unmarry
+Reports
+Ancestors
+Name
+Author
+Version
+Purpose
+X!Family
+© A.E.R.Waddington, 2000
+v 0.11 alpha 2000-09-13 en-gb
+Family Tree Editor
+X!Family edit 
+X!Family family events
+<unnamed>
+<new person>
+Name
+Title
+Date
+Time
+Place
+Site
+Plot
+Cause
+Birth
+Christening
+Baptism
+Death
+Cremation
+Burial
+Gender
+Male
+Female
+Unknown
+Living
+Mother
+Father
+Husband
+Wife
+Engagement
+Marriage
+Divorce
+<new family>
+X!Family Search tree for person
+Goto:
+X!Family Statistics
+GEDCOM File      :
+Individuals:
+Maximum INDI Id:
+Families:
+Maximum FAM Id:
+Information Sources
+Maximum SOUR Id:
+Information Repositories
+Maximum REPO Id:
+X!Family preferences
+Names
+Always show family names
+Show titles
+Displayed dates
+Show dates on tree
+including ...
+Show spouse's dates
+Show wedding dates
+Show just year on tree
+Date formats ...
+GEDCOM dates
+ISO-8601 dates
+Miscellaneous
+Xref errors:
+Abandon load
+Warnings
+Ignore silently
+Report datestamp format:
+GEDCOM
+ISO-8601
+As Locale
+Other:
+The X!Family Genealogical Package version 0.11 Copyright © 2000 by Andy Waddington.\nBased loosely on !Family for RISC OS originally developed by Denis Howe.\n\nThis package is free software: you can redistribute it and/or modify it under the terms of\nthe GNU General Public License as published by the Free Software Foundation; either\nversion 3 of the license, or (at your option) any later version.\n\nThis software is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;\nwithout even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR\nPURPOSE. See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License\nalong with this software: if not, write to the Free Software Foundation, Inc.,\n59 Temple Place, Suite 330, Boston. MA 02111-1307 USA\nPlease report faults to family-maint@pennine.demon.co.uk

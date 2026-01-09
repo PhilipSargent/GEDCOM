@@ -3,6 +3,9 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Windows 11 stuff
+*.Identifier
+
 # C extensions
 *.so
 

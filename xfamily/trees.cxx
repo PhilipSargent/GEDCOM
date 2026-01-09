@@ -1,0 +1,468 @@
+// trees.cxx
+
+#include <stdio.h>
+
+#include "classes.h"
+#include "family.h"
+#include "trees.h"
+#include "gui.h"
+#include "objects.h"
+#include "strings.h"
+#include "tags.h"
+
+////////////////////////////////////////////////////////////////////////////////
+// class treeinstance
+
+treeinstance::treeinstance() :
+  next (NULL),
+  previous (NULL),
+  filename (NULL),
+  first_id (NULL),
+  last_id (NULL),
+  indicount (0),
+  maxINDIid (-1),
+  famcount (0),
+  maxFAMid (-1),
+  sourcount (0),
+  maxSOURid (-1),
+  repocount (0),
+  maxREPOid (-1),
+  modified (false)
+{
+  // build the minimal empty tree structure
+  rootobject = new GEDCOM_object( root_tag );
+  rootobject->add_subobject( headlist = new GEDCOM_object( heads_tag ));
+  rootobject->add_subobject( indilist = new GEDCOM_object( indis_tag ));
+  rootobject->add_subobject( famslist = new GEDCOM_object( fams_tag ));
+  rootobject->add_subobject( sourlist = new GEDCOM_object( sours_tag ));
+  rootobject->add_subobject( repolist = new GEDCOM_object( repos_tag ));
+  rootobject->add_subobject( trlrlist = new GEDCOM_object( trlrs_tag ));
+  firstview = new mainUI(this); // is this required ?
+  statsbox = new statsUI(this);
+//  printf("treeinstance instanciated tree at %d\n",(int)root);
+}
+
+treeinstance::~treeinstance() {
+mainUI * view;
+mainUI * eyesore;
+  eyesore = firstview;
+  while (eyesore != NULL) {
+    view = eyesore->getnext();
+    delete eyesore;
+    eyesore = view;
+  }
+  delete statsbox;
+  delete rootobject; // which must call the destructors for the subobjects
+  // and all the things those subobjects point to *uniquely*
+}
+
+treeinstance * treeinstance::getnext() const {
+  return next;
+}
+
+void treeinstance::setnext( treeinstance * newinstance ) {
+  next = newinstance;
+}
+
+treeinstance * treeinstance::getprevious() const {
+  return previous;
+}
+
+void treeinstance::setprevious( treeinstance * newinstance ) {
+  previous = newinstance;
+}
+
+// methods for loading and saving GEDCOM
+
+GEDCOM_object* treeinstance::getGEDCOMline(
+    FILE        *in,
+    GEDCOM_tag **tag,
+    int         *level,
+    const int    maxlevel) {
+
+char line[MAX_GEDCOM_line];
+char *tok;
+char id[32];
+char xref[32];
+char value[MAX_GEDCOM_line];
+GEDCOM_object* object;
+
+  if (fgets( line, MAX_GEDCOM_line-1, in ) == NULL) {
+    // already checked eof, so could mean an error,
+    // or simply a non-terminated last line ?
+    return NULL;
+  }
+  tok = strtok(line, " "); // this ignores leading spaces which GEDCOM
+    // shouldn't have, but which we should be able to cope with (and ignore).
+
+  // return a null pointer for a blank line
+  if (tok == NULL) return NULL;
+
+  // first token should always be a level number. If we can't decode a
+  // number from it, choose to ignore the line
+  { int i;
+    if (sscanf(tok, "%d", &i) != 1) return NULL;
+    *level = i;
+  }
+
+  // next token might be an id or the tag
+  tok = strtok(NULL, " \n");
+
+  // is it an id ? starts with '@' if it is
+  if (*tok == '@') {
+    // drop a null over the trailing '@', then copy minus the first char
+    *(tok+strlen(tok)-1)='\0';
+    strcpy( id, tok+1);
+    // get another token, which must be the tag
+    tok = strtok(NULL, " \n");
+  } else id[0] = '\0';
+
+  // at this point we must have the tag for this line
+  // look it up (or add it to the list) returning a GEDCOM_tag pointer
+
+  *tag = GEDCOM_tagfromname( tok );
+
+  // any more on this line ?
+  tok = strtok(NULL, "\n");
+  if (tok == NULL) {
+    // no cross-reference and no text value
+    xref[0] = '\0';
+    value[0] = '\0';
+  } else {
+
+    // rest of line could be a cross-reference or a string value
+    if (*tok != '@') xref[0]='\0';
+    else {
+      // still not that simple - could be an escape to processing, is next an '#' ?
+      if (*(tok+1) == '#') xref[0]='\0';
+      else {
+        // for an xref, drop a null on the last '@' and copy without the first
+        *(tok+strlen(tok)-1)='\0';
+        strcpy( xref, tok+1);
+        // I think there should never be a text value here, but no harm to
+        // check (I've seen SOUR objects that have text...)
+        tok = strtok(NULL, "\n");
+      }
+    }
+    if (tok == NULL) value[0] = '\0'; else strcpy( value, tok );
+  }
+  if (*level>maxlevel) {
+    printf("fl_message: error bad level in %d @%s@ %s @%s@ %s\n",
+      (*level), id, (*tag)->GEDCOM_namefromtag(), xref, value);
+    return NULL; // ignore that line
+  }
+  if (xref[0]!='\0') {
+      // printf("found a GEDCOM line with an xref of %s:\n", xref);
+      object = new GEDCOM_object( *tag, this->GEDCOM_idfromref( xref ) );
+      // object->outline( stdout, *level );
+      }
+  else {
+    if (id[0]!='\0') {
+      object = new GEDCOM_object( this->GEDCOM_idfromref( id ), *tag );
+    }
+    else
+      object = new GEDCOM_object( *tag, value );
+      // the constructor will spot if value is a null string
+  }
+  if (id[0] != '\0') {
+    if (this->GEDCOM_objectforref( id, object ) != 0) {
+      printf("object has same id %s as a previous object\n",id);
+      // but carry on anyway - is this wise ? at least we get to report
+      // all such errors before bombing out ...
+    }
+  // potentially that error could happen if someone managed to import
+  // eg. 0 @I345@ FAM  or 0 @F123@ INDI but all IDs are unique in a
+  // given GEDCOM, and internal checks in GEDCOM_id should ensure we
+  // never create a conflict, so I reckon we are OK. The other situation
+  // would be if we merged-on-load, but X!Family is intending to prevent
+  // this by only allowing merging of two trees in memory in separate
+  // main window instanciations - it would allocate new ids for all
+  // the objects in one of the trees, thus avoiding possible clashes
+  }
+  return object;
+}
+
+void treeinstance::loadGEDCOMfile( const char * newfile ) {
+
+FILE* in;
+
+  filename = (char *) newfile; // just discard const-ness
+  printf("set filename for tree to %s\n",filename);
+  if (( in = fopen(filename, "r")) == NULL) {
+    printf("fl_alert msg_fileopenfail");
+    // no harm - just return with an empty tree
+    filename = NULL;
+  }
+
+  int level;
+  int levelnow[6] = { -1, -1, -1, -1, -1, -1 };
+  int currlist = 0;
+  char id[32];
+//  char tag[MAX_TAG];
+  char xref[32];
+  char value[MAX_GEDCOM_line];
+
+  GEDCOM_object *SubTl[6][MAX_GEDCOM_levels];
+  for (int i=0;i<MAX_GEDCOM_levels;i++) {
+    for (int j=0;j<6;j++) SubTl[j][i] = NULL; }
+  SubTl[0][0] = headlist;
+  SubTl[1][0] = indilist;
+  SubTl[2][0] = famslist;
+  SubTl[3][0] = sourlist;
+  SubTl[4][0] = repolist;
+  SubTl[5][0] = trlrlist; // not really the trailer, but anything we
+         // don't understand which will get put at the end just before TRLR
+  GEDCOM_object *object;
+  GEDCOM_tag *thistag;
+  while (!feof( in )) {
+    object = this->getGEDCOMline( in, &thistag, &level, levelnow[currlist]+1 );
+    if (object==NULL) continue; // ignore blank or incomprehensible lines
+
+    if (level == 0) {
+      // can't use switch 'cos cases must be int constants, how pathetic
+      if (thistag==HEAD_tag)   currlist = 0; else
+      if (thistag==INDI_tag) { currlist = 1; indicount++; } else
+      if (thistag==FAM_tag)  { currlist = 2;  famcount++; } else
+      if (thistag==SOUR_tag) { currlist = 3; sourcount++; } else
+      if (thistag==REPO_tag) { currlist = 4; repocount++; } else
+       currlist = 5;
+    }
+    if (level == levelnow[currlist] + 1)
+      SubTl[currlist][levelnow[currlist]+1]->add_subobject( object );
+    else
+      SubTl[currlist][level]->chain_object( object );
+    levelnow[currlist] = level;
+    SubTl[currlist][level] = object;  // object->next will get set for same level
+    SubTl[currlist][level+1] = object;// object->sub will get set for a sub
+    SubTl[currlist][level+2] = NULL;  // we will spot an error for an oversub
+  } // endwhile
+  // now at end of file, so we are effectively finished
+  fclose( in );
+}
+
+void treeinstance::setfilename( char* newfile ) {
+  filename = newfile;
+}
+
+void treeinstance::save() const {
+
+FILE* out;
+int   level = -2;
+
+  if ((out = fopen( filename, "w" )) == NULL) {
+    printf("fl_alert msg_outopenfail");
+  }
+  rootobject->output( out, level );
+  fclose(out);
+}
+
+char* treeinstance::getfilename() const {
+  return filename;
+}
+
+// methods for extracting stats
+
+int treeinstance::getindicount() const {
+  return indicount;
+}
+
+int treeinstance::getmaxindi() const {
+  return maxINDIid;
+}
+
+int treeinstance::getfamcount() const {
+  return famcount;
+}
+
+int treeinstance::getmaxfam() const {
+  return maxFAMid;
+}
+
+int treeinstance::getsourcount() const {
+  return sourcount;
+}
+
+int treeinstance::getmaxsour() const {
+  return maxSOURid;
+}
+
+int treeinstance::getrepocount() const {
+  return repocount;
+}
+
+int treeinstance::getmaxrepo() const {
+  return maxREPOid;
+}
+
+// methods for traversing/maintaining GEDCOM structures
+
+GEDCOM_id* treeinstance::add_id( char *ref ) {
+// program code should never need to call this - always use idfromref
+// or objectforref to create a new id
+
+GEDCOM_id* newid = new GEDCOM_id( ref );
+  if (first_id==NULL)
+    first_id = newid;
+  else
+    last_id->setnext( newid );
+  last_id = newid;
+  // I don't believe it ! How could this code ever, ever, ever have worked
+  // without this line:
+  return newid;
+  // but it did - for months, until a new compiler was pedantic ...
+// but we also need to keep track of the highest number used for IDs
+// of the form Innn, Snnn, Fnnn, Rnnn used for individuals, sources,
+// families and repositories. We must support arbitrary references
+// in imported GEDCOM, but generate our own on that scheme and not
+// create any duplicates (though we may leave gaps)
+}
+
+void treeinstance::drop_id( GEDCOM_id* oldid ) {
+GEDCOM_id *previd,*tryid;
+  if (first_id==NULL) { /* empty list - an error */ }
+  if (first_id==oldid) {
+    first_id = oldid->getnext();
+  } else {
+    previd = first_id;
+    while ((tryid = previd->getnext())!=oldid) {
+      previd = tryid;
+      if (previd==NULL) { /* id not found - an error */ }
+    }
+    previd->setnext( oldid->getnext() );
+  }
+  delete oldid;
+}
+
+int treeinstance::GEDCOM_objectforref( char *ref, GEDCOM_object *obj ) {
+// we have an object and an @id@ which should point to it (*not* an @ref@)
+// so we want to find the GEDCOM_id  (or create it if necessary) and
+// point it at the object. We also point the object at the id.
+// but not if the id is already pointing at another object
+
+  GEDCOM_id *found = this->GEDCOM_idfromref( ref );
+  // that can never return NULL, as it would simply create a new id
+  // but it might find an id which already references an object:
+  int i = found->GEDCOM_setobjectforid( obj );
+  if (i==0) obj->setid( found );
+  return i;
+}
+
+GEDCOM_id* treeinstance::GEDCOM_idfromref( char *ref ) {
+  GEDCOM_id *link = first_id;
+  while (link!=NULL) {
+    if ( strcmp(link->GEDCOM_idname(),ref) == 0) return link;
+    link = link->getnext();
+  }
+return this->add_id( ref );
+}
+
+GEDCOM_object* treeinstance::GEDCOM_objectfromref( char *ref ) {
+  return this->GEDCOM_idfromref( ref )->GEDCOM_objectfromid();
+}
+
+GEDCOM_object* treeinstance::Lookup_INDI( char* name ) const {
+
+GEDCOM_object *trythis;
+GEDCOM_object *nameobj;
+
+// first try the hash, which we will write shortly ...
+
+// then try scanning the whole list. Since we have no control over GEDCOM
+// files from outside, we can't assume the INDIs are sorted alphabetically
+
+//  printf("Lookup_INDI called for %s\n",name );
+  trythis = indilist->subobject();
+  while (trythis!=NULL) {
+    nameobj = trythis->subobject( NAME_tag );
+    if (nameobj != NULL) {
+      if (strcoll( name, nameobj->value() ) == 0 ) return trythis;
+    }
+    else
+      // strictly, this is broken GEDCOM. We have two possible strategies:
+      // 1) ignore it
+      // 2) raise some sort of error
+      //  in practice we will do (1) for now
+      // you might also like to think what happens if someone has two NAME
+      // objects. I think this is the correct way to do aliases ?
+      { printf("didn't find the name object\n"); }
+    trythis = trythis->next_object();  // shouldn't need to specify ( INDI_tag )
+    // because all the objects chained from indilist are INDI
+  }
+//  printf("Failed to find person %s\n",name);
+return NULL; // up to caller to decide what to use instead
+}
+
+// !Family compatability
+
+GEDCOM_object* treeinstance::noted_current() const {
+
+// a GEDCOM file loaded from !Family will have a level 0 NOTE (which will
+// therefore be in the TRLR list from TRLRs[instance]) containing the word
+// "Person" followed by a name, which we should look up using Lookup_INDI
+// This routine returns a pointer to the GEDCOM object holding that person,
+// or, if there was no such note, the first person in the file. It is up to
+// the caller to decide whether to set as current person the value returned
+
+GEDCOM_object* trythis;
+char* searchname;
+
+  trythis = trlrlist->subobject( NOTE_tag );
+  while (trythis != NULL) {
+    if ( strncmp( searchname=(trythis->value()), "Person ", 7)==0 )
+      return this->Lookup_INDI( searchname+7 );
+    trythis = trythis->next_object( NOTE_tag );
+  }
+  return indilist->subobject();
+  // default (since we must have a current person) is first in file
+  // hmmm. What about when we have an empty tree ? That is how we start off...
+  // perhaps we should now create the level 0 NOTE for that person ? Otherwise,
+  // there is trouble in store when we do a save, trying to destroy the 0 NOTE
+  // we imagine we have, in order to create the new one. That would lose our
+  // const-ness
+}
+
+// access to windows dealing with this tree:
+
+mainUI* treeinstance::mainui() const {
+  return firstview;
+}
+
+statsUI* treeinstance::statsui() const {
+  return statsbox;
+}
+
+void treeinstance::addview( mainUI* newview ) {
+  newview->setnext( firstview );
+  firstview = newview;
+}
+
+void treeinstance::reopen() {
+mainUI * view;
+bool redraw;
+
+  view = firstview;
+  while (view != NULL) {
+    if (redraw=(view->window->shown())) view->hide();
+    // FIXME: window should not be public
+    view->settitle();
+    if (redraw) view->show();
+    view = view->getnext();
+  }
+  if (statsbox->shown()) {
+    statsbox->hide();
+    // should we set the values for the statsbox here ? No ! we need
+    // to be setting them every time we change them, and we don't change
+    // them here, so it would be inappropriate
+    statsbox->show();
+  }
+}
+
+void treeinstance::setevent( GEDCOM_object * eventobject ) {
+  lastevent = eventobject;
+}
+
+GEDCOM_object * treeinstance::geteventobject() const {
+  return lastevent;
+}
+
+

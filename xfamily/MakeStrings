@@ -1,0 +1,5 @@
+|> MakeStrings
+dir <Obey$Dir>
+RUN StringFactory
+RUN TagFactory
+Back

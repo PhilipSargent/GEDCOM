@@ -1,0 +1,522 @@
+en, fr
+English, Français
+
+nomsg
+en::No message file for this language
+fr::Pas fichier des messages pour cette langue
+
+ok
+en,fr::OK
+
+cancel
+en::Cancel
+fr::Annulez
+
+apply
+en::Apply
+fr::Appliquez
+
+save
+en::Save
+fr::Sauvez
+
+clear
+en::Clear
+fr::Effacez
+
+restore
+en::Restore from GEDCOM
+fr::Restituez de GEDCOM
+
+saveto
+en::Save back to GEDCOM
+fr::Sauvez au GEDCOM
+
+oksave
+en::OK (Save and close)
+fr::OK (Sauvez et Fermez)
+
+window_title
+en::X!Family
+fr::X!Famille
+
+in
+en::in
+fr::en
+
+untitled
+en::untitled
+
+notes_title
+en::X!Family
+fr::X!Famille
+
+unnamed
+en::<unnamed>
+fr::<anonyme>
+
+info_title
+en::About this program
+fr::À propos de cette programme
+
+menu_file
+en::File
+fr::Fichier
+
+menu_load
+en::Load
+fr::Ouvrez
+
+menu_save
+en::Save
+fr::Sauvez
+
+menu_saveas
+en::Save as ...
+fr::Sauvez comme ...
+
+menu_print
+en::Print
+fr::Imprimez
+
+menu_newview
+en::New View
+fr::Nouvelle vue
+
+menu_discard
+en::Discard
+fr::Défaussez
+
+menu_stats
+en::Statistics
+fr::Statistiques
+
+menu_quit
+en::Quit
+fr::Quittez
+
+menu_folk
+en::People
+fr::Personnes
+
+menu_add
+en::New ...
+fr::Nouveau ...
+
+menu_goto
+en::Find ...
+fr::Allez à ...
+
+menu_reports
+en::Reports
+fr::Rapports
+
+menu_repstd
+en::Standard
+fr::Normale
+
+menu_repfam
+en::Family groups
+fr::Familles
+
+menu_repweb
+en::Web Pages ...
+fr::Pages de la WWW ...
+
+menu_settings
+en::Settings
+fr::Préférences
+
+menu_lang
+en::Language
+fr::Langue
+
+menu_choices
+en::Choices ...
+fr::Choix ...
+
+menu_savech
+en::Save Choices
+fr::Sauvez Choix
+
+help
+en::Help
+fr::Aide
+
+menu_intro
+en::Introduction
+
+menu_mainUI
+en::Main window
+
+menu_indiUI
+en::Person dbox
+
+menu_famUI
+en::Family events dbox
+
+menu_prefUI
+en::Choices dbox
+
+menu_GEDCOM
+en::GEDCOM files
+fr::Fichiers GEDCOM
+
+menu_about
+en::About
+fr::Info
+
+menu_edit
+en::Edit
+fr::Modifiez
+
+menu_notes
+en::Notes
+fr::Rémarques
+
+menu_marry
+en::Marry
+fr::Mariez
+
+menu_older
+en::Older
+fr::Plus ancien
+
+menu_earlier
+en::Earlier
+fr::Antérieure
+
+menu_child
+en::Child
+fr::Enfant
+
+menu_remove
+en::Remove
+fr::Effacez
+
+menu_unmarry
+en::Unmarry
+fr::Effacez mariage
+
+menu_indreps
+en::Reports
+fr::Rapports
+
+menu_ancs
+en::Ancestors
+fr::Ancêtres
+
+info_name
+en::Name
+fr::Nom
+
+info_author
+en::Author
+fr::Autor
+
+info_version
+en,fr::Version
+
+info_purpose
+en::Purpose
+fr::But
+
+appname
+en::X!Family
+fr::X!Famille
+
+author
+en,fr::© A.E.R.Waddington, 2000
+
+version
+en::v 0.11 alpha 2000-09-13 en-gb
+fr::v 0.11 alpha 2000-09-13 fr
+
+purpose
+en::Family Tree Editor
+fr::Editeur pour Arbre Généalogique
+
+indi_title
+en::X!Family edit 
+fr::X!Famille modifiez
+
+fam_title
+en::X!Family family events
+fr::X!Famille événements de famille
+
+anonymous
+en::<unnamed>
+fr::<anonyme>
+
+newperson
+en::<new person>
+fr::<nouvelle personne>
+
+name
+en::Name
+fr::Nom
+
+title
+en::Title
+fr::Titre
+
+event_date
+en,fr::Date
+
+event_time
+en::Time
+fr::Temps
+
+event_place
+en::Place
+fr::Lieu
+
+event_site
+en,fr::Site
+
+event_plot
+en,fr::Plot
+
+event_cause
+en,fr::Cause
+
+birth
+en::Birth
+fr::Naissance
+
+chr
+en::Christening
+fr::Nommant chrétien
+
+bapm
+en::Baptism
+fr::Baptême
+
+death
+en::Death
+fr::Mort
+
+crem
+en::Cremation
+fr::Crémation
+
+buri
+en::Burial
+fr::Enterrement
+
+gender
+en::Gender
+fr::Sexe
+
+male
+en::Male
+fr::Mâle
+
+female
+en::Female
+fr::Femelle
+
+unknown
+en::Unknown
+fr::Inconnu
+
+living
+en::Living
+fr::Vivant
+
+indi_ma
+en::Mother
+fr::Mère
+
+indi_pa
+en::Father
+fr::Père
+
+husband
+en::Husband
+fr::Mari
+
+wife
+en::Wife
+fr::Femme
+
+engage
+en::Engagement
+
+marry
+en::Marriage
+fr::Mariage
+
+divorce
+en,fr::Divorce
+
+newfamily
+en::<new family>
+fr::<nouvelle famille>
+
+find_title
+en::X!Family Search tree for person
+fr::X!Famille Cherchez pour personne
+
+find
+en::Goto:
+fr::Allez à:
+
+stats_title
+en::X!Family Statistics
+fr::Statistiques X!Famille
+
+stats_file
+en::GEDCOM File      :
+fr::Fichier GEDCOM  :
+
+stats_indis
+en::Individuals:
+fr::Personnes:
+
+stats_max_indi
+en,fr::Maximum INDI Id:
+
+stats_fams
+en::Families:
+fr::Familles:
+
+stats_maxfam
+en,fr::Maximum FAM Id:
+
+stats_srcs
+en::Information Sources
+fr::Sources d'information
+
+stats_max_src
+en,fr::Maximum SOUR Id:
+
+stats_repos
+en::Information Repositories
+fr::Répertoires d'information
+
+stats_max_repo
+en,fr::Maximum REPO Id:
+
+prefs_title
+en::X!Family preferences
+fr::X!Famille préférences
+
+prefs_names
+en::Names
+fr::Noms
+
+prefs_famnames
+en::Always show family names
+fr::Montrez les noms des familles
+
+prefs_titles
+en::Show titles
+fr::Montrez titres
+
+prefs_dates
+en::Displayed dates
+fr::Dates Montrées
+
+prefs_treedates
+en::Show dates on tree
+fr::Montrez dates sur arbre
+
+prefs_including
+en::including ...
+fr::montrez ...
+
+prefs_spousedates
+en::Show spouse's dates
+fr::Dates des conjoint(e)s
+
+prefs_marrydates
+en::Show wedding dates
+fr::Dates des mariages
+
+prefs_yearonly
+en::Show just year on tree
+fr::Montrez année seulement
+
+prefs_dateformat
+en::Date formats ...
+fr::Format des dates ...
+
+prefs_gedcom
+en::GEDCOM dates
+fr::Dates GEDCOM
+
+prefs_iso
+en::ISO-8601 dates
+fr::Dates ISO-8601
+
+prefs_misc
+en::Miscellaneous
+fr::Options diverses
+
+prefs_xref
+en::Xref errors:
+fr::Erreurs des renvois:
+
+prefs_xrefquit
+en::Abandon load
+fr::Abandonnez
+
+prefs_xrefwarn
+en::Warnings
+fr::Avertissements
+
+prefs_xrefignore
+en::Ignore silently
+fr::Passez en silence
+
+prefs_repdates
+en::Report datestamp format:
+fr::Format des dates sur Rapports:
+
+prefs_repgedcom
+en,fr::GEDCOM
+
+prefs_repiso
+en,fr::ISO-8601
+
+prefs_replocal
+en::As Locale
+fr::Localité
+
+prefs_repother
+en::Other:
+fr::Autre:
+
+gpl_box
+en::The X!Family Genealogical Package version 0.11 Copyright © 2000 by Andy Waddington.\n
+Based loosely on !Family for RISC OS originally developed by Denis Howe.\n
+\n
+This package is free software: you can redistribute it and/or modify it under the terms of\n
+the GNU General Public License as published by the Free Software Foundation; either\n
+version 3 of the license, or (at your option) any later version.\n
+\n
+This software is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;\n
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR\n
+PURPOSE. See the GNU General Public License for more details.\n
+\n
+You should have received a copy of the GNU General Public License\n
+along with this software: if not, write to the Free Software Foundation, Inc.,\n
+59 Temple Place, Suite 330, Boston. MA 02111-1307 USA\n
+Please report faults to family-maint@pennine.demon.co.uk
+fr::Le progiciel généalogique "X!Famille" version 0.11. Propriété © 2000 par Andy Waddington.\n
+Basé vaguement sur !Family pour RISC OS, écrit par Denis Howe.\n
+\n
+Ce programme est libre, vous pouvez le redistribuer et/ou le modifier selon les termes\n
+de la Licence Publique Générale GNU (GNU-GPL) publiée par la Free Software Foundation\n
+(version 3 ou bien toute autre version ultérieure choisie par vous).\n
+\n
+Ce programme est distribué car potentiellement utile, mais SANS AUCUNE GARANTIE, ni\n
+explicite ni implicite, y compris les garanties de commercialisation ou d'adaptation dans\n
+un but spécifique. Reportez-vous à la Licence Publique Générale GNU pour plus de détails.\n
+\n
+Vous devez avoir reçu une copie de la GNU-GPL en même temps que ce\n
+programme; si ce n'est pas le cas, écrivez à la Free Software Foundation,\n
+Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, États-Unis.\n
+Denoncez fautes à family-maint@pennine.demon.co.uk 
+

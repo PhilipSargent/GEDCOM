@@ -1,0 +1,41 @@
+|>Changes011
+
+Changes in v 0.11
+
+2000.09.13 added various casts to stop errors from pedantic new ANSI C++
+           unchanged v 0.10 code would not compile on Mandrake 7.1 system
+           also needed an extra -I in CXXFLAGS to find <string>
+2000.09.13 tree.cxx: fixed bug in treeinstance::add_id where old compiler
+           had invented code to do the right thing when I had missed it
+           out. New compiler requires me to actually return a value :-(
+2000.09.13 gui.cxx, gui.h, callback.cxx, callback.h, MessageSrc and its
+           derivatives: added "Help" buttons to indiUI, famUI and prefUI
+           boxes. As yet the callback routines don't do anything...
+2000.09.13 same files again: added extra items to main window Help menu
+           which will (in due course) shell out to a help browser
+2000.09.15 makeinclude: now statically linked with fltk 1.09 (not 1.06).
+           Seems to have fixed the "window reopens shifted down" problem
+           under KDE. Need to check its gone under Gnome too...
+2000.09.15 gui.cxx, gui.h: added "Child" menu item to both popups, and
+           "GEDCOM" item to help menu
+2000.09.15 callback.cxx: first attempt to shell out to help browser makes
+           assumption that we can use khelpcenter. Now working for this,
+           and demonstrated with gnome-help-browser, but still don't how
+           to find which desktop we are under to choose. (This means it doesn't
+           currently work under KDE 1.1 as we have hard coded "khelpcenter")
+2000.10.30 a family with a known mother but no name for father showed up
+           _two_ bugs, one causing a core dump. That was a bug in
+           thespouseof(), the other was in settop(), in that the wrong
+           pointer was being used to look for a mother.
+2000.11.12 new GEDCOM_object( GEDCOM_tag*, char* ) now splits the new
+           object using the CONC tag if the string is longer than MAX_GEDCOM_text
+           characters. This will occur even if the file being read in has longer lines
+           than that (the GEDCOM Spec. allows up to 256 char lines).
+2000.11.12 improved handling of concatenation of CONC lines when loading NOTE
+           or TEXT objects into a notesUI window.
+2000.11.12 added first editing functionality - can now save notes window back to
+           GEDCOM: added GEDCOM_object::remove_subobject.
+2000.11.13 added "Restore from GEDCOM" and "OK (save and close)" buttons to notesUI
+           fixed missing menu item "unmarry" on fammenu (long standing bug just noticed)-:
+           NB messages file changed from earlier v011.
+

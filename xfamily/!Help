@@ -1,0 +1,133 @@
+Help structure:
+
+Issues:
+
+1) how does program know what browser to invoke for help ? If it was a
+KDE specific program it could invoke khelpcenter (under KDE 2), but if it
+is under KDE 1 it is something different, and different again under Gnome.
+2) How does the install script know where to put the help files ? Their
+location varies for each of the above help browsers.
+
+The help menu will look like
+
+Help:                <- probably need a Contents too
+ Overview
+ Introduction
+ Main Window
+ Edit Person dbox
+ Edit marriage dbox
+ Notes windows       <- oops, missed this one out
+ Preferences
+ -----------
+ About
+
+The Overview will say what the program is for
+                      what type of files it uses
+                      what systems it runs on
+"Installation" will not appear in the help menu, since by the time
+               you can see that, you have presumably installed it
+                      how to obtain new versions
+                      how to install the version you have
+Introduction will     describe how family trees are linked ...
+                      hmmm, not sure we need an intro as well as an
+                      overview.
+The main window       will describe the display and how to move about
+                      will describe the drop-down menus
+                      will describe the pop-up "Person" menu
+                      will describe the pop-up "Marriage" menu
+
+OK, then what about a first-time user who hasn't *got* a GEDCOM to
+modify ? They will need to use People->New first to get an Edit person
+dbox, which they will need to know about before they even see the
+pop-up menus.
+
+Next, where are you going to have the "add child" menu item ?
+Logically it belongs on the marriage pop-up. But we create implicit
+marriages to unknown spouses (with no INDI record) when we add one
+parent to a person. We need to be able to "add child" to create the
+same structure, and at that point there is no marriage to click on.
+
+So for an *unmarried* person we need to have "add child" on the *person*
+menu, but for a *married* person, it needs to be on the "marriage" menu.
+
+But this is still not adequate. If we know that X was the son of Y,
+before he married Z and had family A,B,C ... we may find we want to
+add X as a child of Y, *outside* the marriage Y=Z. Currently we can't
+do this in !Family either except by marrying Y to dummy, adding a child
+to that marriage ... ah, but we can (and maybe its a bug, I'm not sure)
+
+Create Adam married to Bunny, and add a child Clara. Now click on Adam,
+add child and delete Bunny from the "mother" field of the edit Dbox.
+Call the child Dennis. Click OK. Dennis is now the son of a marriage
+with no specified mother and that marriage is inserted **before**
+Adam=Bunny. Very odd, because if we tried to do this by marrying Adam
+to a dummy wife Edith, adding Dennis and then deleting Edith, we would
+get Adam->Dennis from a second marriage after Adam=Bunny.
+
+All of which reminds us of the need to add a menu item for making a
+marriage earlier than another one (ie. swap the order of the FAMS
+tags for an INDI) Do this to !Family too !!
+
+Ah, and another thing. If you menu on Adam, and open the =>Marriage
+submenu, there is only Bunny. The tree "knows" that another marriage
+(in the sense of a FAM tag) exists, but it doesn't appear on the
+menu, so how could you do a "make this earlier" on it ?
+
+At least in X!Family, there is an "=" sign and its pop-up menu
+refers to the relevant FAM object. You can edit it (so you could
+know the date and place of a wedding without knowing the name of
+one spouse, for example). This menu could indeed have a "make earlier"
+item on it.
+
+However, you still have to be able to "add child" to an unmarried person in
+order to create a marriage without a spouse.
+
+This seems to have strayed off the point rather a lot
+
+So whilst we are there (off the point) what about cases where we know a person
+married, and know some fact about it that we want to record in a MARR tag -
+such as knowing the date a person married, but not knowing how to. To have
+the MARR tag, you need a FAM object. But with only a WIFE or HUSB tag, no
+other person. In !Family, the FAM object would be automatically deleted in
+this case, and you would have to have a "dummy" individual in the GEDCOM.
+
+---------------------------------------------------------------
+
+Typical layout of KDE help documents:
+
+The <app> Handbook
+
+Version
+Last updated
+
+<author>
+<email>
+
+Principal Developer:
+<other acks>
+
+Copyright © 2000 by 
+
+This handbook describes <app> version
+
+<app> is a thing for KDE n.n
+
+<hr>
+
+Table of Contents
+1. Intro
+
+etc.
+
+
+Each major section is a page, and each minor section hits an
+anchor within the page. Sometimes. OK, KWrite 2. and 2.1 are on the
+same page, then 2.2 is a new page, as is 2.3. So, in fact N and N.1
+are on the same page, but N.(n>1) are on separate pages
+
+1.1 seems typically to be installation (which is quite
+unreasonable), but is often abbreviated to a short comment like:
+
+<app> is packaged as part of the <package> package. For more information
+on installing and compiling KDE please see www.kde.org
+

@@ -1,0 +1,27 @@
+# where to find ...
+
+prefix		=/usr/local
+exec_prefix	=$(prefix)
+bindir		=$(exec_prefix)/bin
+includedir	=$(prefix)/include
+libdir		=$(exec_prefix)/lib
+srcdir		=.
+XHOME		=/usr/X11R6
+# <string> etc. now seem to live here:
+gppinclude	=/usr/include/g++
+
+# compiler names
+
+CXX		=c++
+CC		=gcc
+MAKEDEPEND	=$(CXX) -M
+
+# flags for C++ compiler:
+CFLAGS		= -O2 -Wall -I$(XHOME)/include
+CXXFLAGS	= -O2 -Wall -Wno-return-type -I$(XHOME)/include -I$(gppinclude)
+
+# libraries to link with
+LDLIBS		= -L$(XHOME)/lib -lX11 -lXext -lm
+GLDLIBS		= -L$(XHOME)/lib -lX11 -lXext -lm
+
+
