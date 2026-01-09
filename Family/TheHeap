@@ -34,30 +34,17 @@ This is all a bit hit and miss...
 
 Problems:
 
-Because the only pointer is the word at the beginning of a block which
-says how big it is, all we have is a chain of all blocks, and we have to
-look at each to see if it is free - there is no free chain, so
-
-1) Finding a free heap block involves searching the
+there is no free chain - finding a free heap block involves searching the
 entire chain of blocks, free or used, starting from the Free pointer,
 which could well point to a freed block very near the beginning of the
 heap. This is very inefficient.
 
-2) the free pointer is not guaranteed to point to a free block, nor can all
+the free pointer is not guaranteed to point to a free block, nor can all
 free blocks be found by starting from it
 
 amalgamation of free blocks is not done until a block is being searched for.
 This may be a time saving measure, but would need fixing before the above two
-problems are properly solvable. Fixing it is presumably fairly easy - whenever
-we free a block, we should check if hte block following it is free, and if
-so, amalgamate them. If we do this every time, then we don't need to check
-the next block because we are ensuring that no adjacent blocks are EVER both
-free except at the moment that one has been freed.
-
-Ah, but ... no. If we free a block and the _preceding_ block is also free, we
-have no way to amalgamate because we have no pointer back to it. Drat. We
-really do need a free chain to do this. And to do that adds a four-byte per
-block overhead.
+problems are properly solvable.
 
 Plus points:
 
@@ -96,7 +83,7 @@ two pointers:
 For a free block:  length, pointer to next free block
 For a used block:  length, pointer to previous used block
 
-In !Family, each of our heap blocks is less than 80 bytes (and many are
+In !Family, each of our heap blocks in less than 80 bytes (and many are
 much less [the average line length in Kin16e is 23.2 chars, of which
 "0 Atag" are never put on the heap (but lines which comprise just a tag
 are GEDCOM objects with no string associated).
@@ -104,7 +91,7 @@ are GEDCOM objects with no string associated).
 So the string component of a GEDCOM line is probably mid twenties, and
 a GEDCOM object is 20 bytes, a display structure a bit smaller. Lets be
 optimistic and say the average sized heap item is 28 bytes long. So it
-needs 32 heap bytes now and will need 36 bytes in the new scheme. A 12ï¿½%
+needs 32 heap bytes now and will need 36 bytes in the new scheme. A 12½%
 increase in memory usage. That's quite a hit - it will need to show a
 significant speed up to be worth it on older machines with not a lot
 of memory to play with.
@@ -143,243 +130,3 @@ a raw pointer to an INDI object.
 
 So we cannot safely call DelObj on TopChil - we need to call FreeOb on the
 first (and only) subobject of TopChil, then just call Free on TopChil itself.
-
-=============================================================================
-
-Strategy:
-
-start splitting out major areas of functionality into libraries, and
-document the API - what calls should be available to callers, and what
-are intended for internal use only ?
-
-Bottom level - heap code
-
-Next level - allocation of GEDCOM objects
-
-What have we done already ?
-
-We already rewrote some heap code, so we could add to the Wimp slot
- and some more new heap code to use OS_Heap
-The first lot is permanently part of the system, the second is optional.
-This is controlled by UseNewHeapCode%, which gets set by the -newheap
- CLI switch, need to set "-newheap <number>" not just "-newheap". I have
- fixed this to whinge if used incorrectly.
--newheap 1    uses own heap manager (HeapLibV1)
--newheap 2    uses system heap manager (HeapLibV2 calling OS_Heap)
-
-HeapLibV2 was a shambles, but now seems to be fixed OK. HeapLibV1 has an
-odd way of going about using HIMEM, so that it doesn't have a PROCInitHeap.
-But the way HeapLibV2 does it seems more sensible, and is quite compatible,
-except that the initial slot size determines the amount of space for variables,
-and *all* the heap is obtained by extending the wimpslot once running. The
-older code allocates a fixed space for variables (VarSize%) and the rest of
-the Wimpslot to the heap.
-
-Major test now is to see if the memory leak still exists in the OS_Heap
-version. If so, it must be in the next higher level of memory management
-(which is the most likely). Comments on PROCSetSub indicate that this is
-a likely source of leakage (it may not be the only one, of course).
-
-The line:
-
-  IF Single% THEN S%!ObVal%=Val%:Modified%=TRUE:ENDPROC
-
-Will destroy the previous value of S%!ObVal%, which was the pointer
-to a string on the heap (which we already know is a different string
-from the one we are now pointing to). Are we quite sure that this
-pointer is to a string which we allocated with FNString(S$) in the
-heap code ? If so, then our solution is going to be to implement a
-reference count on all such strings by changing FNString
-
-DEF FNString(S$)
-LOCAL A%
-IF S$="" THEN=0
-A%=FNAlloc(LEN(S$)+5)
-!A%=1
-A%+=4
-$A%=S$
-=A%
-
-Now !(A%-4) contains a reference count. This is fine, as long as we find
-all the code that adds a reference to such a string and make it increment
-the reference count, and all the code that removes a reference to such a
-string and decrements the reference count. And frees the string if the
-refcount goes to zero. Writing new code from scratch, that would not be
-too hard, becauae you would provide methods to stop the user from
-adding the pointer to other objects without incrementing, and so on,
-but as a retrofit to spaghetti code, it's a little harder. However, in
-an initial implementation you would NOT add any code to free the string,
-just to note that the refcount had reached zero and that a memory leak
-was incurred. You might also add code to alert you if an attempt was
-madde to decrement the reference count when it was already zero (which
-would indicate that some copy of the pointer had been made without an
-increment). At program termination, we could print out the total amount
-of allegedly unreferenced memory that had not been freed, to give some
-clue as to the magnitude of the problem. Further test would be to load
-a tree with a known current person, do a load of work, but return the
-tree to the same state it started, including current person, and see
-what the new memory usage was.
-
-OK, without the overhead of a method (and without all the defensive
-checking we just indicated), we'd need to change that line above to:
-
-  IF Single% THEN
-    PROCFreeString(S%!ObVal%)
-    S%!ObVal%=Val%
-    Modified%=TRUE
-    ENDPROC
-  ENDIF
-
-Where
-
-DEF PROCFreeString(A%)
- LOCAL Arefcount%
- Arefcount% = A%-4
- !Arefcount%-=1
- IF !Arefcount%=0  PROCFree(Arefcount%)
-ENDPROC
-
-Or, simpler, faster, but less clear:
-
-  IF Single% THEN
-    PROCFreeString(S%!ObVal%-4)
-    S%!ObVal%=Val%
-    Modified%=TRUE
-    ENDPROC
-  ENDIF
-
-Where
-
-DEF PROCFreeString(A%)
- !A%-=1
- IF !A%=0  PROCFree(A%)
-ENDPROC
-
-Perhaps FreeString is a poor name, as it is a Releasing of one usage of the
-string, only freeing it if it is now unused.
-
-Actually, come at this from a different angle. A bit of code forensics and
-general thought about how GEDCOM works will suggest that an arbitrary string
-on the heap is only ever going to be referred to by one object. All the
-multiple references are to objects, not values. Secondly, changing a string
-by freeing one instance of it on the heap and allocating another is not
-very efficient if the new string is shorter than the space available in
-the heap item. Given the overhead of wading through the chain of heap
-blocks, a test of this is likely to be quicker. We easily have access to
-the length of a heap object - if the pointer we have to the string is at
-S%, currently that is the pointer to the heap memory, and at S%!-4 is the
-length offset to the next heap block (+1 for the set bit which says it is
-used). Thirdly, the heap algorithm will not allocate a block which is 4 bytes
-less than the size of the free block (as the odd four bytes could not hold
-anything nad would appear to be an end-of-heap marker). It may not allocate
-an 8-bye smaller block either - have to check. In practice there is a
-minimum size that we would ever ask for and having any free blocks too
-small to satisfy that is just going to lead to heap fragmentation. It
-would be better to allocate a block that is slightly too big for the
-request. Combining that with asking how big the space is before freeing
-and reallocating, we could remove a lot of the heap overhead by reusing
-string blocks for replacement strings. Fifthly, if a string is too
-long, but the block it is in is followed by a free block, we could
-extend the block to hold the string. To do this we need to change the
-logical level of the API ...
-
-Now we need a call that passes a pointer to a string on the heap, and
-a string which we want to replace it. The function would simply copy the
-new string and return the old pointer if it would fit in the block, if
-not, it would check if the block following the string was a free block,
-and if so either extend the string block by that whole block (if less than
-a certain size would be left free), or split the free block into two,
-extending the used block and copying in the new string. Finally, if the
-block(s) folowing the old string are not free, or not big enough, then
-we would proceed as at present, to remove the old block and allocate a new
-one.
-
-OK, first, where do we call FNString ?
-
-In PROCSetStr - at the moment we explicitly free the old heap string first
-In PROCSetStr - in this instance there is no old string
-In PROCCalc - first in a case where there is no existing string
-              second in a case where we check for an identical string and
-               don't make the call, but then explicitly free the old string
-               if we do make the call.
-In PROCCalcFam - here we explicitly free the old string first without checking
-              for an identical string
-In PROCLoadNotes - twice (for NOTE and CONT) here we are allocating new strings,
-              having just freed an entire object with PROCDelTag
-In PROCLoadGed - these are obviously new strings
-
-and that's all ! So in every case we do in fact free the old string where there
-is one, and this would seem not be the source of a memory leak - unless PROCDelTag
-causes one.
-
-OK, we call DelTag in
-
-PROCSetStr - when the supplied Val$ is a null string (obviously the existing object
-             with that tag, if there is one, may have a value, or subobjects)
-PROCSetEdit - we clear the LVG tag if there is anything to indicate that the INDI
-             is, in fact, dead (a death, burial or cremation event)
-PROCEdited - we clear a TITL tag if there is no title set
-           - we clear the LVG tag if anything now indicates the INDI is dead (including
-              the user having unticked the Living box)
-PROCSetEventParm - if caller specified remove and the Val$ is empty (the previous value
-              may not be empty, of course)
-PROCSetEventTime - two calls, one for TimeTg, one for DateTg - looks complex
-PROCSetEventLocn - up to three times, for PLOT; SITE/CEME; PLAC
-PROCLoadNotes - here we are deleting all Person's existing NOTE subobjects
-PROCSetHeadTrlr - remve the old trailer prior to recreating a new one as definitively
-            the last object in the tree.
-
-OK, so what does it do? Given an object and a tag, it looks through the entire chain
-of next level subobjects until it finds one of the appropriate tag, then it adjusts
-the link in the list to bypass that subobject, then calls DelObj on that object and
-continues to walk the chain. So it deletes all subobjects with that tag.
-
-DelObj recursively calls DelObj on every subobject, then calls FreeOb on the object.
-
-FreeOb may make up to three calls on PROCFree
- The first frees a reference (O%!ObVal%)!DSName% if this is a display object ?
-  Need a bit of documentation here ...
- The second frees a value (which would be a heap string)
- The third frees the object itself
-
-The way DelObj calls FreeOb means that the object being freed has no subobjects
- by the time it is freed. So as long as nothing else calls FreeOb directly, this
- all seems to be completely kosher.
-
-Ah, but ...
-
-PROCClearObject removes a subobject with no value and no subobkects from its object's
- subobject chain, then FreeObs it. Seems OK.
-
-Finally:
-
-PROCCalcAll calls PROCFreeOb directly on TopChil%!ObSubs%
- then calls PROCFree(TopChil%)
-
-That seems to get rid of just the top object in a display structure, as nothing
-there is recursive. Unless I am totally at sea here, doesn't that leave a huge
-structure inaccessible and still on the heap ? What happens before PROCCalcAll ?
-
-OK, I may well be failing to understand all this - a display structure seems to
-hang from every CHIL object. We make a fake CHIL object TopChil% to point to the
-head of the tree (everyone below this, except the spouse, must, by definition,
-have a CHIL object in some FAM. What about the spouse ?) It may simply be that
-these display objects are completely persistent and just get changed when a CalcAll
-is done. These Calc routines seem to call FNDStruct willy nilly, but FNDStruct
-is not purely a constructor - if it finds that a display structure is already
-the first subobject of the object it is passed, it simply returns a pointer to
-it.
-
-When an INDI is removed, the process also removes HUSB, WIFE or CHIL objects
-that refer to it (and may remove the FAM objects that contain them). ahhhh,,
-maybe it is not only CHIL objects that have a display structure, but also
-HUSB and WIFE objects. That may produce some redundancy, but it does indeed
-emsure that everyone on a display has an object from which a display structure
-will hang.
-
-This is getting a fair way away from the heap ...
-
-
-
-
-

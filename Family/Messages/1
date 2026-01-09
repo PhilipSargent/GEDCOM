@@ -3,8 +3,8 @@
 # if you are making changes to the code, set message dv to something distinctive.
 # this appears in title bar of main window to remind you not to do anything with
 # a critical dataset :-) set the message to null for normal use.
-#dv: DEVELOPMENT VERSION
-dv:
+dv: DEVELOPMENT VERSION
+#dv:
 
 lang:English
 
@@ -38,6 +38,7 @@ Dr:Draw
 DO:Living Individual - personal details omitted
 DT:Data transfer failed
 Ed:Edit
+En:Engagement
 FN:Family name
 Fa:Family
 Fe:female
@@ -109,6 +110,7 @@ YO:Year only
 Can:Cancel
 Cur:Current
 Dis:Discard
+Help:Help
 Sav:Save
 OK:OK
 Res:Restore
@@ -118,11 +120,18 @@ Plt:Plot
 Dat:Date
 Tim:Time
 Cau:Cause
+Cal:Calendar
+Grg:Gregorian
+Jul:Julian
+Frn:French
+Rom:Roman
+Heb:Hebrew
 Nam:Name
 CoT:Completions
 GoT:Go to
 Mo3:The data have been modified
 SaT:Save Tree as
+Src:Sources
 ReT:Save Report as
 InT:About this program
 In1:Family Tree Editor
@@ -132,7 +141,7 @@ In6:Author
 In7:Version
 DrT:Save Draw as
 EvT:Event
-MaT:Marry
+MaF:Family Events
 Ma7:Marry
 Ma8:on
 DaT:Set Date
@@ -152,21 +161,27 @@ Ht4:Beware: if there are more than 75 individuals, save index to a directory in 
 Ht5:Include this file at start of <body>
 Ht6:Include this file at end of <body>
 Ht7:Omit details of any person flagged as living
-EdT:Edit
-E10:Male
-E11:Female
-E12:Living
-E15:Father
-E16:Died
-E17:Born
-E18:Christened
-E19:Cremated
-E20:Baptised
-E21:Buried
-E23:Title
-E24:Mother
-E25:Details...
-E26:Update
+EdT:Edit Individual
+# names of tabs:
+E10:Birth
+E11:Christening
+E12:Baptism
+E13:Death
+E14:Cremation
+E15:Burial
+E17:Male
+E18:Female
+E19:Unknown
+E20:Living
+E24:Name
+E25:Title
+E26:Gender
+E27:Father
+E28:Mother
+E29:Date
+E30:Time
+E31:Place
+E32:Site
 ObT:GEDCOM Edit
 St4:Individuals:
 St5:Maximum INDI Id:

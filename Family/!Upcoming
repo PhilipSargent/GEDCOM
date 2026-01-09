@@ -22,46 +22,4 @@ and menu item numbering (so we grey out the right items :-). The main
 menu has already been simplified with the creation of tabbed Edit and
 Marriage dboxes, so this should be straightforward.
 
-======================================================================
-
-How to implement sources ? Currently we reflect any SOUR citations for
-a whole INDI object, but in theory we could have one or more SOUR citations
-for each datum. In a pathological case, we might have different dates of
-birth from two different sources, for example.
-
-0 @I1@ INDI
-1 NAME Joe Smith
-1 BIRT
-2 DATE 22 AUG 1853
-2 SOUR @S1@
-1 BIRT
-2 DATE 22 SEP 1853
-2 SOUR @S2@
-
-or how about when we have a birth with different sources for the date
-(maybe someone's birthday book) and place (like the census)
-
-0 @I2@ INDI
-1 NAME Erica Jones
-1 BIRT
-2 DATE 30 JUN 1924
-3 SOUR @S3@
-2 PLAC Ventnor, Isle of Wight
-3 SOUR @S4@
-
-or should that be coded:
-
-0 @I2@ INDI
-1 NAME Erica Jones
-1 BIRT
-2 DATE 30 JUN 1924
-2 SOUR @S3@
-1 BIRT
-2 PLAC Ventnor, Isle of Wight
-2 SOUR @S4@
-
-which is more like the structure of the first example
-
-
-
 
