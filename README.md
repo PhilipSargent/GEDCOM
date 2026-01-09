@@ -51,12 +51,18 @@ minute in 2.24 and way out of date in 2.25." [from armbasic.htm in the xfamily s
 
 In helping Andy's relatives get access to his genealogical data, I converted his personal .ged file (of
 nearly 6,000 people, dating back to before 1066) from his variant of GEDCOM 5.3 into modern v5.5.5.
-I used the wonderfully acerbic annotated 5.5.5 specification by Tamura Jones: <a href="https://www.tamurajones.net/GEDCOM555JustARevision.xhtml">GEDCOM555 discussion</a>.
-As she sayd: "the GEDCOM 5.5.1 specification includes support for a few new useful record types, such as those for email and web addresses, it is no more than a revision of GEDCOM 5.5, which was released on 11 Dec 1995, almost a quarter century ago.
-Nothing much has changed in a quarter century, and today's GEDCOM 5.5.5 release does not introduce any major new features. [...]
-GEDCOM 5.5.5 isn't a feature release, it's a maintenance release. The GEDCOM 5.5.5 focus isn't on features, but on resolving issues with GEDCOM itself.
-[...] It's a smaller, leaner, meaner and simpler GEDCOM." More details in the <a href="https://www.gedcom.org/press/PRGEDCOM555.pdf">5.5.5 release document</a>.
-The GEDCOM 5.5.5 annotated specification is (unfortunately) published as <a href="https://www.gedcom.org/specs/GEDCOM555.zip"a zipped PDF</a> and not as simple UTF-8 plain text which would be suitable for generating parsers and validators.
+I used the 2019 version of GEDCOM: <a href="https://www.tamurajones.net/GEDCOM555JustARevision.xhtml">GEDCOM555 discussion</a>.
+As she says: "the GEDCOM 5.5.1 specification includes support for a few new useful record types, such as those for email and web addresses, it is no more than a revision of GEDCOM 5.5, which was released on 11 Dec 1995, almost a quarter century ago.
+Nothing much has changed in a quarter century [...] 
+The GEDCOM 5.5.5 focus isn't on features, but on resolving issues with GEDCOM itself. [...]
+It's a smaller, leaner, meaner and simpler GEDCOM." 
+
+More details in the <a href="https://www.gedcom.org/press/PRGEDCOM555.pdf">5.5.5 release document</a>.
+The wonderfully acerbic annotated 5.5.5 specification edited by Tamura Jones is (unfortunately) published as <a href="https://www.gedcom.org/specs/GEDCOM555.zip">a zipped PDF</a> and not as simple UTF-8 plain text which would be suitable for generating parsers and validators.
+
+My converter is hacked up just to deal with a single .ged file, so it is in no sense a general purpose converter. It fails with over 130 error messages on Andy's
+85,000 line family tree ged file. I used two validators: <a href="https://ged-inline.org/">GED inline</a> which is an online service and a locally-downloaded copy of 
+teh open source <a href="https://gramps-project.org/blog/2025/11/gramps-6-0-6-released/">gramps</a> software (v6.0.6).
 
 ## Installation
 
