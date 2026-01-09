@@ -1,0 +1,118 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html lang="en">
+<head>
+<title>The X!Family Screenbook</title>
+<LINK rel="next" title="" href="">
+<LINK rel="previous" title="" href="">
+<LINK rel="toc" title="Table of Contents" href="index.html">
+<META name="keywords" content="Family !Family X!Family X GEDCOM Genealogy editor">
+<META HTTP-EQUIV="Content-Language" CONTENT="en">
+</head>
+<body BGCOLOR="#FFFFFF" TEXT="#000000"
+STYLE="font-family: sans-serif;">
+<!-- include your neat logo here with a link to your website -->
+
+<HR WIDTH="100%" SIZE="2" ALIGN="CENTER" NOSHADE="NOSHADE">
+
+<P><A HREF=".html">Next</A> | <a href=".html">Prev</a> | <a href="index.html">Table of Contents</a></P>
+
+<h1><a name="">X!Family Appendix Z</a> Historical notes</h1>
+
+<p>When I first became interested in genealogy (when I was handed two very large boxes of
+family charts, old newspaper cuttings, and lots of the little cards people use to note
+events like births, weddings and funerals), I was using an Acorn RISC PC, and soon found
+Dennis Howes' !Family genealogy package. This had a very nice user interface, but I soon
+found a few things lacking. Since the program came with the source code (it is written in
+BBC Basic, an interpreted language) it was not hard to add features. After a while, I
+found that I had been given the job of maintaining the program, and made a few fairly
+radical changes in the user interface to cope with the increasing level of complexity
+caused by dealing with new information.
+
+<p>In their time, the Acorn machines were among the world's fastest personal computers
+and RISC OS to this day has a nicer user interface than many more modern desktops. But
+the hardware has fallen behind, and even on one of the fastest RISC PCs, a database of
+2000 people is intolerably slow to administrate. For this reason, I thought of how I could
+use my knowledge of !Family to write a program with a similar style of use on a faster
+system with a longer-term future, such as a Linux PC. In fact, my design work for this
+new program influenced quite a lot of the user-interface changes in !Family itself.
+
+<p>Linux desktops run X, which is quite different from the RISC OS Wimp. The API that
+!Family uses is at quite a lot higher level than the API of the many toolkits that
+sit atop X and the window manager. What are edited as data structures (template
+files) in Acorn's Wimp tend to appear as lines of code in a typical X-based toolkit.
+Looking at alternatives, with a view to future portability to other operating
+systems, such as Mac OS/X and even (if anyone will still be using it when XFamily
+is finally released) Windows, I found that FLTK seemed to offer the best documented
+toolkit for the purpose. This was quite important, as I had very limited previous
+experience with my language of choice, C++, and that experience had not been happy.
+However, both the structure of GEDCOM used in genealogy, and the various toolkits
+for implementing a GUI are very much in the modern object-orientated idiom, and
+C++ looked like by far the most versatile compiled language to use here.
+
+<p>I wrote extensive notes to myself on the design, and it is interesting to
+look back on these notes and compare them with the reality:
+
+<blockquote><p>"Probably the best way to approach this is to write the GEDCOM
+stuff first, and a minimal shell which loads up a GEDCOM, prints out some stats,
+and saves to another GEDCOM, to check that we still get something sane out at
+the end. Then some stuff to add and delete some bits, so that we do test most
+of the code."
+</blockquote>
+
+<p>Well, in fact, what I did was learn the FLTK toolkit and write most of the
+user interface first, with no reference to the data whatsoever.
+
+<blockquote><p>"Then perhaps do the display stuff to the level where you can
+make it generate a draw file [drawfiles are the Acorn vector graphics format,
+internally rather similar to PostScript]. This should enable you to debug a
+lot of this without needing to know too much about X Windows."
+</blockquote>
+
+<p>Again, what I actually then did was to generate a functional GEDCOM browser
+in an X-Window with no idea how to approach printing or generating any graphic
+file output.
+
+<blockquote><p>"Achieving that lot would probably put you in a position to
+devise an API to the Windowing code [at this stage I was merely planning to
+rewrite the data-handling stuff in C++ so I could implement the program on
+top of <i>either</i> RISC OS or some X-windows toolkit], then write a RISC
+OS specific version, before implementing an X-windows set of stuff."
+</blockquote>
+
+<p>I still haven't compiled a line of C++ code to use on RISC OS - the Wimp
+is so different from X that it seems unlikely that any of the Linux code
+would be of any great use for a RISC OS version.
+
+<hr>
+
+<p>In fact, within a few months of starting, I had the majority of the user
+interface up, and the program functioning as a very quick graphical browser
+of all the GEDCOM information that !Family was able to maintain. I had almost
+no editing capability in the program (with the exception of editing the NOTE
+objects, which on !Family was done with an external editor anyway!). But I
+had at least demonstrated that the program could save the database in a useful
+form without losing or corrupting any information.
+
+<p>At that point I went away and implemented a lot of the new user interface
+ideas in !Family, and tested the useability of this by adding another 800 people
+to my family on the RISC OS system. Meanwhile, XFamily languished unchanged,
+though I was using it as a fast browser to avoid the time-consuming process
+of moving around the tree on the increasingly unresponsive RISC OS system
+(the time takne to do various jobs goes about as the square of the number
+of people in the tree, so going from 2000 to 2800 individuals doubled the
+time taken to change position in the tree). Another few months saw me run
+out of new leads to push back my own family research and !Family also saw
+an end to rapid improvements.
+
+<p>Almost three years later, I got a message from John Jervis who was not
+managing to compile v 0.13 on Mandrake 9.0. This revealed that the code had
+been neglected for so long that it would not compile on any v 3 gcc :-(
+But the fix was easy enough, and this stimulus restarted the current burst
+of development (or at least debugging) activity.
+
+<p>
+<A HREF="mainUI.html">Next</A> | <a href="index.html">Prev</a> | <a href="index.html">Table of Contents</a></P>
+
+<HR WIDTH="100%" SIZE="2" ALIGN="CENTER" NOSHADE="NOSHADE">
+</body>
+</html>

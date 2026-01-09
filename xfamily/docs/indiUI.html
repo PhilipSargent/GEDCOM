@@ -13,19 +13,20 @@ STYLE="font-family: sans-serif;">
 <!-- include your neat logo here with a link to your website -->
 
 <HR WIDTH="100%" SIZE="2" ALIGN="CENTER" NOSHADE="NOSHADE">
-<A HREF="famUI.html">Next</A> | <a href="mainUI.html">Prev</a> | <a href="index.html">Table of Contents</a></P>
 
-<h1><a name="30">X!Family Chapter 3.</a> Edit Person dbox</h1>
+<P><A HREF="famUI.html">Next</A> | <a href="mainUI.html">Prev</a> | <a href="index.html">Table of Contents</a></P>
+
+<h1><a name="">X!Family Chapter 3.</a> Edit Person dbox</h1>
 
 <p>Right clicking on a person in the main window brings up a menu:
 
-<p><img alt="Person pop-up menu" width=274 height=212 align=center hspace=10
+<p><img alt="Person pop-up menu" width=274 height=212 align="center" hspace=10
 vspace=10 src="pmenu.png">
 
 <p>Choosing "Edit" or "Child" from this menu (or "Child" from the marriage
 pop-up menu) will open a tabbed dbox in which details of a person's main life
-events can be entered. The same dbox will eventually be opened from the
-"New..." item on the "People" drop-down menu on the main window.
+events can be entered. The same dbox is opened from the "New..." item on the
+"People" drop-down menu on the main window.
 
 <p>From the point of view of a genealogist, often doing research in civil
 vital records or church records, the main events in a life are birth,
@@ -39,20 +40,22 @@ preserves this information in your GEDCOM, but doesn't currently support
 displaying or editing it.
 
 <p>The first two text fields are Name and Title, which identify this
-person. Title is optional, as is typically an indication of civil or
+person. Title is optional, and is typically an indication of civil or
 military rank, usually the final rank achieved during life.
 
-<p><img alt="Person dialogue: birth tab" width=482 height=405 align=center
+<p><img alt="Person dialogue: birth tab" width=482 height=462 align="center"
 hspace=10 vspace=10 src="birthtab.png">
 
-<p>If the person's details don't include any of the death, cremation or
-burial events, then a single check box "Living" will be visible in the dbox.
-This can be set to show that a person is believed to be alive on the date the
-database is being edited. Strictly speaking the tag used to record this is
-not a part of the GEDCOM standard, but seems to be widely used by a number of
-genealogy packages. If a proper way of indicating this status is defined in
-some future version of GEDCOM, this part of the user-interface may change to
-reflect this.
+<p>[ In RISC OS !Family version 2.26, a single check box "Living" can be
+set to show that a person is believed to be alive on the date the database
+is being edited. Strictly speaking the tag used to record this is not a part
+of the GEDCOM standard, but seems to be widely used by a number of genealogy
+packages. This feature is implemented in X!Family, but if some indication is
+present that death has occurred (a date or other detail is set for Death,
+Burial or Cremation) then the "Living" checkbox will not appear in the
+interface. If a proper way of indicating this status is defined in some
+future version of GEDCOM, this part of the user-interface may change to
+reflect this. ]
 
 <p>A line of three radio buttons defines the gender of this person as
 male, female or unknown.
@@ -60,21 +63,22 @@ male, female or unknown.
 <p>Two text fields give the names of the parents. Filling in these fields
 enables the person to be placed correctly in the structure of the family
 tree. If the parents are already in the database, they must be spelt exactly
-as they already appear in order to connect the new person correctly. This is
-facilitated by the three buttons at the end of each of these names, which can
-be clicked to search for existing people in the database. For details of this
-"name completion" technique, see the <a href="findUI.html">Search for
-person</a> page. This mechanism will also, eventually, enable you to
-distinguish two people in the database with identical names, which can
-currently cause problems. [As at v 0.13, these buttons are included in the
-interface, but don't actually do anything in this dbox]. If the dbox was
-opened as a result of choosing "Child" in a person or family pop-up menu,
-then they should already be filled in correctly.
+as they already appear in order to connect the new person correctly. If the
+dbox was opened as a result of choosing "Child" in a person or family pop-up
+menu, then they should already be filled in correctly. Getting the spelling
+wrong here would result in the creation of new people in the database, and
+it might possibly be some time before the error became apparent. To avoid
+this when the dbox is opened without these names filled in, name completion
+is available via the three buttons to the right of each name. These enable
+you to type in a partial name, and then look for matches in the database,
+filling in blanks to the left, to the right, or both ways to create a list
+of possible people already in the database, from which you can choose.
+This mechanism will also, eventually, enable you to distinguish two people
+in the database with identical names, which can currently cause problems.
 
 <p>Below these fields are the six tabs for events. Clicking on a tab
 brings it to the front, so that the fields may be filled in. In all cases,
-these fields include a date and time (and radio buttons to specify what
-calendar was in use for the event), a place (down to the level of town
+these fields include a date and time, a place (down to the level of town
 or village) and a site (down to the level of street, building or burial
 ground, for example). The division between "place" and "site" is somewhat
 arbitrary, and in the most recent version of GEDCOM, seems to have been
@@ -88,9 +92,9 @@ have a "Cause", typically that recorded on a death certificate for modern
 deaths. "Burial" can be specified down to the level of "Plot". Again, in
 versions 5.4 and 5.5 of GEDCOM, this detail has been subsumed into the
 "Place" tag, but X!Family will continue to be able to read the "SITE",
-"CEME" and "PLOT" tags as specified in GEDCOM 5.3.
+"CEME" and "PLOT" tags specified in GEDCOM 5.3.
 
-<p><img alt="Person dialogue: death tab" width=482 height=405 align=center
+<p><img alt="Person dialogue: death tab" width=482 height=462 align="center"
 hspace=10 vspace=10 src="deathtab.png">
 
 <p>Finally there are three buttons "Help" (which should bring you to this
@@ -101,7 +105,7 @@ person in the database, then that person is not created. If the dbox was
 opened from "Edit", then the person continues to exist unchanged in the
 database.
 
-<p>Clicking "OK" saves the changes (*), creating a new person in the database
+<p>Clicking "OK" saves the changes, creating a new person in the database
 if necessary. Note that if you have changed the names of one or both
 parents, the person may also be moved about the structure, and potentially,
 new database entries may be created for those parents. This feature is
@@ -109,23 +113,6 @@ useful when entering a database following research further back into the
 past. Editing a person to add parents' names creates those parents, who
 in turn may be edited to add their parents, and so on, as far back as your
 research goes.
-
-<p>* As of version 0.13, saving changes from this dbox is not implemented.
-Full editing functionality is being added shortly.
-
-<p>Choosing "Notes" in the pop-up menu opens a basic text-editor window
-showing a set of notes associated with this individual. You can edit these
-notes (the usual set of cut-and-paste keys work, meaning you can export
-text to other windows, or import to this one). On the menu bar of this
-editor window are five buttons. "Cancel" closes the window without saving
-any changes you made to the text. "Clear" removes all the text (but doesn't
-change your GEDCOM until you save the changes). "Restore" throws away any
-changes you have made and gets the original notes back from your GEDCOM.
-"Save to GEDCOM" commits the changes you have made back to the GEDCOM in
-memory (but not to disc until you choose File-&gt;Save from the main menu).
-"OK (Save and close)" saves the changes, and closes the window. <b>As of
-2000-11-13 saving the notes back to the GEDCOM actually works</b> - this is
-the first stage of full editing functionality added to the program !
 
 <p>
 

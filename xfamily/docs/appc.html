@@ -1,0 +1,122 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html lang="en">
+<head>
+<title>The X!Family Screenbook</title>
+<LINK rel="next" title="" href="endpiece.html">
+<LINK rel="previous" title="" href="GEDCOM.html">
+<LINK rel="toc" title="Table of Contents" href="index.html">
+<META name="keywords" content="Family !Family X!Family X GEDCOM Genealogy editor">
+<META HTTP-EQUIV="Content-Language" CONTENT="en">
+</head>
+<body BGCOLOR="#FFFFFF" TEXT="#000000"
+STYLE="font-family: sans-serif;">
+<!-- include your neat logo here with a link to your website -->
+
+<HR WIDTH="100%" SIZE="2" ALIGN="CENTER" NOSHADE="NOSHADE">
+
+<p><A HREF="endpiece.html">Next</A> | <a href="GEDCOM.html">Prev</a> | <a href="index.html">Table of Contents</a></P>
+
+<h1><a name="">X!Family Appendix C.</a> Obtaining, compiling and installing X!Family</h1>
+
+<p>X!Family is available from the
+<a href="http://www.pennine.demon.co.uk/family/downloads.htm#X">!Family
+downloads page</a>. Along with the latest version of these
+<a href="http://www.pennine.demon.co.uk/family/xfam-docs.zip">help pages</a>.
+
+<p>The author (and occasional maintainer - development has been a bit slow
+to absent over the last three years) can be contacted as user <b>family-maint</b>
+on the site <b>pennine.demon.co.uk</b>.
+
+<p><b>Compiling X!Family</b>: I haven't mastered the subtleties of ./configure,
+so some manual tweaking may be needed. First untar the download into a suitable
+directory:
+
+<pre>
+# cd /usr/local/src/xfamily
+# tar xzvf xfamily-v014.tgz
+# cd v014
+</pre>
+
+<p>Now edit the line in the file "makeinclude" which specifies where your
+C++ headers live:
+
+<pre>
+cppinclude	=/usr/include/c++/3.2
+</pre>
+
+<p>And edit the line in the "Makefile" which says where you compiled
+FLTK (ie. where the headers live, not the library):
+
+<pre>
+FLTKHOME = /usr/src/fltk-1.1.4
+</pre>
+
+<p>Now compile it and clean up:
+
+<pre>
+make clean
+make depend
+make
+make tidy
+</pre>
+
+<p>At this point you should be able to run the code in place with
+
+<pre>
+# ./XFamily &
+</pre>
+
+<p>But if you have root privilege, you can
+
+<pre>
+# make install
+</pre>
+
+<p>Which should allow anyone to run it. 
+
+<p><b>NOTE</b>: this is alpha release software, and running in a terminal
+is recommended, as you can then see all the debugging info which will still
+be emitted. At present the GEDCOM file name is hard coded into the program
+as <b>/usr/local/src/xfamily/test/test2.ged</b>, but you can readily make
+this a symbolic link to your real data, or copy your data to this location:
+
+<pre>
+ln -s /path/to/real/data/myfamily.ged /usr/local/src/xfamily/test/test2.ged
+
+cp -v -p /path/to/real/data/myfamily.ged /usr/local/src/xfamily/test/test2.ged
+</pre>
+
+<p>Similarly, the location of the messages used for internationalisation are
+compiled in as /usr/local/src/xfamily/v014/messages/<br>
+In time, these messages should really be moved to the "installed" location
+at /usr/local/share/xfamily/messages/<br>
+Something very similar applies to the help pages, which at present don't work
+at all.
+
+<h2>Hacking the code</h2>
+
+<p>If you want to make changes to the code, you may want to add translatable messages,
+which are coded in the source file "MessageSrc". The format is pretty transparent, and
+adding a new language is also fairly easy (and I'd welcome such translations). To get
+from this source to the various c++ and header files, and the formatted messages files,
+there is a Python script. In the source directory type
+
+<pre>
+./StringFactory.py
+</pre>
+
+<p>If your changes to the code involve letting X!Family deal with new tags, you'll need
+to add these to the list in "KnownTags", and then run the script
+
+<pre>
+./TagFactory.py
+</pre>
+
+<p>Of course, in time, these will be dealt with in the Makefile, with suitable dependencies.
+
+<p>
+<A HREF="endpiece.html">Next</A> | <a href="GEDCOM.html">Prev</a> | <a href="index.html">Table of Contents</a></P>
+
+<HR WIDTH="100%" SIZE="2" ALIGN="CENTER" NOSHADE="NOSHADE">
+</body>
+</html>
