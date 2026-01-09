@@ -25,6 +25,7 @@ int main(int argc, char* **argv ) {
   aboutbox   = new infoUI;
   choicebox  = new prefUI;
   gotobox    = new findUI;
+  completionsbox = new completionsUI;
   // and the linked lists of notes and edit windows, and loaded trees
   noteUIs    = new noteslist;
   editUIs    = new editlist;
@@ -35,7 +36,7 @@ int main(int argc, char* **argv ) {
 
   // create one instanciation:
 
-  treeinstance *first = trees->newinstance( "/usr/local/src/xfamily/test/test.ged" );
+  treeinstance *first = trees->newinstance( "/usr/local/src/xfamily/test/test2.ged" );
 
   // now find the view of that tree
 
@@ -53,6 +54,7 @@ int main(int argc, char* **argv ) {
 infoUI       *aboutbox;
 prefUI       *choicebox;
 findUI       *gotobox;
+completionsUI *completionsbox;
 editlist     *editUIs;
 famedlist      *famUIs;
 noteslist    *noteUIs;

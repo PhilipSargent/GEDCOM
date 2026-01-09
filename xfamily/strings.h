@@ -86,6 +86,8 @@ extern char msg_menu_indiUI[];
 #define MAX_menu_indiUI 12
 extern char msg_menu_famUI[];
 #define MAX_menu_famUI 19
+extern char msg_menu_findUI[];
+#define MAX_menu_findUI 21
 extern char msg_menu_prefUI[];
 #define MAX_menu_prefUI 13
 extern char msg_menu_GEDCOM[];
@@ -128,6 +130,14 @@ extern char msg_version[];
 #define MAX_version 30
 extern char msg_purpose[];
 #define MAX_purpose 32
+extern char msg_calendar[];
+#define MAX_calendar 11
+extern char msg_gregorian[];
+#define MAX_gregorian 10
+extern char msg_julian[];
+#define MAX_julian 7
+extern char msg_default[];
+#define MAX_default 8
 extern char msg_indi_title[];
 #define MAX_indi_title 19
 extern char msg_fam_title[];
@@ -152,6 +162,8 @@ extern char msg_event_plot[];
 #define MAX_event_plot 5
 extern char msg_event_cause[];
 #define MAX_event_cause 6
+extern char msg_event_src[];
+#define MAX_event_src 8
 extern char msg_birth[];
 #define MAX_birth 10
 extern char msg_chr[];
@@ -194,6 +206,8 @@ extern char msg_find_title[];
 #define MAX_find_title 33
 extern char msg_find[];
 #define MAX_find 9
+extern char msg_completions_title[];
+#define MAX_completions_title 24
 extern char msg_stats_title[];
 #define MAX_stats_title 23
 extern char msg_stats_file[];

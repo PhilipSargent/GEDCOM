@@ -496,5 +496,39 @@ GEDCOM_object* GEDCOM_object::own_family( GEDCOM_object* fams ) const {
   return fams; // which may also be NULL if GEDCOM is broken
 }
 
+/////////////////////////////////////////////////////////////////////////////
+// this class is for holding items on a list of names (and related info) used
+// by the name-completion code
 
+completion_item::completion_item( GEDCOM_object* found_indi ):
+  indiptr (found_indi)
+{
+  if (indiptr == NULL) {
+    printf("Bombing out with null pointer passed to completion_item()\n");
+    exit(0);
+  }
+//  printf("Trying to set up new completion_item for %s\n", indiptr->subobject( NAME_tag )->value());
+  displayptr = new GEDCOM_string( indiptr->subobject( NAME_tag )->value() );
+  nextptr = (completion_item*) NULL;
+}
+
+completion_item::~completion_item() {
+  delete displayptr;
+}
+
+GEDCOM_object* completion_item::indi() const {
+  return indiptr;
+}
+
+completion_item* completion_item::next() const {
+  return nextptr;
+}
+
+void completion_item::setnext( completion_item* newitem ) {
+  nextptr = newitem;
+}
+
+char* completion_item::display() const {
+  return displayptr->string();
+}
 

@@ -1,5 +1,9 @@
 Problems v011 alpha
 
+saving file moves some header things (0 @SUB1@ SUBM) to the end
+of the file. possibly this is because we have SUBM specified incorrectly
+(ie. its the GEDCOM in error, not the program).
+
 when we do a "save", the tree.filename gets updated, and subsequent
 windows reflect the new filename in their titles. But existing ones
 are not updated. Arguably, this is OK, since "save" should not

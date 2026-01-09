@@ -1,0 +1,74 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html lang="en">
+<head>
+<title>The X!Family Screenbook</title>
+<LINK rel="next" title="" href=".html">
+<LINK rel="previous" title="" href=".html">
+<LINK rel="toc" title="Table of Contents" href="index.html">
+<META name="keywords" content="Family !Family X!Family X GEDCOM Genealogy editor">
+<META HTTP-EQUIV="Content-Language" CONTENT="en">
+</head>
+<body BGCOLOR="#FFFFFF" TEXT="#000000"
+STYLE="font-family: sans-serif;">
+<!-- include your neat logo here with a link to your website -->
+
+<HR WIDTH="100%" SIZE="2" ALIGN="CENTER" NOSHADE="NOSHADE">
+<A HREF="GEDCOM.html">Next</A> | <a href="prefUI.html">Prev</a> | <a href="index.html">Table of Contents</a></P>
+
+<h1><a name="60">X!Family Chapter 6.</a> Searching for a person</h1>
+
+<p>In the main window, the menu item People-&gt;Find opens a dbox labelled
+"X!Family Search tree for person". Typing a name here and clicking OK will
+make that person current. However, this only works if you type the name
+<i>exactly</i> as it is recorded in the database. The three buttons
+<img alt="" width=75 height=25 align=right hspace=5 vspace=5 src="comp.png">
+at the right of the dbox are intended to overcome this difficulty. The same
+set of three buttons also appear in other places where you need to enter a
+name exactly as it exists in the database, such as for the names of parents
+in the Edit Person dbox.
+
+<p>If you type in part of a name, and click one of the buttons, X!Family
+will search the database for matching names, and if any are found, will open
+a dbox containing a list of the possible names. The three buttons each attempt to perform "name completion" in a different way:
+
+<p><img alt="" align=left hspace=10 vspace=2 width=25 height=25 src="c-r.png">
+Completion to right. If you type in the first few characters of a name
+(a first christian name, for example), X!Family will try to complete the
+name by adding to the right.
+
+<p><img alt="" align=left hspace=10 vspace=2 width=25 height=25 src="c-l.png">
+Completion to left. Here you type in a few characters from the end of
+a name (eg. the surname) and X!Family tries to complete the name by adding
+to the left.
+
+<p><img alt="" align=left hspace=10 vspace=2 width=25 height=25 src="c-f.png">
+Fuzzy completion. Here you type in almost anything, and X!Family will
+try to find a match. Initially, this will be a very simplistic method -
+probably just looking for names containing what you typed somewhere inside.
+Some distance into the future, a more intelligent algorithm may be added,
+perhaps configured in the preferences dbox to use something like the
+Soundex method.
+
+<p>At present (v 0.13), all three buttons access the same code, which is
+completion to the right. V 0.14 should add the code to do the three types
+of search now that the basic functionality has been tested ...
+
+<p>The result of the search is presented in a window containing a list of
+names found, in the order in which they appear in the database. !Family
+maintains names in alphabetical order within the GEDCOM file, and when
+read/write ability is added to X!Family, it will do the same. But GEDCOMs
+imported from elsewhere may not do so, and it is beyond the scope of either
+program to sort the database.
+
+<p>For the "Goto" (Search tree for person) dbox, clicking on a name in the
+list should immediately make that person current. For other uses of name
+completion, the name will be copied into the the relevant field of the dbox
+from which it was called up.
+
+<hr>
+
+<p><A HREF="GEDCOM.html">Next</A> | <a href="pref.html">Prev</a> | <a href="index.html">Table of Contents</a></P>
+
+<HR WIDTH="100%" SIZE="2" ALIGN="CENTER" NOSHADE="NOSHADE">
+</body>
+</html>

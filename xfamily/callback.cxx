@@ -38,6 +38,7 @@ void language_cb(Fl_Menu_ *, void *index) {
     aboutbox->info_panel->hide();
     aboutbox->info_panel->show();
   }
+  // these should become ->reopen() methods of the respective UIs:
   if (choicebox->optsbox->shown()) {
     x = choicebox->optsbox->x();
     y = choicebox->optsbox->y();
@@ -50,6 +51,14 @@ void language_cb(Fl_Menu_ *, void *index) {
     gotobox->findbox->hide();
     gotobox->findbox->show();
   }
+  if ((completionsbox->completionswin)!=NULL) {
+    if (completionsbox->completionswin->shown()) {
+      completionsbox->completionswin->hide();
+      completionsbox->completionswin->show();
+    }
+  }
+  // these have already become methods of their UIs - there may be
+  // multiple instances of these window types:
   noteUIs->retitle();
   editUIs->retitle();
 }
@@ -306,6 +315,12 @@ void helpedit_cb(Fl_Button *, void *userdata) {
   shell_for_help( userdata );
 }
 
+void searchma_cb(Fl_Button *, void *userdata) {
+}
+
+void searchpa_cb(Fl_Button *, void *userdata) {
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 // callback routines for famUI
@@ -383,10 +398,7 @@ void find_cb(Fl_Menu_*, void *userdata) {
   x = view->window->x();
   y = view->window->y();
 
-  gotobox->find_input->value("");
-  gotobox->setview( view );        // this sets the userdata passed to okfind_cb
-  gotobox->findbox->position(x,y);
-  gotobox->findbox->show();
+  gotobox->open( view, x+50, y+55 );
 }
 
 void okfind_cb(Fl_Return_Button*, void *userdata) {
@@ -398,8 +410,60 @@ void okfind_cb(Fl_Return_Button*, void *userdata) {
   if (newperson != NULL) {
     view->setcurrent(newperson);
     gotobox->findbox->hide();
+    // make sure we didn't leave a completions window lying around
+    completionsbox->finish();
   }
   // else: should raise a warning if we didn't find that person
+}
+
+void binnedfind_cb(Fl_Window*, void *userdata) {
+  // make sure we didn't leave a completions window lying around
+  completionsbox->finish();
+  gotobox->finish();
+}
+
+void searchfind_cb(Fl_Button*, void *userdata) {
+  mainUI* view = (mainUI*)userdata;
+// that will give us the view on which the completions code will be trying to
+// find matching entries for the partial name in ... what ?
+// the text is in (char *)gotobox->find_input->value()
+// and we need a fuzzy search equivalent of view->whichtree()->Lookup_INDI( char* )
+// then we need to raise a completions window to browse all the possible
+// matches in the current tree ... but ... one step at a time.
+  short x,y;
+  x = gotobox->findbox->x();
+  y = gotobox->findbox->y();
+  completionsbox->open( view->whichtree(),
+                        (char*)gotobox->find_input->value(),
+                        0,
+                        (Fl_Callback*) chosenfind_cb,
+                        (void*) view, x+65, y+55 );
+}
+
+void chosenfind_cb( Fl_Select_Browser* chooser, void *userdata ) {
+// userdata is (void*) of the mainUI class ... which for this callback
+// is always going to be a mainUI (ie. a particular view).
+  mainUI* view = (mainUI*)userdata;
+  int chosen = chooser->value();
+  printf("completions selected item %d\n", chosen);
+  GEDCOM_object* newperson = completionsbox->chosen_indi( chosen );
+  completionsbox->finish();
+  if (newperson != NULL) {
+    view->setcurrent(newperson);
+    gotobox->findbox->hide();
+  }
+}
+
+void completionbinned_cb( Fl_Window*, void *userdata ) {
+  printf("completions window closed with no choice made\n");
+  completionsbox->finish();
+}
+
+void helpfind_cb(Fl_Button *, void *userdata) {
+// we need to call our routine to shell out to a help browser
+// with URL file:/usr/share/xfamily/help/HTML/<language-code>/findUI.html
+
+  shell_for_help( userdata );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

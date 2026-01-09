@@ -20,7 +20,7 @@
 #define COLOUR_FEMALE  FL_RED
 
 #define V_OFFSET 3
-#define XF_FONT_SIZE 16
+#define XF_FONT_SIZE 12
 
 class treedisplay : public Fl_Button {
   mainUI* view;

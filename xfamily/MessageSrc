@@ -155,6 +155,9 @@ en::Person dbox
 menu_famUI
 en::Family events dbox
 
+menu_findUI
+en::Find and completions
+
 menu_prefUI
 en::Choices dbox
 
@@ -226,15 +229,31 @@ en::X!Family
 fr::X!Famille
 
 author
-en,fr::© A.E.R.Waddington, 2000
+en,fr::© A.E.R.Waddington, 2001
 
 version
-en::v 0.11 alpha 2000-09-13 en-gb
-fr::v 0.11 alpha 2000-09-13 fr
+en::v 0.13 alpha 2001-02-19 en-gb
+fr::v 0.13 alpha 2001-02-19 fr
 
 purpose
 en::Family Tree Editor
 fr::Editeur pour Arbre Généalogique
+
+calendar
+en::Calendar
+fr::Calendrier
+
+gregorian
+en::Gregorian
+fr::Grégorien
+
+julian
+en::Julian
+fr::Julien
+
+default
+en::default
+fr::défaut
 
 indi_title
 en::X!Family edit 
@@ -279,6 +298,9 @@ en,fr::Plot
 
 event_cause
 en,fr::Cause
+
+event_src
+en,fr::Sources
 
 birth
 en::Birth
@@ -361,6 +383,10 @@ fr::X!Famille Cherchez pour personne
 find
 en::Goto:
 fr::Allez à:
+
+completions_title
+en::X!Family possible names
+fr::X!Famille noms possible
 
 stats_title
 en::X!Family Statistics
@@ -489,7 +515,7 @@ en::Other:
 fr::Autre:
 
 gpl_box
-en::The X!Family Genealogical Package version 0.11 Copyright © 2000 by Andy Waddington.\n
+en::The X!Family Genealogical Package version 0.13 Copyright © 2001 by Andy Waddington.\n
 Based loosely on !Family for RISC OS originally developed by Denis Howe.\n
 \n
 This package is free software: you can redistribute it and/or modify it under the terms of\n
@@ -504,7 +530,7 @@ You should have received a copy of the GNU General Public License\n
 along with this software: if not, write to the Free Software Foundation, Inc.,\n
 59 Temple Place, Suite 330, Boston. MA 02111-1307 USA\n
 Please report faults to family-maint@pennine.demon.co.uk
-fr::Le progiciel généalogique "X!Famille" version 0.11. Propriété © 2000 par Andy Waddington.\n
+fr::Le progiciel généalogique "X!Famille" version 0.13. Propriété © 2001 par Andy Waddington.\n
 Basé vaguement sur !Family pour RISC OS, écrit par Denis Howe.\n
 \n
 Ce programme est libre, vous pouvez le redistribuer et/ou le modifier selon les termes\n

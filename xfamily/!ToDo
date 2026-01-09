@@ -1,25 +1,42 @@
 ToDo::
 
+URGENT: need to correct interpretation of DATE/TIME so that TIME is at
+one level below DATE. Then import Tree16e from Alpharelease directory
+on the RISC OS machine. OK, done that, but now lots of dates appear as
+@#JULIAN@ <date> - bother, need to add date escape mechanism to this
+code too :-( OK, done that too. A problem arises in that FLTK doesn't
+seem to provide a way for the user to unset a radio button (ie. to
+leave every radio button in a group unset). SO if you say that a date
+is explicitly gregorian or julian and then realise that you don't actually
+know, you can't just unset both buttons. You would need an explicit "unspecified"
+button. If you add the full range of date escape specifiers, you would then need
+six (Gregorian, Julian, FrenchR, Roman, Hebrew and unspecified).
+
+The Goto box has a "help" button whihc tries to open up a help page concerned
+with the completions window. This is not yet written, nor added to the Help
+menu on the main window.
+
+Minor: Make 0 NOTE Person <name> become
+            0 NOTE Person @indi-id@ <name>
+on output, and modify code to deal with both old and new forms on input.
+
 You probably need to reread and understand ../Display4
 Then try to figure out what of that we have already done - presumably none
+Well, that's out of date - we seem to have done almost all of it. The only
+area not dealt with is that of multiple trees in memory and a master window
+with a list of active (though possibly closed) views.
 
 Missing dboxes:
 
-  Marry
-
-  Person chooser (from wildcard find)
+  Marry (this is pointless until we can actually edit the tree !)
 
 Dboxes requiring a rework:
-
-  People->Find  needs a "find a list" button or similar
 
   Possibly famUI - we might want to add tabs for
     Banns
     Marriage Licence
     Annulment           though these are uncommon
 
-  notesUI needs a "Restore" button and an "OK (save & close)" button.
-  the code to support these is already written.
 
 ---------------
 
@@ -37,4 +54,33 @@ We possibly have a problem with:
 
 managing a display with no people at all in it (try loading an
  empty GEDCOM and see how spectacularly X!Family crashes :-)
+
+---------------
+
+Further completions window work:
+
+add code for complete-to-left
+             fuzzy-search
+
+add code to incorporate INDI-ids, titles and dates in suitable columns
+add code to size window appropriately (width determined by code which
+ formats columns, height minimised to size of short lists)
+add code to shortcut when only one INDI is found - copy the name into
+ the goto box, rather than doing a goto straightaway
+
+further away - add soundex button for much more fuzzy searches.
+
+---------------
+
+Alpha !Family on RISC OS at least shows Source references for events in Edit
+person dbox - these are also needed in X!Family
+
+!Family does completions by hotkey (F1, F2) on many input fields - searches
+would also be useful on Mother/Father fields in Edit person dbox. Usefulness
+is doubtful on the Name field, but might be some use when edit person has
+been opened in response to a "child" menu item. I would prefer that existing
+persons be connected as parent/child by doing edit person on the child and
+adding the parents (which you could do with a search, as above).
+
+Beware of overloading the neat dboxes for edit person and marriage !!
 

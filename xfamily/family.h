@@ -34,6 +34,7 @@
 extern infoUI       *aboutbox;
 extern prefUI       *choicebox;
 extern findUI       *gotobox;
+extern completionsUI *completionsbox;
 extern editlist     *editUIs;
 extern famedlist    *famUIs;
 extern noteslist    *noteUIs;

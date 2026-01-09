@@ -1,0 +1,20 @@
+Changes in v 0.13
+
+2001.02.19 !Family at 2.25 was fixed for TIME to be a subordinate tag to DATE so
+           now there is a test file for this (correct) GEDCOM. Same fix here - all
+           in gui.cxx (no write-back yet).
+2001.02.19 Added explicit specification of calendar to event dates. Currently we
+           support only Gregorian and Julian (and *not* an unspecified option).
+           Probably should add buttons for "unknown" now, and "Roman", "French
+           Revolutionary" and "Hebrew" soon.
+           Note a minor GEDCOM bug here - if the calendar type is not explicitly
+           specified with an escape, then GEDCOM says we should assume Gregorian.
+           This leaves us with no way to specify that we don't know which calendar
+           was being used.
+
+These changes bring X!Family v0.13 into line with !Family for RISC OS v 2.25 alpha.
+
+2001.02.19 gui now has a box for "sources" for all nine events (BIRT, CHR, BAPM,
+           DEAT, CREM, BURI, ENGA, MARR, DIV) so UI corresponds with !Family 2.25
+           but as yet no code to display the source references in the box :-(
+

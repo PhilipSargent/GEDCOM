@@ -111,6 +111,8 @@ indidisplay::indidisplay( GEDCOM_object *person ) :
   GEDCOM_object *obj;
   string tempstring;
   tempstring = "";
+  int i;
+  char* val;
 
   obj = indi->subobject( SEX_tag );
   if (obj == NULL) gender = SEX_UNKNOWN;
@@ -139,13 +141,27 @@ indidisplay::indidisplay( GEDCOM_object *person ) :
   obj = indi->subobject( BIRT_tag );
   if (obj != NULL) {
     obj = obj->subobject( DATE_tag );
-    if (obj != NULL ) tempstring = obj->value();
+    if (obj != NULL ) {
+      val = obj->value();
+      if ((*val)=='@') {
+        i=2; while ((*(val+i))!='@') i++;i+=2;
+        tempstring = (val+i);
+      }
+      else tempstring = val;
+    }
   }
   tempstring += " - ";
   obj = indi->subobject( DEAT_tag );
   if (obj != NULL) {
     obj = obj->subobject( DATE_tag );
-    if (obj != NULL ) tempstring += obj->value();
+    if (obj != NULL ) {
+      val = obj->value();
+      if ((*val)=='@') {
+        i=2; while ((*(val+i))!='@') i++;i+=2;
+        tempstring += (val+i);
+      }
+      else tempstring += val;
+    }
   }
   dates = new GEDCOM_string( (char *)tempstring.c_str() );
   // ah... bollox. We should get the font values from our displaytree,
@@ -289,6 +305,8 @@ famdisplay::famdisplay( GEDCOM_object *family, indidisplay *spousedisplay, int s
 {
 GEDCOM_object *object;
 string         labeltext;
+char * val;
+int i;
 
   labeltext = "=";
   /* FIXME: we should only dereference to the date if we are actually
@@ -297,7 +315,12 @@ string         labeltext;
   if (object!=NULL) object = object->subobject( DATE_tag );
   if (object!=NULL) {
     labeltext += " ";
-    labeltext += object->value();
+    val = object->value();
+    if ((*val)=='@') {
+      i=2; while ((*(val+i))!='@') i++;i+=2;
+      labeltext += (val+i);
+    }
+    else labeltext += val;
   } else {
     if (sequence != 0) {
       char seq[3]; // no-one marries more than 99 times :-)

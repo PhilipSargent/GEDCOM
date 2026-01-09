@@ -66,6 +66,11 @@ public:
   GEDCOM_id* GEDCOM_idfromref( char* );
   GEDCOM_object* GEDCOM_objectfromref( char * );
   GEDCOM_object* Lookup_INDI( char* ) const;
+  GEDCOM_object* Lookup_INDI( GEDCOM_object*, char* ) const;
+  GEDCOM_object* INDI_fromleft( GEDCOM_object*, char* ) const;
+  GEDCOM_object* INDI_fromright( GEDCOM_object*, char* ) const;
+  GEDCOM_object* INDI_fuzzymatch( GEDCOM_object*, char* ) const;
+
 
 // !Family compatability
   GEDCOM_object* noted_current() const;

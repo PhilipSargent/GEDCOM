@@ -24,10 +24,11 @@ OBJECTS = $(CPPFILES:.cxx=.o)
 
 # we want to find the leafname dynamically PWLEAF = $(PWD##*/)
 # but have had no success as yet
-PWLEAF = v011
+PWLEAF = v013
 
 include makeinclude
 
+# OK, *I* know the plural of suffix is suffices, but tell that to GNUmake ...
 .SUFFIXES : .cxx .c .o
 
 .cxx.o :
@@ -57,6 +58,11 @@ uninstall:
 clean:
 	-@ rm -f ./*.o
 	-@ rm -f ./XFamily
+
+tidy:
+	-@ rm -f ./*~
+	-@ rm -f ./messages/*~
+	-@ rm -f core
 
 zip:
 # we're using zip for the sources, 'cos its easier on RISC OS

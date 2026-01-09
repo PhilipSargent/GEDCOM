@@ -48,6 +48,8 @@ extern void edit_cb(Fl_Menu_ *, void *);
 extern void okedit_cb(Fl_Return_Button *, void *);
 extern void canceledit_cb(Fl_Button*, void*);
 extern void helpedit_cb(Fl_Button*, void*);
+extern void searchma_cb(Fl_Button*, void*);
+extern void searchpa_cb(Fl_Button*, void*);
 
 // callback routines for famUI
 
@@ -58,16 +60,21 @@ extern void helpfam_cb(Fl_Button*, void*);
 
 // callback routines for statsUI
 
-extern void stats_cb(Fl_Menu_ *, void *);
+extern void stats_cb(Fl_Menu_*, void* );
 
 // callback routines for findUI
 
-extern void find_cb(Fl_Menu_ *, void *);
-extern void okfind_cb(Fl_Return_Button*, void *);
+extern void find_cb(Fl_Menu_*, void* );
+extern void okfind_cb(Fl_Return_Button*, void* );
+extern void binnedfind_cb(Fl_Window*, void* );
+extern void searchfind_cb(Fl_Button*, void* );
+extern void chosenfind_cb(Fl_Select_Browser*, void* );
+extern void completionbinned_cb( Fl_Window*, void* );
+extern void helpfind_cb(Fl_Button*, void* );
 
 // callback routines for prefUI
 
-extern void choices_cb(Fl_Menu_ *, void *);
+extern void choices_cb(Fl_Menu_*, void* );
 extern void okchoices_cb(Fl_Button*, void*);
 extern void cancelchoices_cb(Fl_Button*, void*);
 extern void applychoices_cb(Fl_Button*, void*);

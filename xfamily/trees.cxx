@@ -362,6 +362,10 @@ GEDCOM_object* treeinstance::GEDCOM_objectfromref( char *ref ) {
 
 GEDCOM_object* treeinstance::Lookup_INDI( char* name ) const {
 
+// Lookup_INDI with just a string argument assumes we will find a unique
+// INDI to match, so we can use a hash algorithm to find within the list.
+// At least, eventually we could, but its not written yet ...
+
 GEDCOM_object *trythis;
 GEDCOM_object *nameobj;
 
@@ -371,11 +375,16 @@ GEDCOM_object *nameobj;
 // files from outside, we can't assume the INDIs are sorted alphabetically
 
 //  printf("Lookup_INDI called for %s\n",name );
+//  printf("WE *know* Lookup_INDI works: it thinks the treeinstance is %ld\n",(long)this);
   trythis = indilist->subobject();
+//  printf("and it gets the first subobject at %ld\n",(long)trythis);
   while (trythis!=NULL) {
     nameobj = trythis->subobject( NAME_tag );
     if (nameobj != NULL) {
-      if (strcoll( name, nameobj->value() ) == 0 ) return trythis;
+      if (strcoll( name, nameobj->value() ) == 0 ) {
+//        printf("Ended up at nameobj %ld\n",(long)nameobj);
+        return trythis;
+      }
     }
     else
       // strictly, this is broken GEDCOM. We have two possible strategies:
@@ -391,6 +400,77 @@ GEDCOM_object *nameobj;
 //  printf("Failed to find person %s\n",name);
 return NULL; // up to caller to decide what to use instead
 }
+
+GEDCOM_object* treeinstance::Lookup_INDI( GEDCOM_object* last_hit, char* name ) const {
+
+// Lookup_INDI with two arguments assumes we will find more than one match for
+// name - which becomes possible with GEDCOMs that don't expect every INDI to
+// be identified purely by a unique NAME string.
+
+GEDCOM_object *trythis;
+GEDCOM_object *nameobj;
+
+  if (last_hit == NULL) trythis = indilist->subobject();
+  else trythis = last_hit->next_object();
+
+  while (trythis!=NULL) {
+    nameobj = trythis->subobject( NAME_tag );
+    if (nameobj != NULL) {
+      if (strcoll( name, nameobj->value() ) == 0 ) return trythis;
+    }
+    else
+      { printf("didn't find the name object\n"); }
+    trythis = trythis->next_object();  // shouldn't need to specify ( INDI_tag )
+    // because all the objects chained from indilist are INDI
+  }
+//  printf("Failed to find person %s\n",name);
+return NULL; // no more matches in the tree
+}
+
+GEDCOM_object* treeinstance::INDI_fromleft( GEDCOM_object* last_hit, char* name ) const {
+// for testing:
+//  return this->Lookup_INDI( last_hit, name );
+GEDCOM_object *trythis;
+GEDCOM_object *nameobj;
+int testlen;
+
+//  printf("INDI_fromleft called for %s on tree at %ld\n",name, (long)this );
+  testlen = strlen( name );
+//  printf("length is %d, indilist is %ld\n",testlen, (long)indilist);
+  if (last_hit == NULL) {
+//    printf("find initial subobject of indilist\n");
+    trythis = indilist->subobject();
+//    printf("which produced %ld\n",(long)trythis);
+  }
+  else {
+//    printf("find next object in indilist\n");
+    trythis = last_hit->next_object();
+  }
+
+  while (trythis!=NULL) {
+    nameobj = trythis->subobject( NAME_tag );
+    if (nameobj != NULL) {
+//      printf("trying to match with %s\n",nameobj->value());
+      if ( strncasecmp( nameobj->value(), name, testlen ) == 0 ) return trythis;
+    }
+    else
+      { printf("didn't find the name object\n"); }
+    trythis = trythis->next_object();
+  }
+//  printf("run out of tree\n");
+return NULL; // no more matches in the tree
+}
+
+GEDCOM_object* treeinstance::INDI_fromright( GEDCOM_object* last_hit, char* name ) const {
+// for testing:
+  return this->Lookup_INDI( last_hit, name );
+}
+
+GEDCOM_object* treeinstance::INDI_fuzzymatch( GEDCOM_object* last_hit, char* name ) const {
+// for testing:
+  return this->Lookup_INDI( last_hit, name );
+}
+
 
 // !Family compatability
 

@@ -168,4 +168,20 @@ public:
 // objects are subobjects of the indi subobject of root in a very long list :-)
 };
 
+////////////////////////////////////////////////////////////////////////////////
+
+class completion_item {
+GEDCOM_object*    indiptr;
+completion_item*  nextptr;
+GEDCOM_string*    displayptr;
+
+public:
+  completion_item( GEDCOM_object* );
+  ~completion_item();
+  GEDCOM_object* indi() const;
+  completion_item* next() const;
+  void setnext( completion_item* );
+  char* display() const;
+};
+
 #endif
