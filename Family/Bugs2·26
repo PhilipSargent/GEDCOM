@@ -1,0 +1,49 @@
+If you have a tree loaded, and try to replace it with another one
+by dragging a GEDCOM file to the iconbar icon, it looks as if it has
+loaded correctly right up until the last moment, and then crashes with
+a data abort.
+
+Not reproducible ? If you accidentally make a circular lineage - eg. start
+with John Smith, make his father Joe Smith, his father Malcolm Smith and
+his father John Smith, !Family copes. But you need to fix this. Do remove
+on John Smith, then recreate John Smith (1923) and John Smith (1872) in
+the appropriate places. This can lead to a data abort. It appears that
+we are keeping a pointer to something we have released to the heap. When
+that bit of heap is re-used (which is unpredictable), and then we try to
+use the pointer to what we freed, there is likely to be an invalid onward
+pointer. I've only had this happen in my 3000-person tree, which makes it
+a bit difficult to debug - adding instrumentation generates huge output
+streams...
+
+======== FIXED ==========
+
+If you load the test file ...McCotter-index/ged and look at the statistics
+box, it says "dex/ged" in the number of individuals box. Hmmm... looks like
+a buffer overflow from some long file(leaf?)name like
+home/twcny/rr/com-johnswilkinson-McCotter-index/ged
+123456789012345678901234567890123456789012345678901
+
+OK, it looks likely that this happens in PROCSetFile when we do
+
+$StatTitle%=FNMT("StT")+" "+FNLeaf(TreeFile$)
+
+because there will be a static space allocation in the Statistics
+window title for the filename. OK, that static space was 64 bytes,
+and I've increased it to 128. NO CHANGE TO THE CODE was needed.
+
+Note that we also do
+
+$FNIcTxt(SaveWH%,SaIcFile%)=F$
+
+but this is putting the whole filename in, and as we always expect long
+path name, this is probably going to be OK.
+
+Similarly, in PROCModified we say
+
+T$="!Family"+FNMT("dv")+" "+TreeFile$:IF Modified% T$+=" *"
+!b%=MainWH%:SYS "Wimp_GetWindowInfo",,b% :REM blk@4
+$b%!76=T$
+
+So we have to hope that there is enough space in the main window
+title bar.
+

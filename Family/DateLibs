@@ -1,0 +1,140 @@
+Ever since I read about the ISO standard "Representation of dates and times
+in information interchange" when I was at school, I have used this format
+(so that's for over 25 years). The current version of this standard is
+ISO-8601, and at last it seems to be gaining some acceptance (ie. I actually
+know other people who use it all the time :-). As I'm sure you know, the
+basic idea is that dates are represented in the same way we use numbers -
+largest units first. So the day I wrote this was 1999.03.18. This also avoids
+the UK/US date ambiguity which arises on 132 days each year whereby unless
+you are quite sure which system is in use, you can't be sure whether it is
+the 12th January or the 1st December etc. It solves this problem neatly
+without opting for either the US way or the UK way, so is not "politically"
+biased. Great.
+
+The other enormous advantage is that if you write out some sort of report
+in a format like <date> <time> <text description> (which was something I
+intended to do from the GEDCOM files) then you don't have to worry about
+sorting this into order as you write it, since ISO dates sort in the right
+order in any commmon-or-garden sorting program.
+
+So I started entering all my dates into !Family this way, vaguely expecting
+it to whinge at me because it didn't understand the format - but no - it
+seemed to cope fine, although it did seem to cock up if I chose "show year
+only", which I suppose should have warned me...
+
+Eventually, I had to delve inside a GEDCOM file to fix a cock-up, and at
+that point, I realised that !Family wasn't interpreting the dates at all -
+it was just shoving them into the file as strings, which meant that none of
+the dates in my GEDCOM file were in the proper format. Drat.
+
+So I wrote some code, as you do, and found that GEDCOM dates are actually
+rather nasty things, since they have to cope with the reality of
+genealogical research in which there is inevitably incomplete knowledge. My
+original idea was to add code that would read dates in GEDCOM's format, and
+convert this to a numerical form, so that you could then display them using
+OS_ConvertDateAndTime (and similar things) using a string derived from
+Sys$DateFormat. But this is not possible, because the RISC OS conversion
+routines only deal with determinate times, and those only since 1900.
+
+So I have effectively produced code which stores dates internally in GEDCOM's
+format, and interprets them into ISO format every time they are required for
+display. Similarly, the code allows one to type in nice comprehensible ISO
+format into the Edit_Person dbox, and converts to GEDCOM style for internal
+use. This is not very elegant but does at least produce the desired result.
+I expect it could be developed to use some sort of format string ...
+
+However, the changes to existing code are very minimal, all the inelegance
+is in the two new functions FN_UserDate(string) and FN_GEDCOMdate(string),
+and of course, your user can provide these functions to suit the format he
+prefers. If by default, you provide functions:
+
+DEF FN_UserDate(D$):=D$
+DEF FN_GEDCOMdate(D$):=D$
+
+then the modified code will behave exactly as it does now, but with the
+facility for the user to add customised date-interpretation. This is exactly
+what happens if you load DEFDateLib by specifying the line
+
+DateLib:DEFDateLib
+
+in the Choices file. Alternatively, specifying
+
+DateLib:ISODateLib
+
+will get you the library which displays and accepts dates in ISO8601 format.
+If you wish to write library routines to implement some other display/input
+format, then that can be loaded in exactly the same manner.
+
+There is also a small amount of code to get the date at the top of a textual
+report in whatever format you want, but, of course, this is a nice system-
+derived time, and is amenable to using a normal format string. This looks like:
+
+REM add this line at end of section near top of program:
+REM ================== User-customisable variables ===================
+
+REM Format for date/time at head of report (needs a +CHR$(0) at end)
+ReportDateFormat$ = "%ce%yr.%mn.%dy %24:%mi:%se"+CHR$(0)
+
+REM at end of PROCinit:
+
+REM Buffers for date conversions
+
+DIM ReportTime% 8,Formatted_Time% 64
+
+REM and in PROCWriteReport(F%):
+REM replace BPUT#F%,TIME$ with (S% is already a local variable):
+!ReportTime% = 3
+SYS "OS_Word",14,ReportTime%
+SYS "OS_ConvertDateAndTime",ReportTime%,Formatted_Time%,64,ReportDateFormat$ TO ,S%
+?S%=13: REM r1 is a real pointer, not an offset
+BPUT#F%,$Formatted_Time%
+
+------
+
+The code for changing the displayed/stored dates:
+
+REM in FNYear(D$):
+
+IF NOT ShowYearOnly% THEN=FN_UserDate(D$)
+
+REM in PROCSetEdit(P%):
+
+  $FNIcTxt(EditWH%,EdIcBorn%)=FN_UserDate(FNBirth(P%))
+  $FNIcTxt(EditWH%,EdIcDied%)=FN_UserDate(FNDeath(P%))
+
+REM in PROCEventDate(P%,Tag%,Val$)
+
+IF FNGetSub(P%,Tag%,E%) PROCSetStr(E%,DateTg%,FN_GEDCOMdate(Val$),TRUE)
+
+----------------------------------------------------------------------------
+
+Date interpretation notes
+
+The accepted common standard for reduction of a date to a single number
+seems to be the "Julian day". Julian day 0 occurs on January 1st 4713 BC
+in the Julian calendar, which would have been November 24th 4714 BC in
+Gregorian, 10 Vendemiaire -6505 French revolutionary and seems to be
+giving an undefined result in the Hebrew calendar according to GeneWeb.
+
+Julian calendar year 1 January 1st is Julian day 1721424, Gregorian BC 1
+December 30th, French -1792 Vendemiaire 15, Hebrew 3761 Tevet 16 and was
+supposedly a Saturday
+
+Gregorian calendar year 1 January 1st is Julian day 1721426, Julian
+January 3rd AD 1, French -1791 Nivose 11, Hebrew 3761 Tevet 18 and was
+supposedly a Monday
+
+100 was not a leap year in Gregorian and J:100.02.29 = G:100.02.27,
+J:100.03.01 = G:100.02.28, J:100.03.02 = G:100.03.01.
+
+Likewise 200, so J:200.02.29 = G:200.02.28 and the calendars agree on
+200.03.01.
+
+Geneweb says WednesdayJ:1752.09.02 = G:1752.09.13 (Julian day 2361221) and
+was therefore followed by Thursday G:1752.09.14, which is what we expect.
+
+The French Revolutionary calendar seems to start at 1 Vendemiaire 1 as
+Julian day 2375840 = Saturday G:1792.09.22 = J:1792.09.11
+
+Hebrew seems to start at 1 Tishri 1 on Julian day 347998, J:BC3761.10.07
+= G:3761.09.07. Is that right ? G and J were a month apart in 3761 BC ?

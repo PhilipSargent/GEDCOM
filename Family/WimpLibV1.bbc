@@ -1,0 +1,124 @@
+REM ============================= WIMP ===============================
+
+REM Load a template and create the window.  The block is
+REM loaded at b%+4 so it can be used for Wimp_OpenWindow.
+
+DEF FNGetTem($mess%)
+LOCAL WH%
+SYS "Wimp_LoadTemplate",,b%+4,ind%,indend%,-1,mess% TO,,ind%
+b%!(4+64)=Sprites%        :REM User sprite area
+SYS "Wimp_CreateWindow",,b%+4 TO WH%
+=WH%
+
+REM Open window on top
+
+DEF PROCOpen(!b%)
+SYS "Wimp_GetWindowState",,b%
+b%!28=-1:SYS "Wimp_OpenWindow",,b%
+ENDPROC
+
+DEF PROCClose(!b%)
+SYS "Wimp_CloseWindow",,b%
+ENDPROC
+
+REM Set work area extent and visible area.  Top left is work origin.
+REM Bring window to front if Front%.
+
+DEF PROCExtent(WH%,Width%,Height%,Front%)
+LOCAL Depth%
+IF Front% Depth%=-1 ELSE !b%=WH%:SYS "Wimp_GetWindowState",,b%:Depth%=b%!28
+PROCClose(WH%)                :REM Force redraw
+b%!0=0:b%!4=-Height% AND NOT 7:b%!8=(Width%+7)AND NOT 7:b%!12=0
+SYS "Wimp_SetExtent",WH%,b%
+REM Resize visible area bottom right to work area
+!b%=WH%:b%!12=b%!4+Width%:b%!8=b%!16-Height%:b%!28=Depth%
+SYS "Wimp_OpenWindow",,b%
+ENDPROC
+
+DEF PROCRaise(WH%)
+!b%=WH%:SYS "Wimp_GetWindowState",,b%
+b%!28 = -1
+SYS "Wimp_OpenWindow",,b%
+ENDPROC
+
+
+REM Redraw icon given window and icon handles and selection state
+
+DEF PROCSelIcon(b%!0,b%!4,On%)
+b%!8=(1<<21) AND On%<>0:b%!12=1<<21
+SYS "Wimp_SetIconState",,b%
+ENDPROC
+
+REM Is icon selected?
+
+DEF FNSelIcon(b%!0,b%!4)
+SYS "Wimp_GetIconState",,b%
+=(b%!24 AND 1<<21)<>0
+
+REM Return the address of the indirected text of WH's icon IH.
+REM Also the address of an indirected sprite.
+
+DEF FNIcTxt(b%!0,b%!4) :REM WH, IH
+SYS "Wimp_GetIconState",,b%
+=b%!28
+
+DEF PROCCaret(WH%,IH%,End%)
+******************************
+*|
+*| set the caret in Icon IH% of Window WH% at end if end% else at left
+*|
+******************************
+LOCAL L%
+IF End% L%=LEN($FNIcTxt(WH%,IH%)) ELSE L%=0
+SYS "Wimp_SetCaretPosition",WH%,IH%,,,-1,L%
+PROCSelIcon(WH%,IH%,FALSE)    :REM Redraw icon
+ENDPROC
+
+REM set background colour of (window, icon, colour)
+
+DEF PROCIcBG(b%!0,b%!4,C%)
+b%!12 = 15<<28
+b%!8 = C%<<28
+SYS "Wimp_SetIconState",,b%
+ENDPROC
+
+REM (Un)Shade menu entry
+
+DEF PROCShade(Menu%,Entry%,Shade%)
+LOCAL B%:B%=1<<22
+Menu%+=28+24*Entry%+8         :REM Menu flags
+!Menu%=!Menu% AND NOT B% OR Shade% AND B%
+ENDPROC
+
+REM set a writable icon to be unselectable and if it has the caret, lose it
+
+DEF PROCIconDead(WH%,Ic%,Shade%)
+LOCAL B%:B%=1<<22
+!b%=WH%:b%!4=Ic%:b%!8=(1<<22)AND(Shade%<>0):b%!12=1<<22
+SYS "Wimp_SetIconState",,b%
+IF NOT Shade% ENDPROC:REM never reclaim caret
+SYS "Wimp_GetCaretPosition",,b%
+IF (!b%=WH%)AND(b%!4=Ic%) PROCCaret(-1,-1,0)
+ENDPROC
+
+DEF PROCIconHidden(WH%,Ic%)
+SYS "Wimp_GetCaretPosition",,b%
+IF (!b%=WH%)AND(b%!4=Ic%) PROCCaret(-1,-1,0)
+!b%=WH%:b%!4=Ic%
+b%!12=1<<23
+b%!8=1<<23
+SYS "Wimp_SetIconState",,b%
+ENDPROC
+
+DEF PROCIconReveal(b%!0,b%!4)
+b%!12=1<<23
+b%!8=0
+SYS "Wimp_SetIconState",,b%
+ENDPROC
+
+REM (Un)Tick menu entry
+
+DEF PROCSelEntry(Menu%,Entry%,Tick%)
+Menu%+=28+24*Entry%
+!Menu%=!Menu% AND NOT 1 OR (Tick%<>0) AND 1
+ENDPROC

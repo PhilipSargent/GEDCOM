@@ -1,0 +1,194 @@
+****************************************************************************
+*|
+*| Date conversions: Two Routines convert dates between the GEDCOM format
+*| used within the GEDCOM files and internally in the program and the user's
+*| preferred format for display and editing.
+*|
+*| This library is ISODateLib, for users who prefer ISO-8601 formatted dates
+*|
+*| It relies on FNUpper, FNNumeric and  FNDigit from the main program,
+*| but uses no global variables.
+*|
+****************************************************************************
+*|
+*| Updates:
+*| 2000-03-03 LEFT(D$) should have been LEFT$(D$,1) in a few places - caused
+*|            lockup for years starting "9" (typical pre-conquest dates).
+*| 2007-01-04 fixed a non-terminating loop for a "GEDCOM date" which was
+*|            actually a string ending in a "." and not containing a space.
+
+DEF FN_UserDate(D$)
+****************************************************************************
+*|
+*| D$ should be a properly kosher date in GEDCOM's format, which is
+*| [ABT|EST|CAL|BEF|AFT] [[[n]n] MMM] YYYY[/Y] [B.C.]
+*| or possibly BET <DATE_REGULAR> AND <DATE_REGULAR>
+*| we would like to peel off the qualifier (ABT,EST,CAL,BEF,AFT), and convert
+*| the date to a useful numerical form we can manipulate, then convert it
+*| again via Family$DateFormat into whatever format the user wants.
+*| In fact, as this user wants ISO-8601 dates, this is what I'm doing :-)
+*| Note that GEDCOM supports "date phrase" which is free text - if we can't
+*| convert successfully, we should just reproduce verbatim.
+*| If D4 is empty, we should not "invent" 1900.xx.xx - oops !
+*|
+****************************************************************************
+
+IF D$="" THEN =D$
+LOCAL d$,O$,s$,month$,X%,C$
+d$=D$
+WHILE LEFT$(D$,1)=" ":D$=MID$(D$,2):ENDWHILE
+s$=FNUpper(LEFT$(D$,3))
+IF s$="BET" THEN
+  D$=MID$(D$,4)
+  X% = INSTR(FNUpper(D$),"AND")
+  IF X%=0 THEN =d$:REM badly formed date phrase
+  =s$+" "+FN_UserDate(LEFT$(D$,X%-1))+" AND "+FN_UserDate(MID$(D$,X%+3))
+ELSE
+  *| Parse from RH end, where the year is:
+  WHILE RIGHT$(D$)=" ":D$=LEFT$(D$):ENDWHILE
+  O$ = ""
+  IF RIGHT$(D$)="." THEN
+   WHILE RIGHT$(D$)<>" "
+    O$=RIGHT$(D$)+O$:D$=LEFT$(D$)
+    IF LEN(D$)=0 D$=" "
+   ENDWHILE
+   O$+=" "
+  ENDIF
+  WHILE RIGHT$(D$)=" ":D$=LEFT$(D$):ENDWHILE
+  *| Year field is compulsory:
+  s$ = ""
+  WHILE RIGHT$(D$)="x":s$=RIGHT$(D$)+s$:D$=LEFT$(D$):ENDWHILE
+  X%=LEN(s$):s$=""
+  C$=RIGHT$(D$)
+  WHILE (FNDigit(C$))OR(C$="/"):s$=C$+s$:D$=LEFT$(D$):C$=RIGHT$(D$):ENDWHILE
+  IF X%<>0 THEN
+    Y$=s$+STRING$(X%,"x")
+  ELSE
+    Y$=s$
+  ENDIF
+  WHILE RIGHT$(D$)=" ":D$=LEFT$(D$):ENDWHILE
+  *| Month field is optional, so D$ may be empty:
+  IF D$="" THEN =O$+Y$:REMove this +".xx.xx"
+  *| what we have now may be a month or a qualifier (like ABT)
+  WHILE RIGHT$(D$)=" ":D$=LEFT$(D$):ENDWHILE
+  s$ = FNUpper(RIGHT$(D$,3))
+  CASE s$ OF
+    WHEN "ABT","EST","CAL","BEF","AFT":
+      D$=LEFT$(D$,LEN(D$)-3)
+      WHILE RIGHT$(D$)=" ":D$=LEFT$(D$):ENDWHILE
+      IF D$="" THEN=s$+" "+O$+Y$:REMove this +".xx.xx"
+      *| nothing should have preceded those qualifiers, so date was bad
+      = d$
+  ENDCASE
+  D$=LEFT$(D$,LEN(D$)-3)
+  X% = (INSTR("  JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC",s$) DIV 3)<<1
+  month$ = MID$("xx010203040506070809101112",1+X%,2)
+  WHILE RIGHT$(D$)=" ":D$=LEFT$(D$):ENDWHILE
+  IF D$="" THEN=O$+Y$+"."+month$:REMove this +".xx"
+  *| what we have now may be a numeric day-of-month or a qualifier
+  s$ = FNUpper(RIGHT$(D$,3))
+  CASE s$ OF
+    WHEN "ABT","EST","CAL","BEF","AFT":
+      D$=LEFT$(D$,LEN(D$)-3)
+      WHILE RIGHT$(D$)=" ":D$=LEFT$(D$):ENDWHILE
+      IF D$="" THEN=s$+" "+O$+Y$+"."+month$:REMove +".xx"
+      *| nothing should have preceded those qualifiers, so date was bad
+      = d$
+  ENDCASE
+  *| not a qualifier, so read a digit from right of date
+  s$ = "":WHILEFNDigit(RIGHT$(D$)):s$=RIGHT$(D$)+s$:D$=LEFT$(D$):ENDWHILE
+  IF s$="" THEN = d$
+  X% = VAL(s$)
+  IF (X%<1) OR (X%>31) THEN =d$
+  WHILE RIGHT$(D$)=" ":D$=LEFT$(D$):ENDWHILE
+  IF D$="" THEN=O$+Y$+"."+month$+"."+RIGHT$("0"+STR$(X%),2)
+  s$ = FNUpper(RIGHT$(D$,3))
+  CASE s$ OF
+    WHEN "ABT","EST","CAL","BEF","AFT":
+      D$=LEFT$(D$,LEN(D$)-3)
+      WHILE RIGHT$(D$)=" ":D$=LEFT$(D$):ENDWHILE
+      IF D$="" THEN=s$+" "+O$+Y$+"."+month$+"."+RIGHT$("0"+STR$(X%),2)
+      *| nothing should have preceded those qualifiers, so date was bad
+      = d$
+  ENDCASE
+  = d$
+ENDIF
+REM Inaccessible, but add a safety net:
+=d$
+
+DEF FN_GEDCOMdate(D$)
+****************************************************************************
+*|
+*| We are assuming that D$ is an ISO-8601 date, perhaps with GEDCOM
+*| style qualifiers, and using "xx" or omission for unknowns.
+*|
+****************************************************************************
+
+LOCAL ISO$,Era$,Q$,m$,Y$,X%
+ISO$=D$
+WHILE LEFT$(D$,1)=" ":D$=MID$(D$,2):ENDWHILE
+Q$ = FNUpper(LEFT$(D$,3))
+CASE Q$ OF
+  WHEN "BET"
+    D$=MID$(D$,4)
+    X% = INSTR(FNUpper(D$),"AND")
+    IF X%=0 THEN =ISO$:REM badly formed date phrase
+    =Q$+" "+FN_GEDCOMdate(LEFT$(D$,X%-1))+" AND "+FN_GEDCOMdate(MID$(D$,X%+3))
+  WHEN "ABT","EST","CAL","BEF","AFT":
+    D$=MID$(D$,4)
+    Q$+=" "
+    WHILE LEFT$(D$,1)=" ":D$=MID$(D$,2):ENDWHILE
+  OTHERWISE: Q$=""
+ENDCASE
+*| now Q$ holds any qualifier on this date, D$ has left whitespace stripped
+Era$ = ""
+
+*| parse leftmost element:
+IF (LEFT$(D$,1)<>"x") AND NOT FNDigit(LEFT$(D$,1)) THEN
+  *| logically all that can be here is "B.C.", parse off whole string up to
+  *| next whitespace into Era$. Era$ will be the last item in a GEDCOM date,
+  *| so ensure it gets a leading space
+  Era$=" "
+  IF D$<>"" WHILE LEFT$(D$,1)<>" ":Era$+=LEFT$(D$,1):D$=MID$(D$,2):ENDWHILE
+  WHILE LEFT$(D$,1)=" ":D$=MID$(D$,2):ENDWHILE
+ENDIF
+*| now Q$ = qualifier+" ", Era$ = " "+era, D$ has left whitespace stripped
+*| leftmost part of D$ now *must* be the year, or we have a badly formed date
+IF (LEFT$(D$,1)<>"x") AND NOT FNDigit(LEFT$(D$,1)) THEN = ISO$
+
+X% = INSTR(D$,".")      :REM if no dot in date, must be just year
+IF X%=0 THEN=Q$+D$+Era$
+Y$ = LEFT$(D$,X%-1)
+D$ = MID$(D$,X%+1)
+*| now Q$ = qualifier+" ", Era$ = " "+era, Y$=year, D$ rest of date
+X% = INSTR(D$,".")
+IF X%=0 THEN = Q$+FNmonth(D$)+Y$+Era$ :REM D$ must have been just the month
+*| else parse off month, leaving D$ as the day-in-month
+m$ = FNmonth(LEFT$(D$,X%-1))
+D$ = MID$(D$,X%+1)
+
+*| GEDCOM can't represent 1901.xx.24 so throw away the day-in-month :-(
+*| you might choose to return ISO$ at this point, as it is not uncommon to
+*| want to represent that sort of date (for instance, one bit of evidence
+*| has given you the year of an event, whilst another has given you a day
+*| (like an undated letter saying "the 24th inst."). GEDCOM allows the
+*| option of an unstructured string in a such a case, and an ISO-date with
+*| "xx" for one field is therefore permitted, if you wish.
+IF m$="" THEN = Q$+Y$+Era$ :REM or =ISO$
+
+*| should be left with just day-of-month digits - clip leading zero(es)
+WHILE LEFT$(D$,1)="0" D$=MID$(D$,2):ENDWHILE
+
+IF FNNumeric(D$) THEN = Q$+D$+" "+m$+Y$+Era$
+= Q$+m$+Y$+Era$
+
+DEF FNmonth(m$)
+*| m$ must contain only a month - should be 2 digits, but we will accept one
+LOCAL X%
+IF LEN(m$) = 1 m$="0"+m$
+*| if the month is longer than 2, we will just output it: a bit iffy
+IF LEN(m$)>2 THEN = m$+" "
+
+X% = INSTR("01 02 03 04 05 06 07 08 09 10 11 12 ",m$)
+IF X%=0 THEN =""  :REM not recognised, typically "xx"
+= MID$("JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC",X%,3)+" "

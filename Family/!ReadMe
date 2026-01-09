@@ -1,0 +1,180 @@
+New Bugs
+
+A lot of redundant code - most now removed ? See the file "ExcisedCode"
+in case you need to retrieve any !
+
+FNMHelp is now way out of step with the actual icons on which we should
+be supplying help. And so also, of course, is the messages file.
+
+French messages file removed - needs reinstating when the main messages
+file has stabilised.
+
+Want to be able to pop the Marriage GUI up via a menu click on the marriage,
+rather than via the INDI menu Marriage=><name>, which is a bit awkward. That
+menu should also have a "Child" item on it which will be a cleaner way to add
+a child to a parent with multiple marriages - the resulting "Edit Person"
+dbox should have the Mother and Father names *not* writable. Indeed, parents'
+names shouldn't be writable in this dbox *except* when it is raised for "New
+Person". The side effect of marrying the Mother and Father (and perhaps also
+creating them as new persons themselves) when such a person is created is a
+source of error, though it is also a convenient shortcut. Care !
+
+FIXED:
+
+(these are faults introduced in this revision which have been fixed,
+rather than pre-existing bugs)
+
+Some redundant menu items
+
+We are reading 1 BIRT
+               2 DATE
+               2 TIME
+
+but writing    1 BIRT
+               2 DATE
+               3 TIME
+
+the latter is correct, and we need to fix our reading code and the GEDCOM
+data. We almost certainly need a noddy program to apply this fix to GEDCOMs
+to go out with the new code. OK, that Noddy is called "TIME 2 to 3" and
+will *only* transform DATE/TIME at the 2/3 level.
+
+A lot of dboxes seem to be popping up with an icon selected which should
+not be selectable.
+
+The "Living" opt doesn't work on the new Edit window.
+
+The new interface (with calendar choice) is currently only applied to
+individuals in the edit GUI. We want to do the same thing to the Marriage
+GUI We do need INDI=>Marry to pop up an event dbox with a calendar choice
+too.
+
+New Marry to dbox not fully coded yet
+
+DateWH is still used by the Divorce menu item. This is now completely
+redundant, since divorce details can be set using the marriage dbox, as
+can engagement details.
+
+=========================================================================
+
+New Edit template icon numbers:
+
+Text strings (which need translating):
+
+Name        24
+Title       25
+Gender      26
+Father      27
+Mother      28
+Date        29
+Time        30
+Calendar    34
+Place       31
+Site        32
+Plot        38
+Cause       33
+Male        17
+Female      18
+Unknown     19
+Living      20
+Gregorian   36
+Julian      37
+Cancel      21
+OK          22
+Help        23
+Birth       10 (BG col 12)
+Christening 11 (BG col 15)
+Baptism     12 (BG col 10)
+Death       13 (BG col 9)
+Cremation   14 (BG col 14)
+Burial      15 (BG col 2)
+Sources     42
+
+Writeable icons
+
+Name         1
+Title        2
+Father       3
+Mother       4
+Date         5
+Time         6
+Place        7
+Site         8
+Cause/Plot   9
+Sourcelist  43 (not currently writeable)
+
+Background icons
+
+tab          0
+gender      16
+calendar    35
+
+so 0 needs to change background colour
+if you wanted 35 to change background colour too, you
+ would also need to do the same for the radio buttons 36, 37
+
+
+New Engagement / Marriage / Divorce dbox
+
+Background icons
+
+tab          0
+calendar     7
+
+Indirected string icons
+
+Husband      1 (not writable)
+Wife         2 (not writable)
+Date         3
+Time         4
+Place        5
+Site         6
+Sourcelist  24 (not currently writeable)
+
+Text strings (need translations)
+
+Husband      8
+Wife         9
+Date        10
+Time        11
+Calendar    12
+Place       13
+Site        14
+Engagement  15
+Marriage    16
+Divorce     17
+Gregorian   18
+Julian      19
+Cancel      20
+OK          21
+Help        22
+Sources     23
+
+Revised Marry To dbox
+
+Background icons
+
+calendar     0
+
+Indirected string icons
+
+Spouse       1
+Date         2
+Time         3
+Place        4
+Site         5
+
+Text strings (need translations)
+
+Marry        8
+Date         9
+Time        10
+Calendar    11
+Place       12
+Site        13
+Gregorian    6
+Julian       7
+Cancel      14
+Current     15
+OK          16
+(need Help 17)

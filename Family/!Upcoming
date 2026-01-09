@@ -1,0 +1,67 @@
+What sort of menu to open is determined in PROCOpenMenu(X%,Y%,WH%)
+at line 1405 or thereabouts. For any window (including the iconbar
+icon) other than the main window, we open the iconbar menu. But in
+fact, only the main window and the iconbar icon generate events
+here, so that is OK.
+
+If this is the main menu, we call FNNear(X%,Y%) to determine who is
+to be the MenuPerson.
+
+In fact, what we need to do is to is change the order of the tests,
+then for the main window, call a modified version of FNNear which
+
+a) doesn't need us to click very near the centre of a name
+b) will return a pointer to either an INDI (as now) or a FAM, if
+ we clicked on the marriage.
+
+then we can choose between two menus for the main window (as per the
+Linux version).
+
+Having two versions will also need changes to the menu creation code,
+and menu item numbering (so we grey out the right items :-). The main
+menu has already been simplified with the creation of tabbed Edit and
+Marriage dboxes, so this should be straightforward.
+
+======================================================================
+
+How to implement sources ? Currently we reflect any SOUR citations for
+a whole INDI object, but in theory we could have one or more SOUR citations
+for each datum. In a pathological case, we might have different dates of
+birth from two different sources, for example.
+
+0 @I1@ INDI
+1 NAME Joe Smith
+1 BIRT
+2 DATE 22 AUG 1853
+2 SOUR @S1@
+1 BIRT
+2 DATE 22 SEP 1853
+2 SOUR @S2@
+
+or how about when we have a birth with different sources for the date
+(maybe someone's birthday book) and place (like the census)
+
+0 @I2@ INDI
+1 NAME Erica Jones
+1 BIRT
+2 DATE 30 JUN 1924
+3 SOUR @S3@
+2 PLAC Ventnor, Isle of Wight
+3 SOUR @S4@
+
+or should that be coded:
+
+0 @I2@ INDI
+1 NAME Erica Jones
+1 BIRT
+2 DATE 30 JUN 1924
+2 SOUR @S3@
+1 BIRT
+2 PLAC Ventnor, Isle of Wight
+2 SOUR @S4@
+
+which is more like the structure of the first example
+
+
+
+

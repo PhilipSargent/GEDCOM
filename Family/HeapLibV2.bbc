@@ -1,0 +1,123 @@
+DEF PROCInitHeap
+SYS "Wimp_SlotSize",-1,-1 TO InitSlotSize%
+IF (Debugging%<>0) BPUT#Debugging%,"InitSlot &"+STR$~(InitSlotSize%)
+Heap% = HIMEM        :REM is the address of the end of the slot size
+IF Heap%<END+VarSize% THEN REM problem
+IF (Debugging%<>0) BPUT#Debugging%,"Space for our variables : Heap "+STR$~(Heap%)+" END "+STR$~(END)+" VarSize "+STR$~(VarSize%)
+IF (Debugging%<>0) DIM AtestBit% 1:BPUT#Debugging%,"New variables allocated from "+STR$~(AtestBit%)
+HeapSize% = 0        :REM initially ...
+InitHeapSize% = (InitHeapSize% + 3) AND (NOT 3) :REM word boundary
+REM actually getting the space etc. is done by ResetHeap
+ENDPROC
+
+DEF FNExtendHeap
+REM grow heap in 20% chunks
+IF (Debugging%<>0) BPUT#Debugging%,"Heap only has "+STR$(HeapFree%)+" free. Extending heap by 20% of initial size"
+NewHeapSize% = HeapSize% + (InitHeapSize% / 5)
+NewHeapSize% = (NewHeapSize% + 3) AND (NOT 3) :REM word boundary
+IF (Debugging%<>0) BPUT#Debugging%,"Heap increment is "+STR$(NewHeapSize%-HeapSize%)
+SYS "Wimp_SlotSize",InitSlotSize%+NewHeapSize%,-1 TO NewSlotSize%
+CurSlotSize% = NewSlotSize%
+NewHeapSize% = NewSlotSize%-InitSlotSize%
+IF NewHeapSize%=HeapSize% THEN
+ IF (Debugging%<>0) BPUT#Debugging%,"Failed to extend heap"
+ =FALSE
+ENDIF
+SYS "OS_Heap",5,Heap%,,NewHeapSize%-HeapSize%
+HeapFree%+= NewHeapSize%-HeapSize%
+HeapSize% = NewHeapSize%
+IF (Debugging%<>0) BPUT#Debugging%,"Heap now has "+STR$(HeapFree%)+" free."
+=TRUE
+
+REM Free% points after last block allocated or at lowest freed.  Block
+REM starts with 4-byte count of following bytes.  Count is multiple
+REM of 4.  Bit 0 => block in use.  Coalesce as much as possible on
+REM allocation.  Only zero size block is last block.  Musn't leave a
+REM zero size block when allocating part of a block.  HeapFree% is
+REM total free space including count words of free blocks.
+
+DEF PROCResetHeap
+REM we assume caller has already binned all his pointers into the heap
+IF (Debugging%<>0) BPUT#Debugging%,"New code to reset heap"
+REM return to initial size for heap
+SYS "Wimp_SlotSize",InitSlotSize%+InitHeapSize%,-1 TO NewSlotSize%
+CurSlotSize% = NewSlotSize%
+HeapSize% = CurSlotSize% - InitSlotSize%
+IF (Debugging%<>0) BPUT#Debugging%,"Will try to init heap at "+STR$~(Heap%)+", size "+STR$~(HeapSize%)
+SYS "OS_Heap",0,Heap%,,HeapSize%
+HeapLow%=0.05*InitHeapSize%       :REM Warn if less free
+HeapFree%=InitHeapSize%           :REM minus some overhead ?
+HeapLow%=0.05*InitHeapSize%       :REM Warn if less free
+HeapWarn%=HeapLow%            :REM Warn if less than this free
+ENDPROC
+
+DEF FNAlloc(W%)
+*| On entry W% is the number of bytes required
+*| the amount actually allocated will be rounded up to a dword boundary
+*| and there is a 4-byte overhead
+LOCAL E%,N%,S%,B%
+IF W%=0 THEN=0
+IF (Debugging%<>0) BPUT#Debugging%,"New code to allocate heap space of "+STR$(W%)
+SYS "XOS_Heap",2,Heap%,,W% TO E%,,B%
+IF B%=0 THEN
+  IF FNExtendHeap THEN
+    SYS "XOS_Heap",2,Heap%,,W% TO E%,,B%
+    IF B%=0 ERROR ErrChide%,$(E%+4):REMFNMT("OM")+" (ext)"
+  ELSE
+    ERROR ErrChide%,FNMT("OM")+" (noext)"
+  ENDIF
+ENDIF
+W%+=4:W%=(W%+7)AND NOT7
+HeapFree% -= W%
+=B%
+
+REM Free block at A%.  Freeing any number of
+REM objects will not disturb their contents.
+
+DEF PROCFree(A%)
+LOCAL B%
+IF A%=0 ENDPROC
+IF (Debugging%<>0) BPUT#Debugging%,"New code to free heap"
+SYS "OS_Heap",6,Heap%,A% TO ,,,B%
+REM I assume that the "block size" returned includes the 4 byte overhead
+SYS "OS_Heap",3,Heap%,A%
+REM should use the X SWI and produce local errorchide
+HeapFree% += B%
+ENDPROC
+
+REM Make a heap copy of string S$.  An empty string
+REM is not stored, it is replaced by null pointers.
+
+DEF FNString(S$)
+LOCAL A%
+IF S$="" THEN=0
+A%=FNAlloc(LEN(S$)+1)
+$A%=S$
+=A%
+
+DEF PROCCheckFree
+LOCAL K$
+CASE FreeDisplay% OF
+ WHEN ShowHeap%
+  K$=STR$(HeapFree% DIV 1024)
+ WHEN ShowVars%
+  K$=STR$(Heap%-END)
+ENDCASE
+IF $BarIcText%<>K$ THEN
+  IF Debugging% BPUT#Debugging%,K$
+  b%!0=-1:b%!4=BarIc%:b%!8=0:b%!12=0
+  $BarIcText%="    "
+  SYS "Wimp_SetIconState",,b%
+  $BarIcText%=K$
+  SYS "Wimp_SetIconState",,b%
+ENDIF
+IF HeapFree%>HeapWarn% ENDPROC
+IF NOT FNExtendHeap THEN
+  HeapWarn%=-1 :REM Inhibit warning until next PROCResetHeap
+  REM but user could free some memory and we could extend the heap
+  REM then we won't get a warning next time the heap gets low, so we
+  REM really want to be a bit cleverer than that...
+  ERROR ErrChide%,FNMT("MW")
+ENDIF
+ENDPROC
+

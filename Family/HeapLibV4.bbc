@@ -1,0 +1,234 @@
+DEF PROCInitHeap
+SYS "Wimp_SlotSize",-1,-1 TO InitSlotSize%
+IF (Debugging%<>0) BPUT#Debugging%,"InitSlot &"+STR$~(InitSlotSize%)+" HIMEM &"+STR$~(HIMEM)
+Heap% = HIMEM        :REM is the address of the end of the slot size
+IF Heap%<END+VarSize% THEN REM problem
+IF (Debugging%<>0) BPUT#Debugging%,"Space for our variables : Heap "+STR$~(Heap%)+" END "+STR$~(END)+" VarSize "+STR$~(VarSize%)
+IF (Debugging%<>0) DIM AtestBit% 1:BPUT#Debugging%,"New variables allocated from "+STR$~(AtestBit%)
+HeapSize% = 0        :REM initially ...
+InitHeapSize% = (InitHeapSize% + 3) AND (NOT 3) :REM word boundary
+REM actually getting the space etc. is done by ResetHeap
+ENDPROC
+
+DEF FNExtendHeap
+LOCAL F%
+REM grow heap in 20% chunks
+NewHeapSize% = HeapSize% + (InitHeapSize% / 5)
+NewHeapSize% = (NewHeapSize% + 3) AND (NOT 3) :REM word boundary
+SYS "Wimp_SlotSize",InitSlotSize%+NewHeapSize%,-1 TO NewSlotSize%
+CurSlotSize% = NewSlotSize%
+NewHeapSize% = NewSlotSize%-InitSlotSize%
+IF NewHeapSize%=HeapSize% THEN =0
+HeapEnd%=NewHeapSize%+Heap%
+HeapLow%=0.05*NewHeapSize%       :REM Warn if less free
+REM make the old end-of-heap marker into start of new free block
+Heap%!(HeapSize%-12) = NewHeapSize%-HeapSize%-4  :REM size of free block
+Heap%!(HeapSize%-8) = HeapEnd%-12                :REM forward to new end marker
+REM and start new searches for space at the new block
+F% = Heap% + HeapSize% - 12
+REM create new end-of-heap marker
+Heap%!(NewHeapSize%-12) = 0
+Heap%!(NewHeapSize%-8)=0                  :REM forward pointer is NULL
+Heap%!(NewHeapSize%-4)=Heap%+HeapSize%    :REM previous pointer to new block
+HeapFree%+= NewHeapSize%-HeapSize%
+HeapSize% = NewHeapSize%
+=F%
+
+REM Free% points after last block allocated or at lowest freed.  Block
+REM starts with 4-byte count of following bytes.  Count is multiple
+REM of 4.  Bit 0 => block in use.  Coalesce as much as possible on
+REM allocation.  Only zero size block is last block.  Musn't leave a
+REM zero size block when allocating part of a block.  HeapFree% is
+REM total free space including count words of free blocks.
+
+DEF PROCResetHeap
+REM we assume caller has already binned all his pointers into the heap
+IF (Debugging%<>0) BPUT#Debugging%,"Old code + reduce Slot size to reset heap"
+REM return to initial size for heap
+SYS "Wimp_SlotSize",InitSlotSize%+InitHeapSize%,-1 TO NewSlotSize%
+CurSlotSize% = NewSlotSize%
+HeapSize% = CurSlotSize% - InitSlotSize%
+IF (Debugging%<>0) BPUT#Debugging%,"Will try to init heap at "+STR$~(Heap%)+", size "+STR$~(HeapSize%)
+HeapEnd%=HeapSize%+Heap%
+HeapLow%=0.05*HeapSize%       :REM Warn if less free
+!Heap%=HeapSize%-16           :REM 16 bytes = two count words + two pointers
+Heap%!(HeapSize%-12)=0        :REM End marker: no bytes, free
+Heap%!(HeapSize%-8)=0         :REM forward pointer is NULL
+Heap%!(HeapSize%-4)=Heap%     :REM backward pointer to only free block
+Heap%!4=HeapEnd%-12           :REM next pointer of only free block points to end
+Heap%!8=0                     :REM previous pointer says this is first block
+Free%=Heap%
+HeapFree%=HeapSize%
+HeapWarn%=HeapLow%            :REM Warn if less than this free
+IF (Debugging%<>0) BPUT#Debugging%,"Heap ends at &"+STR$~(HeapEnd%)
+ENDPROC
+
+DEF FNAlloc(W%)
+*| On entry W% is the number of bytes required
+*| the amount actually allocated will be rounded up to a word boundary
+*| and there is a minimum size of 8 bytes - 'cos free blocks need that
+LOCAL E%,N%,S%,B%,A%,F%,P%
+IF (Debugging%<>0) LOCAL dump$,I%,T%
+IF W%=0 THEN=0
+IF W%<8 W%=8
+W%=(W%+3) AND NOT 3
+REM  IF (Debugging%<>0) BPUT#Debugging%,"V4 code to allocate heap space"
+B%=Free%:P%=0:F%=0
+REPEAT
+  IF (Debugging%<>0) BPUT#Debugging%,"Find length of block at &"+STR$~(B%)
+  S%=!B% AND NOT 1             :REM Size of cur block
+  IF (Debugging%<>0) BPUT#Debugging%,"length was "+STR$(S%)
+  IF S%=0 THEN
+    REM end of heap
+    B% = FNExtendHeap
+    IF B%<>0 THEN
+      S%=0 : REM restart loop
+    ELSE
+      ERROR ErrChide%,FNMT("OM")
+    ENDIF
+  ELSE
+    N%=B%!4                   :REM Next free block
+    A%=B%+S%+4                :REM Next contiguous block
+    CASE TRUE OF
+      WHEN S%=W%                   :REM this free, exact fit, use it
+        IF (Debugging%<>0) THEN
+          BPUT#Debugging%,"We have an exact fit. Here is the block now at &"+STR$~(B%)
+          dump$=""
+          FOR I% = 0 TO S% STEP 4
+            dump$+="&"+STR$~(B%!I%)+" "
+          NEXT
+          BPUT#Debugging%,dump$
+        ENDIF
+        IF P%=0 THEN
+          REM Free% pointed here, so remove this block from head of list
+          Free%=N%:N%!8=0
+          IF (Debugging%<>0) THEN
+            BPUT#Debugging%,"No previous block. Free% now &"+STR$(Free%)
+            BPUT#Debugging%,"Here is the next block now at &"+STR$~(N%)
+            dump$=""
+            T% = !N% AND NOT 1
+            FOR I% = 0 TO T% STEP 4
+              dump$+="&"+STR$~(N%!I%)+" "
+            NEXT
+            BPUT#Debugging%,dump$
+          ENDIF
+        ELSE
+          P%!4=N%:REM Forward pointer of previous block -> next block
+          N%!8=P%:REM Back pointer of next block -> previous
+          IF (Debugging%<>0) THEN
+            BPUT#Debugging%,"Here is the previous block now at &"+STR$~(P%)
+            dump$=""
+            T% = !P% AND NOT 1
+            FOR I% = 0 TO T% STEP 4
+              dump$+="&"+STR$~(P%!I%)+" "
+            NEXT
+            BPUT#Debugging%,dump$
+            BPUT#Debugging%,"Here is the next block now at &"+STR$~(N%)
+            dump$=""
+            T% = !N% AND NOT 1
+            FOR I% = 0 TO T% STEP 4
+              dump$+="&"+STR$~(N%!I%)+" "
+            NEXT
+            BPUT#Debugging%,dump$
+          ENDIF
+
+        ENDIF
+      WHEN (!A%AND1)=0 AND !A%<>0  :REM this and next free - coalesce
+        !B%+=!A%+4
+        REM BBC BASIC doesn't allow recursive indirection - use S% temporarily
+        IF (Debugging%<>0) BPUT#Debugging%,"next contiguous &"+STR$~(A%)
+        IF (Debugging%<>0) BPUT#Debugging%,"-> &"+STR$~(!A%)+" &"+STR$(A%!4)+" &"+STR$(A%!8)
+        S%=A%!4:S%!8=A%!8 :REM we mean (A%!4)!8 = A%!8
+        S%=A%!8:S%!4=A%!4 :REM we mean (A%!8)!4 = A%!4
+        S% = 0                     :REM and ignore old length - loop round
+        F% = 0 :REM for debugging
+      WHEN S%<W%                   :REM this too small, try next
+        P%=B%:B%=N%:S%=0
+        F% = 0 :REM for debugging
+      WHEN S%>W%                   :REM big enough
+        E%=S%-W%-4
+        REM E% is space left in free block - cannot be less than 8 bytes
+        REM If big enough, use this block and put rest back in free list
+        IF E%>=8 THEN
+          F% = B%+W%+4             :REM point to new free block
+          IF (Debugging%<>0) BPUT#Debugging%,"Rest of block at &"+STR$~(F%)
+          REM don't need the test - end marker has pointers too IF (!N% AND NOT 1)<>0 N%!8 = F%
+          N%!8 = F%
+          IF P%=0 Free% = F% ELSE P%!4 = F%
+          !F% = E% : F%!4=B%!4 : F%!8 = B%!8
+        ELSE
+          IF (Debugging%<>0) BPUT#Debugging%,"Free block at &"+STR$~(B%)+" not big enough ("+STR$(W%)+"<12+"+STR$(S%)
+          P%=B%:B%=N%:S%=0
+          F% = 0 :REM for debugging
+        ENDIF
+    ENDCASE
+  ENDIF
+UNTIL S%>=W%
+!B%=W% OR 1
+IF (Debugging%<>0) BPUT#Debugging%,"V4 code allocated heap at &"+STR$~(B%)+" size "+STR$(W%+4)+" count word set to &"+STR$~!B%
+IF (Debugging%<>0) THEN
+ IF F% THEN
+  BPUT#Debugging%,"allocation was part of block, leaving new free block at &"+STR$~(F%)
+  BPUT#Debugging%,"Previous block in chain was at &"+STR$~(P%)+" which should equal new free blocks back pointer of &"+STR$~(F%!8)
+  BPUT#Debugging%,"Next block in chain is at &"+STR$~(F%!4)
+ ENDIF
+ENDIF
+HeapFree%-=W%+4
+=B%+4
+
+REM Free block at A%.  Freeing any number of
+REM objects will not disturb their contents.
+
+DEF PROCFree(A%)
+IF A%=0 ENDPROC
+A%-=4
+IF (Debugging%<>0) BPUT#Debugging%,"V4 code to free heap at &"+STR$~(A%)
+IF A%<Heap% ERROR ErrFatal% "PROCFree below heap"
+IF A%>HeapEnd%-12 ERROR ErrFatal% "PROCFree above heap"
+IF (!A% AND 1)=0 ERROR ErrFatal%,"PROCFree already free or bad pointer"
+IF (!A% AND NOT 1)<8 ERROR ErrFatal%,"PROCFree size too small"
+!A%-=1
+A%!4 = Free%
+A%!8 = 0
+Free%!8 = A%
+Free% = A%
+HeapFree%+=(!A%)+4
+ENDPROC
+
+REM Make a heap copy of string S$.  An empty string
+REM is not stored, it is replaced by null pointers.
+
+DEF FNString(S$)
+LOCAL A%
+IF S$="" THEN=0
+A%=FNAlloc(LEN(S$)+1)
+IF (Debugging%<>0) BPUT#Debugging%,"Placing """+S$+""" at &"+STR$~(A%)
+$A%=S$
+=A%
+
+DEF PROCCheckFree
+LOCAL K$
+CASE FreeDisplay% OF
+ WHEN ShowHeap%
+  K$=STR$(HeapFree% DIV 1024)
+ WHEN ShowVars%
+  K$=STR$(Heap%-END)
+ENDCASE
+IF $BarIcText%<>K$ THEN
+  IF Debugging% BPUT#Debugging%,K$
+  b%!0=-1:b%!4=BarIc%:b%!8=0:b%!12=0
+  $BarIcText%="    "
+  SYS "Wimp_SetIconState",,b%
+  $BarIcText%=K$
+  SYS "Wimp_SetIconState",,b%
+ENDIF
+IF HeapFree%>HeapWarn% ENDPROC
+IF NOT FNExtendHeap THEN
+  HeapWarn%=-1 :REM Inhibit warning until next PROCResetHeap
+  REM but user could free some memory and we could extend the heap
+  REM then we won't get a warning next time the heap gets low, so we
+  REM really want to be a bit cleverer than that...
+  ERROR ErrChide%,FNMT("MW")
+ENDIF
+ENDPROC
+

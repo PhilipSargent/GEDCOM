@@ -1,0 +1,35 @@
+| !Family.!Run
+
+| do we use our own heap code or OS_Heap ? So far, OS_Heap seems to be a lot slower :-(
+set Family$UseOSHeap 1
+
+RMEnsure UtilityModule 3.00  Error 0 !Family needs RISC OS 3
+Set Family$Dir <Obey$Dir>
+IconSprites <Family$Dir>.!Sprites
+Set File$Type_D78 GEDCOM
+Set File$Type_FAF html
+Set Alias$@RunType_D78 Run <Family$Dir> %%*0
+Set Alias$@PrintType_D78 Run <Family$Dir> -print %%*0
+
+| Edit the WimpSlot command to change the amount of memory available:
+
+seteval Family$StaticSpace 640
+seteval Family$InitialHeapSpace 750
+seteval Family$TotalSpace <Family$StaticSpace>+<Family$InitialHeapSpace>
+set Family$Slot "<Family$TotalSpace>k"
+| Why does this not just *work* ???
+| WimpSlot -min <Family$Slot> -max <Family$Slot>
+setmacro alias$FamilySlot WimpSlot -min <Family$Slot> -max <Family$Slot>
+
+| make sure there is enough space to start up
+FamilySlot
+
+| if we are going to use new heap code, then the actual code needs less:
+if <Family$UseOSHeap>=1 then setmacro alias$FamilySlot WimpSlot -min <Family$StaticSpace>k -max <Family$StaticSpace>k
+if <Family$UseOSHeap>=1 then FamilySlot
+Unset Alias$FamilySlot
+
+set Alias$!Family /<Family$Dir>.!RunImage -newheap <Family$UseOSHeap> -heap <Family$InitialHeapSpace> -f %*0
+
+|echo <Alias$!Family>
+!Family

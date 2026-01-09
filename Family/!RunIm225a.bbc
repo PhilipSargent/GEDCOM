@@ -1,0 +1,5171 @@
+***********************************************************************
+***********************************************************************
+*|
+*|  ALPHA CODE !!! BROKEN MENUS and much else flakey besides - new User
+*|  interface test code - many old dboxes deleted... possibly slightly
+*|  too many - marriage still used the Event dbox, oops :-(
+*|  new heap code is vastly slower - don't use. Fix existing code and
+*|  rewrite it in assembler instead...
+*|
+***********************************************************************
+***********************************************************************
+
+REM Please send me a copy of any changes you make and
+REM update the modification history at the end of !Help.
+
+REM Denis Howe <dbh@doc.ic.ac.uk> Andy Waddington <family-maint@pennine.demon.co.uk>
+
+REM FIXME: Debugging% output
+REM FIXME: still some debugging SOUND statements only commented out
+
+REMTRACE TO "Ram:Debug":TRACE ON
+Debugging% = 0
+Debugging% = OPENOUT"Ram:Debug2"
+IF (Debugging%<>0) BPUT#Debugging%,"Debugging on"
+ShowHeap%=0:ShowVars%=1:FreeDisplay%=ShowHeap%
+ON ERROR REPORT:PRINT" at line";ERL:IF (Debugging%<>0) CLOSE#Debugging%:QUIT:ELSE QUIT :REM trap errors before handlers set up
+Task$    = "Family"
+REM Purpose$ = set from messages file
+Author$  = "LEN 1993-8 Denis Howe, 1999-2000 A.Waddington"
+REM VersionBasedOnFamilyVersion$ = "2.18 (1998-11-08)"
+REM version string used in SOURce VERSion tag has max length 15 chars
+Version$ = "2.25 2000.12.17"
+InfoVersion$ = "ALPHA "+Version$
+
+REM Initialise some variables for PROCError & PROCQuit
+b%=END:Task%=0:Modified%=FALSE:Font%=0:ExtEdJob%=0
+REM Error Types: neither should be in range -1 to 255
+ErrFatal% = 65536:ErrChide% = 32768
+REM Can't use PROCError until b% is DIMmed ON ERROR PROCError:QUIT
+
+REM ================== User-customisable variables ===================
+
+REM Maximum completions to show in Comp window
+REM This should really be a Choices option
+MaxComp%=150
+
+REM Maximum spouses in Marriage/Unmarry/Divorce menus
+MaxSpouse%=10
+
+REM Maximum depth of tree displayed
+MaxGen%=35 :REM dims local arrays except xMax(). Need a working maximum
+REM which should be dynamically configurable, and an absolute max here.
+
+REM Maximum GEDCOM structure depth
+MaxLevel%=20
+
+REM log2 size of Hash table for name lookups. Default was 12, which gives
+REM 4k bytes, ie. 1024 entries. This seems a little small for a tree of
+REM over 1400 people - so my value is 14, giving 4096 entries:
+Log2Hash% = 14
+
+REM ===== Programmer-customisable variables =====
+
+TemplateSize%=16*1024 :REM gets bigger every time we add features :-(
+REM was 11 - abort of Data Transfer
+
+REM check with OS to see what language messages to use. Default is en-gb
+REM (Messages.1) if there is no appropriate messages file.
+Country$ = FN_Country("<Family$Dir>.Messages.")
+PROCMTLoad("<Family$Dir>.Messages."+Country$)
+
+PROCArgs                      :REM Check for cmd line args
+IF (Debugging%<>0) BPUT#Debugging%,"Using new heap code ? "+STR$(UseNewHeapCode%)
+
+REM Allocate the heap by lowering HIMEM below the WimpSlot,
+REM making sure there are VarSize% bytes left above
+REM END for further variables, DIMs and strings.
+
+REM AERW changed VarSize from 40k to 100k after a
+REM "no room for Function/Procedure Call" error
+REM and again - set FreeDisplay% to ShowVars% to see how much spare
+VarSize%=122880  :REM only relevant when using old heap code, but keep
+REM it here as its always safest to keep the variable defined...
+IF UseNewHeapCode%=0 THEN
+  IF (Debugging%<>0) BPUT#Debugging%,"OK, old code using HIMEM"
+  REM we allocate all our memory above our new HIMEM to heap:
+  Heap%=END+VarSize%:HeapEnd%=HIMEM
+  IF Heap%>=HeapEnd% ERROR ErrFatal%,FNMT("NR")
+  HIMEM=Heap%                   :REM Can't do this in a PROC
+  Heap%=HIMEM                   :REM Read back actual value
+  REM PRINT"Heap size:"; (HeapEnd%-Heap%)/1024
+  REM ZZZ%=GET
+ELSE
+  IF (Debugging%<>0) BPUT#Debugging%,"New code to init heap"
+  PROCInitHeap
+ENDIF
+
+PROCInit                      :REM Misc one-off initialisation
+ON ERROR PROCError:QUIT       :REM which DIMs space needed for PROCError
+PROCCrMenu                    :REM Create menus
+PROCInitTags                  :REM Set up GEDCOM tags structures
+REM PROCSyntax                :REM Load GEDCOM syntax description
+PROCReset                     :REM Reset heap and database
+
+REM ========================== Main loop =============================
+
+ON ERROR PROCError            :REM Falls back into poll loop
+WHILE TRUE
+  PROCCheckFree
+  PROCModified
+  IF Force% PROCForce         :REM Update display
+REM  SYS "Wimp_Poll",&1831,b% TO R%
+  SYS "Wimp_Poll",&1031,b% TO R% :REM now want lose caret events on EditWH
+  CASE R% OF
+  WHEN 1:PROCRedraw
+  WHEN 2:SYS "Wimp_OpenWindow",,b%
+  WHEN 3:SYS "Wimp_CloseWindow",,b%
+    IF !b%=MainWH% PROCClose(NoteWH%):PROCOpenDir
+  WHEN 7:PROCDragDone
+  WHEN 6:PROCButtons(!b%,b%!4,b%!8,b%!12,b%!16)
+  WHEN 8:PROCKey(!b%,b%!4,b%!24)
+  WHEN 9:PROCMenuClick(b%!0,b%!4,b%!8,b%!12)
+  WHEN 11:PROCCaretChange(b%!0,b%!4,R%)
+  WHEN 17,18:PROCReceive(b%!0,b%!4,b%!8,b%!16)
+  WHEN 19:PROCRcvAck(b%!0,b%!4,b%!16)
+  ENDCASE
+ENDWHILE
+
+REM ===================== GEDCOM access functions ====================
+
+REM Return an object's value after stripping the reference flag
+
+DEF FNVal(O%)=O%!ObVal% AND NOT ObRef%
+
+REM Create a new object with Tag% and Value%
+
+DEF FNObject(Tag%,Value%)
+LOCAL O%
+O%=FNAlloc(ObSize%)
+O%!ObTag%=Tag%:O%!ObVal%=Value%:O%!ObId%=0:O%!ObSubs%=0:O%!ObNext%=0
+=O%
+
+REM Convert null pointer to empty string
+
+DEF FNNull(P%)
+IF P% THEN=$P%
+=""
+
+REM Return a string to print O%'s value - either
+REM its string value or a cross-reference Id.
+
+DEF FNPrintStr(O%)
+LOCAL V%:V%=O%!ObVal%
+IF V% AND ObRef% THEN=FNId(V% AND NOT ObRef%)
+=FNNull(V%)
+
+REM Get the string value of O%'s first sub-object
+REM with Tag% or "" if there is no such value
+
+DEF FNGetStr(O%,Tag%)=FNNull(FNGetVal(O%,Tag%))
+
+REM Return the value of object O%'s first sub-object
+REM with Tag% or 0 if there is no such object
+
+DEF FNGetVal(O%,Tag%)
+LOCAL S%:S%=0
+IF O% IF FNGetSub(O%,Tag%,S%) S%=FNVal(S%)
+=S%
+
+REM If S%=0 return O%'s first sub-object
+REM with Tag% else return the next one
+REM if there is no such subobject, return zero
+
+DEF FNGetSub(O%,Tag%,RETURN S%)
+IF O%=0 ERROR ErrFatal%,"FNGetSub"
+IF S% S%=S%!ObNext% ELSE S%=O%!ObSubs%
+WHILE S%
+  IF S%!ObTag%=Tag% THEN=S%
+  S%=S%!ObNext%
+ENDWHILE
+=S%
+
+REM Ensure that O% has a sub-object with Tag% and Val$ or none
+REM if Val$="". If Single% then overwrite any existing Tag% sub-
+REM object otherwise add a new one. Deallocate any previous value.
+REM NB this call is for an arbitrary string which is not on the heap
+REM (though it may be the same as a string on the heap already used
+REM as the value of this subobject)
+
+DEF PROCSetStr(O%,Tag%,Val$,Single%)
+LOCAL O$,V%,S%
+IF O%=0 ERROR ErrFatal%,"PROCSetStr"
+IF Val$="" PROCDelTag(O%,Tag%):ENDPROC
+S%=0
+WHILE FNGetSub(O%,Tag%,S%)
+  V%=S%!ObVal%:IF (V% AND ObRef%)=0 IF $V%=Val$ ENDPROC
+  IF Single% THEN
+    PROCFree(V%):S%!ObVal%=FNString(Val$)
+    Modified%=TRUE
+    ENDPROC
+  ENDIF
+ENDWHILE
+!FNTail(O%)=FNObject(Tag%,FNString(Val$))
+Modified%=TRUE
+ENDPROC
+
+REM Ensure that O% has a sub-object with Tag% and Val%.
+REM Single% => overwrite any existing Tag% sub-object
+REM else add a new one. Don't deallocate referend of
+REM any previous value (which may not be a pointer).
+REM NB this call is for a string which is already on the heap.
+REM we don't free the existing heap string when we refer to the new one,
+REM so if it is no longer referenced by other objects, this will be a
+REM memory leak. As we keep no reference counts on either strings or
+REM objects, this is probably not readily fixable.
+
+DEF PROCSetSub(O%,Tag%,Val%,Single%)
+LOCAL S%
+IF O%=0 ERROR ErrFatal%,"PROCSetSub"
+S%=0
+WHILE FNGetSub(O%,Tag%,S%)
+  IF S%!ObVal%=Val% ENDPROC
+  IF Single% THEN S%!ObVal%=Val%:Modified%=TRUE:ENDPROC
+ENDWHILE
+!FNTail(O%)=FNObject(Tag%,Val%)
+Modified%=TRUE
+ENDPROC
+
+REM Return the address of the last ObNext% in P%'s sub-object list
+
+DEF FNTail(P%)
+P%=P%+ObSubs%:WHILE !P%:P%=!P%+ObNext%:ENDWHILE
+=P%
+
+REM ======================= Remove, Delete, Kill =====================
+
+REM Remove => unlink the object from some given place but don't free it.
+REM Delete => remove it and free it and its string value.
+REM Kill   => delete it and remove any cross-references to it.
+
+REM Delete object Victim%, its sub-objects and all cross-references to
+REM it from other objects.  Also remove objects which are only referred
+REM to from Victim%.  These may be shared so we have to traverse the
+REM whole database several times to determine what's still live.
+
+DEF PROCKill(Victim%)
+IF Victim%=0 ENDPROC
+PROCMark(Victim%)
+WHILE FNScan(Root%):ENDWHILE
+Modified%=TRUE:Force%=1
+ENDPROC
+
+REM Mark object O% and its sub-objects by setting the
+REM Dead% bit in their tag pointers (not their tag flags)
+
+DEF PROCMark(O%)
+O%!ObTag%=O%!ObTag% OR Dead%
+O%=O%!ObSubs%:WHILE O%:PROCMark(O%):O%=O%!ObNext%:ENDWHILE
+ENDPROC
+
+REM Mark as dead any sub-object of O% which is a cross-reference
+REM to a dead object.  Recurse on its sub-objects.  If any
+REM sub-object is marked as dead, free it and remove it from the
+REM list.  If a FAM object is left with less than 2 sub-objects
+REM then remove it.  Return Dead% if any object died.
+REM not now adequate - needs dead if < 2 {HUSB,WIFE,CHIL}: don't count
+REM MARR subobject !
+
+DEF FNScan(O%)
+LOCAL D%,P%,S%,V%,C%
+P%=O%+ObTag%:V%=O%!ObVal%
+IF V% AND ObRef% THEN
+  V%=V% AND NOT ObRef%
+  REM Dead x-ref - mark O% dead
+  IF V%!ObTag% AND Dead% !P%=!P% OR Dead%
+ENDIF
+D%=!P% AND Dead%:P%=O%+ObSubs%
+WHILE !P%
+  S%=!P%:D%=D% OR FNScan(S%)
+  IF S%!ObTag% AND Dead% THEN
+    PROCFreeOb(S%)
+    !P%=S%!ObNext%
+  ELSE P%=S%+ObNext%
+  ENDIF
+ENDWHILE
+P%=O%+ObTag%
+IF (!P% AND NOT Dead%)=FamTg% THEN
+  S%=O%!ObSubs%
+  C% = 0
+  WHILE S%<>0
+    CASE S%!ObTag% OF
+      WHEN HusbTg%,WifeTg%,ChilTg%
+        C% += 1
+    ENDCASE
+    S% = S%!ObNext%
+  ENDWHILE
+  IF C%<2 !P%=!P% OR Dead%:D%=Dead%:Fcount%-=1:PROCSetStats
+ENDIF
+=D%
+
+REM Free object O% and its value (if a string) but not its sub-
+REM objects.  If it's a display structure pointer, free the name.
+
+DEF PROCFreeOb(O%)
+LOCAL V%:V%=O%!ObVal%
+IF (O%!ObTag% AND NOT Dead%)=DispTg% PROCFree(V%!DSName%)
+IF (V% AND ObRef%)=0 PROCFree(V%)
+PROCFree(O%)
+ENDPROC
+
+REM Remove O%'s first sub-object with Tag% and Val% but don't free it
+
+DEF PROCRemSub(O%,Tag%,Val%)
+LOCAL P%
+IF O%=0 OR Val%=0 ERROR ErrFatal%,"PROCRemSub"
+P%=O%+ObSubs%
+WHILE !P%
+  O%=!P%
+  IF O%!ObTag%=Tag% THEN
+    IF FNVal(O%)=Val% THEN !P%=O%!ObNext%:Modified%=TRUE:ENDPROC
+  ENDIF
+  P%=O%+ObNext%
+ENDWHILE
+ENDPROC
+
+REM Remove S% from O%'s sub-object list
+
+DEF PROCRemSubObj(O%,S%)
+O%=O%+ObSubs%
+WHILE O%
+  IF !O%=S% THEN !O%=S%!ObNext%:ENDPROC
+  O%=!O%+ObNext%
+ENDWHILE
+ENDPROC
+
+REM Remove all O%'s sub-objects with Tag%
+
+DEF PROCDelTag(O%,Tag%)
+LOCAL P%
+IF O%=0 ERROR ErrFatal%,"PROCDelTag"
+P%=O%+ObSubs%
+WHILE !P%
+  O%=!P%
+  IF O%!ObTag%=Tag% THEN
+    !P%=O%!ObNext%:PROCDelObj(O%)
+  ELSE
+    P%=O%+ObNext%
+  ENDIF
+ENDWHILE
+ENDPROC
+
+REM Remove object O% and its sub-objects
+
+DEF PROCDelObj(O%)
+LOCAL o%
+o%=O%!ObSubs%:WHILE o%:PROCDelObj(o%):o%=o%!ObNext%:ENDWHILE
+PROCFreeOb(O%)
+ENDPROC
+
+REM =========================== Display ==============================
+
+REM Wimp requests redraw
+
+DEF PROCRedraw
+LOCAL XW%,YW%,M%,P%,WH%
+SYS "Wimp_RedrawWindow",,b% TO M%
+WH%=!b%:XW%=b%!4-b%!20:YW%=b%!16-b%!24 :REM Work origin
+IF WH%=MainWH% IF TopChil%=0 ENDPROC
+WHILE M%
+ CASE WH% OF
+  WHEN MainWH%:PROCDisplay(b%!28-XW%,b%!32-YW%,b%!36-XW%,b%!40-YW%,OutScreen%)
+  WHEN CompWH%:PROCDrawComp(XW%,YW%)
+  WHEN NoteWH%:PROCDrawNote(XW%,YW%)
+  WHEN ObEdWH%:PROCDrawObEd(XW%,YW%,b%!32,b%!40)
+  OTHERWISE ERROR ErrFatal%,"PROCRedraw"
+ ENDCASE
+ SYS "Wimp_GetRectangle",,b% TO M%
+ENDWHILE
+ENDPROC
+
+REM Something in the main window has changed.
+REM Recalculate all positions and the extent.
+
+DEF PROCForce
+LOCAL F%,O%,X%,Y%
+UseFont%=ScreenUseFont%
+PROCCalcAll
+PROCClose(MainWH%)
+IF yMax%>yMin% THEN
+  b%!0=(xMin%-32) AND NOT 7:b%!4=yMin% AND NOT 7
+  b%!8=(xMax%+7) AND NOT 7:b%!12=(yMax%+7) AND NOT 7
+  SYS "Wimp_SetExtent",MainWH%,b%
+ENDIF
+b%!0=MainWH%:IF TRUE
+SYS "Wimp_GetWindowState",,b%:IF TRUE
+IF Force%>1 AND TopChil%>0 THEN
+  REM Find the Chil object pointing to Person%
+  F%=0:O%=0
+  IF FNGetSub(Person%,FamcTg%,F%) THEN
+    F%=FNVal(F%):X%=0
+    REPEAT IF FNGetSub(F%,ChilTg%,O%) X%=FNVal(O%)
+    UNTIL O%=0 OR X%=Person%
+  ENDIF
+  IF O%=0 O%=TopChil%
+  PROCGetPos(O%,X%,Y%)  :REM Scroll to show Person%
+  b%!20=X%-(b%!12-b%!4) DIV 2
+  b%!24=Y%+(b%!16-b%!8) DIV 2
+  REM b%!8-=Infinity%:b%!12+=Infinity% :REM Max window down right
+ENDIF
+SYS "Wimp_OpenWindow",,b%
+Force%=0
+REM Ensure menu on top if open
+IF Menu% SYS "Wimp_CreateMenu",,Menu%,MenuX%,MenuY%
+IF EditOpen% PROCRaise(EditWH%)
+ENDPROC
+
+REM Get the display position of a CHIL object.  A CHIL's
+REM first subobject always points to its display structure.
+
+DEF PROCGetPos(C%,RETURN X%,RETURN Y%)
+IF C%=0 ERROR ErrFatal%,"PROCGetPos"
+C%=C%!ObSubs%
+C%=C%!ObVal%
+X%=C%!DSx%:Y%=C%!DSy%
+ENDPROC
+
+DEF FNName(P%)=FNGetStr(P%,NameTg%)
+DEF FNTitle(P%)=FNGetStr(P%,TitlTg%)
+
+REM If N$ contains two '/'s return the string between them
+REM (for the FNFamSlash call, include the slashes too).
+REM Otherwise return the last word preceded by a space or nothing if
+REM no such word. Ignore anything after a non-initial '(' or '['.
+
+DEF FNFamName(N$):LOCAL Strip%:Strip%=TRUE
+DEF FNFamSlash(N$):LOCAL Strip%:Strip%=FALSE
+LOCAL B%,E%,S%
+IF N$="" THEN=""
+REM Check for GEDCOM family name between '/'s
+S%=INSTR(N$,"/")
+IF S% THEN
+ E%=INSTR(N$,"/",S%+1)
+ IF E% THEN
+  IF Strip% S%+=1 ELSE E%+=1
+  =MID$(N$,S%,E%-S%)
+ ENDIF
+ENDIF
+B%=INSTR(N$,"(",2):IF B%=0 B%=INSTR(N$,"[",2)
+IF B% N$=LEFT$(N$,B%-1)
+WHILE RIGHT$(N$,1)=" ":N$=LEFT$(N$,LEN(N$)-1):ENDWHILE
+B%=FALSE
+REPEAT S%=INSTR(N$," "):IF S% N$=MID$(N$,S%+1):B%=TRUE
+UNTIL S%=0
+IF B% THEN=N$
+=""
+
+REM Return P%'s dates string.  Show "?" for missing d.o.b.
+REM but nothing for death (would suggest person is dead).
+
+DEF FNDates(P%)
+LOCAL D$,W$
+D$=FNBirth(P%,dummy%)
+IF D$>"" W$=FNYear(D$) ELSE W$="?"
+W$+=" -"
+D$=FNDeath(P%,dummy%)
+IF D$>"" W$+=" "+FNYear(D$)
+=W$
+
+REM Return date from last group of digits to end
+
+DEF FNYear(D$)
+LOCAL E%
+IF NOT ShowYearOnly% THEN=FN_UserDate(D$)
+E%=LEN(D$)
+WHILE E%>1
+  IF FNYDigit(MID$(D$,E%,1)) THEN
+    REPEAT E%-=1:UNTIL NOT FNYDigit(MID$(D$,E%,1))
+    =MID$(D$,E%+1)
+  ENDIF
+  E%-=1
+ENDWHILE
+=D$
+
+REM ===================== Calculate positions ========================
+
+REM Calculate work coords of Person%'s family.
+REM Set global work area (xMin%,yMin%) to (xMax%,yMax%).
+REM Global UseFont% determines string widths.
+
+DEF PROCCalcAll
+LOCAL DS%,H%,I%,P%,S%,Y0%
+SYS "Font_SetFont",Font%      :REM Affects widths
+Gap%=FNWidth("XX")            :REM Horiz. space between adjacent people
+IF UseFont% SYS "Font_ReadInfo",Font% TO,,Y0%,,H%:H%-=Y0% ELSE H%=CharH%
+LineHeight%=H%+8
+xMin%=0:yMin%=0:xMax%=MinW%:yMax%=0:xMax%()=0
+REM IF TopChil%<>0 PROCFreeOb(TopChil%) :REM that's one (small) memory leak fix
+REM fixing that, that way, really screws up the whole program ...
+IF TopChil%<>0 THEN
+  PROCFreeOb(TopChil%!ObSubs%)
+  PROCFree(TopChil%)
+  TopChil%=0
+ENDIF
+IF Person%=0 :ENDPROC :REM we already did TopChil%=0
+REM Error here (e.g. out of memory) is fatal
+LOCAL ERROR
+ON ERROR LOCAL RESTORE ERROR:ERROR ErrFatal%,REPORT$+FNMT("al")+STR$(ERL):ENDPROC
+
+REM Fake a CHIL object to point to the person at the top of
+REM the tree.  Attach the top level display structure to it.
+TopChil%=FNObject(ChilTg%,FNFore(Person%))
+DS%=FNDStruct(TopChil%)
+S%=TopChil%:P%=0
+WHILE S%>1
+  CASE S%!ObTag% OF
+  WHEN HusbTg%,WifeTg%,ChilTg%
+    DS%=FNDStruct(S%)       :REM Give every member a display struct
+    DS%!DSx%=Infinity%      :REM Everyone off screen
+    DS%!DSy%=-Infinity%
+  ENDCASE
+  S%=S%!ObNext%
+  WHILE S%=0
+    IF FNGetSub(Root%,FamTg%,P%) S%=P%!ObSubs% ELSE S%=1
+  ENDWHILE
+ENDWHILE
+SYS "Hourglass_On"
+PROCCalc(TopChil%,0,0,z,xMin%,xMax%)
+SYS "Hourglass_Off"
+PROCMax(xMax%,MinW%)
+xMax%+=20
+ENDPROC
+
+REM Calculate position of person pointed to by Chil%, his
+REM spouses and descendants.  Y% is his top.  Return his
+REM centre and left and right of everything below him.
+
+DEF PROCCalc(Chil%,Y%,Gen%,RETURN X%,RETURN XLT%,RETURN XRT%)
+LOCAL DS%,Done%,I%,FO%,P%,SN%,W%,X1%,XF%,XR%,XLF%,XRF%,OxMax%(),N$
+DIM OxMax%(MaxGen%)
+P%=FNVal(Chil%):IF P%=0 ERROR ErrFatal%,"PROCCalc"
+DS%=ObVal%!(Chil%!ObSubs%)
+IF DS%!DSy%>Y% X%=xMax%(Gen%):XLT%=X%:XRT%=X%:ENDPROC
+DS%!DSy%=Y%-LineHeight%
+N$=FNShowName(P%,Gen%=0)
+IF (DS%!DSName%)=0 THEN
+  DS%!DSName%=FNString(N$)
+ELSE
+  REM don't reallocate space for an identical string (fixes one apparent
+  REM memory leak, which may only be an artefact of poor heap code. But it
+  REM ought to save some time)
+  IF N$<>$(DS%!DSName%)
+    PROCFree(DS%!DSName%):DS%!DSName%=FNString(N$)
+  ENDIF
+ENDIF
+IF FALSE THEN
+ IF (Debugging%=0) ELSE Before% = HeapFree%:IF DS%!DSName%=0 Before$="" ELSE Before$=$(DS%!DSName%)
+ PROCFree(DS%!DSName%):DS%!DSName%=FNString(N$)
+ IF (Debugging%=0) ELSE After% = HeapFree%:IF DS%!DSName%=0 After$="" ELSE After$=$(DS%!DSName%)
+ IF (Debugging%<>0) IF (After$=Before$) AND (Before$<>"") AND (After%<Before%) BPUT#Debugging%,"Lost "+STR$(Before%-After%)+" bytes reallocating space for "+Before$
+ENDIF
+W%=FNWidth(N$)
+IF ShowDates% PROCMax(W%,FNWidth(FNDates(P%))):Y%-=LineHeight%
+Y%-=4*LineHeight%:IF W% W%+=Gap%
+PROCMin(yMin%,Y%)
+I%=0:FO%=0                    :REM 1st of >1 spouses is #1 else no #
+IF FNGetSub(P%,FamsTg%,FO%) IF FNGetSub(P%,FamsTg%,FO%) I%=1
+DS%!DSSpNum%=I%
+OxMax%()=xMax%():Done%=TRUE
+REPEAT  : REM this loop is executed at most twice, the second time
+          REM only if the family was so small and the borders so far
+          REM left that the calculated family positions are off left
+          REM of the parent. The calculation is then done again with
+          REM the borders all shifted to push them under the parent.
+          REM I find the way this is done extremely opaque !!
+  REM If no families place against border.
+  X%=OxMax%(Gen%):XR%=X%+W%   :REM P%'s borders if no families
+  XLT%=X%:XRT%=XR%
+  X%+=W% DIV 2                :REM P%'s centre if no families
+  X1%=0:XF%=X1%:FO%=0
+  WHILE FNGetSub(P%,FamsTg%,FO%)
+    PROCCalcFam(P%,FNVal(FO%),Y%,Gen%,XF%,XLF%,XRF%)
+    IF X1%=0 X1%=XF%:PROCMin(XLT%,XLF%)
+    PROCMax(XRT%,XRF%)
+  ENDWHILE
+  IF X1% THEN
+    XF%=(X1%+XF%) DIV 2:Done%=XF%>=X% OR NOT Done%
+    IF Done% THEN
+      REM If families to right of P%, centre over families
+      X%=XF%:XR%=XF%+W% DIV 2
+    ELSE
+      REM If P% to right of families, shift descendants' borders right
+      xMax%()=OxMax%():X%-=XF%
+      FOR I%=Gen% TO MaxGen%:xMax%(I%)+=X%:NEXT
+    ENDIF
+  ENDIF
+UNTIL Done%
+PROCMax(xMax%(Gen%),XR%)
+DS%!DSx%=X%:DS%!DSxmin%=XLT%:DS%!DSxmax%=XRT%
+ENDPROC
+
+REM Calculate positions of Top%'s spouse in Fam% and
+REM their kids.  Return centre of spouse and left
+REM and right of spouse/kids.  Y% is top of kids.
+
+DEF PROCCalcFam(Top%,Fam%,Y%,Gen%,RETURN X%,RETURN XLT%,RETURN XRT%)
+LOCAL Spouse%,CO%,Done%,DS%,I%,N$,W%,X1%,XC%,XR%,XLF%,XRF%,OxMax%()
+DIM OxMax%(MaxGen%)
+Spouse%=0
+IF FNGetSub(Fam%,HusbTg%,Spouse%) THEN
+  IF FNVal(Spouse%)=Top% Spouse%=0:z=FNGetSub(Fam%,WifeTg%,Spouse%)
+ENDIF
+IF Spouse% THEN
+  I%=FNVal(Spouse%):N$=""
+  IF ShowTitle% N$=FNTitle(I%):IF N$<>"" N$+=" "
+  N$+=FNName(I%)
+ENDIF
+REMove W%=FNWidth(N$)+Gap%
+*| insert:
+W%=FNWidth(N$)
+IF ShowDates% AND ShowSDates% PROCMax(W%,FNWidth(FNDates(I%))):Y%-=LineHeight%:PROCMin(yMin%,Y%)
+IF W% W%+=Gap%
+*| end insertion
+OxMax%()=xMax%():Done%=TRUE
+REPEAT
+  X%=xMax%(Gen%):XR%=X%+W%    :REM Wife's borders
+  XLT%=X%:XRT%=XR%
+  X%+=W% DIV 2                :REM Centre of wife if no kids
+  X1%=0:CO%=0
+  IF Gen%<MaxGen% THEN
+    WHILE FNGetSub(Fam%,ChilTg%,CO%)
+      PROCCalc(CO%,Y%,Gen%+1,XC%,XLF%,XRF%)
+      IF X1%=0 X1%=XC%:PROCMin(XLT%,XLF%)
+      PROCMax(XRT%,XRF%)
+    ENDWHILE
+  ENDIF
+  IF X1% THEN
+    XC%=(X1%+XC%) DIV 2       :REM Centre of kids
+    Done%=XC%>=X% OR NOT Done%
+    IF Done% THEN
+      REM If kids to right of wife - centre wife over kids
+      X%=XC%:XR%=X%+W% DIV 2
+    ELSE
+      REM Wife to right of kids - shift descendants' borders right
+      xMax%()=OxMax%():X%-=XC%
+      FOR I%=Gen%+1 TO MaxGen%:xMax%(I%)+=X%:NEXT
+    ENDIF
+  ELSE                        :REM No kids
+    IF Spouse%=0 X%=0
+  ENDIF
+UNTIL Done%
+xMax%(Gen%)=XR%
+IF Spouse%=0 ENDPROC
+DS%=ObVal%!(Spouse%!ObSubs%):DS%!DSx%=X%
+DS%!DSy%=Y%+LineHeight%
+PROCFree(DS%!DSName%):DS%!DSName%=FNString(N$)
+ENDPROC
+
+DEF FNShowName(P%,ShowFam%)
+LOCAL I%,J%,F$,G$,N$:N$=""
+IF P%=0 ERROR ErrFatal%,"FNShowName"
+IF ShowTitle% N$=FNTitle(P%):IF N$<>"" N$+=" "
+N$+=FNName(P%)
+IF ShowFamilyName% OR ShowFam% THEN=N$
+REM Hide family name if same as father's and father visible
+F$=FNFamName(N$):IF F$="" THEN=N$
+I%=FNFather(P%):IF I%=0 THEN=N$
+G$=FNFamName(FNName(I%)):IF G$="" THEN=N$
+IF G$<>F$ THEN=N$
+J%=0:REPEAT I%=J%:J%=INSTR(N$,F$,I%+1):UNTIL J%=0
+J%=I%+LEN(F$):IF MID$(N$,J%,1)="/" J%+=1
+=LEFT$(N$,I%-2)+MID$(N$,J%)
+
+DEF FNWidth(S$)
+IF NOT UseFont% THEN=CharW%*LEN(S$)
+LOCAL W%
+SYS "Font_StringWidth",,S$,Infinity%,Infinity%,-1,Infinity% TO,,W%
+=W% DIV mPtPerOS%
+
+REM ========================= Display tree ===========================
+
+REM Display tree starting at person pointed to by TopChil% at pre-
+REM calculated work coords.  xMin%..yMax% is visible work rectangle.
+REM Globals XW%,YW% contain the screen coords of the work area origin
+REM which is added to work coords for plotting.  These routines
+REM are used for screen display (OutputTo%=OutScreen%, printing
+REM (OutputTo%=OutPrint%) and for making DrawFiles (OutputTo%=OutDraw%).
+
+DEF PROCDisplay(xMin%,yMin%,xMax%,yMax%,OutputTo%)
+IF OutputTo%=OutPrint% PROCColour(Black%)
+PROCDisplayIndi(TopChil%,-LineHeight%,xMin%,yMin%-LineHeight%,xMax%,yMax%)
+ENDPROC
+
+DEF PROCDisplayIndi(Chil%,Y%,xMin%,yMin%,xMax%,yMax%)
+LOCAL CO%,DS%,F%,FO%,H%,MO%,P%,S%,SL%,SN%,SP%,SR%,XP%,YP%,X1%,XM%,N$
+P%=FNVal(Chil%)
+DS%=ObVal%!(Chil%!ObSubs%)    :REM First subobj is display struct
+IF DS%!DSxmin%>=xMax% ENDPROC
+IF DS%!DSxmax%<=xMin% ENDPROC
+XP%=DS%!DSx%:YP%=DS%!DSy%
+IF YP%<=yMin% ENDPROC
+REM Check for person in multiple positions
+IF YP%<>Y% ENDPROC
+Y%-=4*LineHeight%:IF ShowDates% Y%-=LineHeight%:IF ShowSDates% Y%-=LineHeight%
+SN%=DS%!DSSpNum%              :REM 1 => Number spouses
+IF OutputTo%<>OutPrint% PROCSexColour(P%)
+PROCCentre($(DS%!DSName%),XP%,YP%,FALSE)
+IF OutputTo%<>OutPrint% PROCColour(Black%):FontCol%=Black%
+IF ShowDates% PROCCentre(FNDates(P%),XP%,YP%-LineHeight%,FALSE)
+H%=LineHeight% DIV 2-4:FO%=0
+WHILE FNGetSub(P%,FamsTg%,FO%)
+  REM for each family of which INDI is a parent:
+  F%=FNVal(FO%):X1%=Infinity%:CO%=0
+
+  WHILE FNGetSub(F%,ChilTg%,CO%)
+    REM do each child in the family
+    PROCGetPos(CO%,XP%,YP%)
+    YP%+=YW%+LineHeight%      :REM YP% now screen coords
+    IF OutputTo%=OutDraw% THEN
+      PROCdw_line(XW%+XP%,YP%,XW%+XP%,YP%-H%,FontCol%)
+    ELSE
+      MOVE FNClip(XW%+XP%),YP%
+      DRAW BY 0,-H%           :REM Vertical above child
+    ENDIF
+    IF X1%=Infinity%:X1%=XP%  :REM ":" for BasCompress
+    PROCDisplayIndi(CO%,Y%,xMin%,yMin%,xMax%,yMax%)
+  ENDWHILE
+
+  IF X1%<>Infinity% THEN
+    REM draw lines from parents to children
+    XM%=(X1%+XP%) DIV 2      :REM Between first and last
+    IF OutputTo%=OutDraw% THEN
+      PROCdw_line(XW%+XM%,YP%,XW%+XM%,YP%+H%,Fore%)
+      PROCdw_line(XW%+X1%,YP%,XW%+XP%,YP%,Fore%)
+    ELSE
+      MOVE FNClip(XW%+XM%),YP%
+      DRAW BY 0,H%            :REM Vertical below spouse
+      LINE FNClip(XW%+X1%),YP%,FNClip(XW%+XP%),YP% :REM Horizontal line
+    ENDIF
+  ENDIF
+  REM Find other parent in P%'s FAMS F%
+  SR%=0
+  IF FNGetSub(F%,HusbTg%,SR%) THEN
+    SP%=FNVal(SR%)
+    IF SP%=P% SR%=0:IF FNGetSub(F%,WifeTg%,SR%) SP%=FNVal(SR%)
+  ENDIF
+  REM SR% : pointer to other parent (or 0), SP% pointer to INDI identifier ?
+  S%=FALSE
+  IF SR% THEN
+    SL%=0:IF FNSpouses(SP%,SL%)=0 ERROR ErrFatal%,"PROCDisplayIndi"
+    REM that error can only occur without a previous ErrFatal in FNSpouses
+    REM if there is a HUSB or WIFE tag whose FNGetVal yields a zero.
+    DS%=ObVal%!(SR%!ObSubs%):XM%=DS%!DSx%
+    S%=FNFather(SP%):IF S%=0 S%=FNMother(SP%)
+    IF OutputTo%<>OutPrint% PROCSexColour(SP%)
+    IF ShowDates% AND ShowSDates% THEN
+      PROCCentre($(DS%!DSName%),XM%,Y%+3*LineHeight%,S%)
+    ELSE
+      PROCCentre($(DS%!DSName%),XM%,Y%+2*LineHeight%,S%)
+    ENDIF
+    IF OutputTo%<>OutPrint% PROCColour(Black%):FontCol%=Black%
+    *| insert:
+    IF ShowDates% AND ShowSDates% PROCCentre(FNDates(SP%),XM%,Y%+2*LineHeight%,FALSE)
+    *| end insertion
+    S%=FNSpouses(SP%,SL%)     :REM SP% has other spouses?
+  ENDIF
+  N$="=":MO%=0
+  IF ShowDates% AND ShowMDates% AND FNGetSub(F%,MarrTg%,MO%) THEN
+    N$+=" "+FN_UserDate(FNMarr(F%,dummy%))
+    IF SN%:SN%+=1
+  ELSE
+    IF SN% N$+=" #"+STR$(SN%):SN%+=1
+  ENDIF
+  IF ShowDates% AND ShowSDates% THEN
+    PROCCentre(N$,XM%,Y%+4*LineHeight%,FALSE)
+  ELSE
+    PROCCentre(N$,XM%,Y%+3*LineHeight%,FALSE)
+  ENDIF
+ENDWHILE
+ENDPROC
+
+DEF PROCCentre(S$,X%,Y%,Plus%)
+LOCAL W%:W%=FNWidth(S$)>>1
+X%+=XW%-W%:Y%+=YW%
+IF UseFont% THEN
+  IF OutputTo%=OutDraw% THEN
+    IF Plus% S$+="COUNT"
+    PROCdw_text(X%,Y%,PtSize,FontCol%,S$)
+  ELSE
+    REM Screen or printer
+    IF Plus% S$+=CHR$(11)+CHR$(0)+CHR$(16)+CHR$(0)+"+"
+    SYS "Font_Paint",Font%,S$,&310,X%,Y%-LineHeight% DIV 2+8
+  ENDIF
+ELSE
+  MOVE X%,Y%+12
+  PRINT S$;
+  IF Plus% MOVE BY 0,10:PRINT"+";
+ENDIF
+ENDPROC
+
+REM Set the foreground colour and font for system
+REM font, lines and outline fonts.  Fore% is &BBGGRR00.
+
+DEF PROCColour(Fore%)
+REM Set GCOL for system font and lines
+SYS "ColourTrans_SetGCOL",Fore%,,,0
+SYS "ColourTrans_SetGCOL",White%,,,1<<7 :REM Background
+REM Set font and font colours in case using outline fonts
+SYS "Font_SetFont",Font%
+SYS "ColourTrans_SetFontColours",Font%,White%,Fore%,14
+ENDPROC
+
+DEF PROCSexColour(P%)
+CASE FNSex(P%) OF
+WHEN "M" :PROCColour(Blue%):FontCol%=Blue%
+WHEN "F" :PROCColour(Red%):FontCol%=Red%
+OTHERWISE:PROCColour(Green%):FontCol%=Green%
+ENDCASE
+ENDPROC
+
+REM Clip an x coord to avoid 16-bit overflow
+REM Needed for lines on screen or printing.  Not used for Draw.
+
+DEF FNClip(X%)
+IF X%<-10000 THEN=-10000
+IF X%>10000 THEN=10000
+=X%
+ENDPROC
+
+DEF PROCMin(RETURN A%,B%)
+IF B%<A% A%=B%
+ENDPROC
+
+DEF PROCMax(RETURN A%,B%)
+IF B%>A% A%=B%
+ENDPROC
+
+REM ============================= WIMP ===============================
+
+REM Load a template and create the window.  The block is
+REM loaded at b%+4 so it can be used for Wimp_OpenWindow.
+
+DEF FNGetTem($mess%)
+LOCAL WH%
+SYS "Wimp_LoadTemplate",,b%+4,ind%,indend%,-1,mess% TO,,ind%
+b%!(4+64)=Sprites%        :REM User sprite area
+SYS "Wimp_CreateWindow",,b%+4 TO WH%
+=WH%
+
+REM Open window on top
+
+DEF PROCOpen(!b%)
+SYS "Wimp_GetWindowState",,b%
+b%!28=-1:SYS "Wimp_OpenWindow",,b%
+ENDPROC
+
+DEF PROCClose(!b%)
+SYS "Wimp_CloseWindow",,b%
+ENDPROC
+
+REM Set work area extent and visible area.  Top left is work origin.
+REM Bring window to front if Front%.
+
+DEF PROCExtent(WH%,Width%,Height%,Front%)
+LOCAL Depth%
+IF Front% Depth%=-1 ELSE !b%=WH%:SYS "Wimp_GetWindowState",,b%:Depth%=b%!28
+PROCClose(WH%)                :REM Force redraw
+b%!0=0:b%!4=-Height% AND NOT 7:b%!8=(Width%+7)AND NOT 7:b%!12=0
+SYS "Wimp_SetExtent",WH%,b%
+REM Resize visible area bottom right to work area
+!b%=WH%:b%!12=b%!4+Width%:b%!8=b%!16-Height%:b%!28=Depth%
+SYS "Wimp_OpenWindow",,b%
+ENDPROC
+
+DEF PROCRaise(WH%)
+!b%=WH%:SYS "Wimp_GetWindowState",,b%
+b%!28 = -1
+SYS "Wimp_OpenWindow",,b%
+ENDPROC
+
+
+REM Redraw icon given window and icon handles and selection state
+
+DEF PROCSelIcon(b%!0,b%!4,On%)
+b%!8=(1<<21) AND On%<>0:b%!12=1<<21
+SYS "Wimp_SetIconState",,b%
+ENDPROC
+
+REM Is icon selected?
+
+DEF FNSelIcon(b%!0,b%!4)
+SYS "Wimp_GetIconState",,b%
+=(b%!24 AND 1<<21)<>0
+
+REM Return the address of the indirected text of WH's icon IH.
+REM Also the address of an indirected sprite.
+
+DEF FNIcTxt(b%!0,b%!4) :REM WH, IH
+SYS "Wimp_GetIconState",,b%
+=b%!28
+
+DEF PROCCaret(WH%,IH%,End%)
+******************************
+*|
+*| set the caret in Icon IH% of Window WH% at end if end% else at left
+*|
+******************************
+LOCAL L%
+IF End% L%=LEN($FNIcTxt(WH%,IH%)) ELSE L%=0
+SYS "Wimp_SetCaretPosition",WH%,IH%,,,-1,L%
+PROCSelIcon(WH%,IH%,FALSE)    :REM Redraw icon
+ENDPROC
+
+DEF PROCKey(WH%,IH%,Key%)
+CASE Key% OF
+WHEN Print%:PROCPrint
+WHEN F1%   :PROCComplete(WH%,IH%,DirRight%)
+WHEN F2%   :PROCComplete(WH%,IH%,DirLeft%)
+WHEN F3%   :PROCMouseMenu(SaveWH%)          :REM F3 Save
+WHEN F5%   :PROCMouseMenu(GotoWH%)          :REM F5 Goto
+WHEN CtrlC%:PROCEditChild(Person%)          :REM ^C adds child
+WHEN CtrlE%:PROCEditPerson(Person%)         :REM ^E edits current
+WHEN CtrlS%:IF WH%=EditWH% PROCEdit(0,Key%) :REM ^S toggles sex
+REM Return passed as key event.  Note any K command in the validation
+REM string prevents CR being passed.  Kt only passes it for the last icon.
+WHEN CR%,UpArrow%,DownArrow%:IF WH%>0 PROCButtons(0,0,Key%,WH%,IH%)
+WHEN Tab%  :PROCKey(WH%,IH%,DownArrow%)
+WHEN ShfTab%:PROCKey(WH%,IH%,UpArrow%)
+WHEN CtrlQ%:PROCQuit
+OTHERWISE:SYS "Wimp_ProcessKey",Key%
+ENDCASE
+ENDPROC
+
+REM Mouse event @ X,Y or key press
+
+DEF PROCButtons(X%,Y%,But%,WH%,IH%)
+*|SOUND 1,-15,160,4
+LOCAL P%,S%
+IF But%=2 THEN
+ IF WH%=NoteWH% ENDPROC
+ IF WH%<0 PROCOpenMenu(X%,Y%,WH%):ENDPROC
+ IF (IH%<0) AND (WH%=MainWH%) THEN
+   IF EditOpen% ENDPROC ELSE PROCOpenMenu(X%,Y%,WH%):ENDPROC
+ ENDIF
+ IF IH%<0 ENDPROC
+ENDIF
+CASE WH% OF
+ WHEN -2                       :REM Icon bar
+  IF Person% PROCOpen(NoteWH%)
+  PROCOpen(MainWH%)
+ WHEN CompWH%:PROCComp(Y%)
+ WHEN EditWH%:PROCEdit(IH%,But%)
+ WHEN GotoWH%
+  CASE TRUE OF
+   WHEN IH%=GoIcOK%,But%=CR%
+    P%=FNFind($FNIcTxt(WH%,GoIcName%))
+    IF P% PROCGoto(P%)
+   WHEN IH%=GoIcCur%
+    $FNIcTxt(WH%,GoIcName%)=FNName(Person%)
+    PROCCaret(WH%,GoIcName%,TRUE)
+    ENDPROC
+   WHEN IH%=GoIcCan%:But%=4
+  ENDCASE
+ WHEN MarryWH%:PROCWed(IH%,But%)
+ WHEN MarrWH%:PROCFamEvents(IH%,But%)
+ WHEN MainWH%
+  P%=FNNear(X%,Y%):IF P%=0 ENDPROC
+  IF But%=1 PROCEditPerson(P%) ELSE PROCGoto(P%)
+ WHEN ModsWH%
+  CASE IH% OF
+   WHEN MoIcDisc%
+    Modified%=FALSE
+    CASE ToDo$ OF
+     WHEN ".Q":PROCQuit
+     WHEN ".R":PROCReset
+     OTHERWISE:PROCLoad(ToDo$,TRUE)
+    ENDCASE
+   WHEN MoIcSave%:PROCMouseMenu(SaveWH%):ENDPROC
+  ENDCASE
+  But%=4
+ WHEN MiscWH%:PROCMiscOpts(IH%,But%)
+ WHEN HtmlWH%:PROCHtmlOpts(IH%,But%)
+ WHEN NoteWH%:PROCEditNotes
+ WHEN SaveWH%,RepoWH%,AncWH%,FamWH%,DrawWH%:PROCSave(WH%,IH%,But%)
+ WHEN ObEdWH%:PROCObEdClick(Y%)
+ENDCASE
+CASE WH% OF
+ WHEN GotoWH%,InfoWH%,ModsWH%
+  IF But%<>1 PROCClose(WH%):SYS "Wimp_CreateMenu",,-1:Menu%=0
+ENDCASE
+ENDPROC
+
+DEF PROCWed(IH%,But%)
+  CASE TRUE OF
+   WHEN IH%=MyIcOK%,But%=CR%
+    P%=FNFind($FNIcTxt(WH%,MyIcSpouse%))
+    IF P% PROCMarry(MenuPerson%,P%) ELSE REM FIXME should never happen
+    PROCClose(WH%):SYS "Wimp_CreateMenu",,-1:Menu%=0
+   WHEN IH%=MyIcCur%
+    $FNIcTxt(WH%,MyIcSpouse%)=FNName(Person%)
+    PROCCaret(WH%,MyIcSpouse%,TRUE)
+    ENDPROC
+   WHEN IH%=MyIcCan%:PROCClose(WH%):SYS "Wimp_CreateMenu",,-1:Menu%=0
+   WHEN But%=UpArrow%
+    S% = IH%-1:IF S%<MyIcSpouse% S%=MyIcSite%
+    PROCCaret(MarryWH%,S%,TRUE)
+   WHEN But%=DownArrow%
+    S% = IH% + 1:IF S%>MaIcSite% S%=MyIcSpouse%
+    PROCCaret(MarryWH%,S%,TRUE)
+  ENDCASE
+ENDPROC
+
+REM Open a filer window on the directory of TreeFile$
+REM if it includes one and the ADJUST button is pressed.
+
+DEF PROCOpenDir
+LOCAL I%,P%,D$
+SYS "Wimp_GetPointerInfo",,b%:IF b%!8<>1 ENDPROC
+I%=1:P%=0
+REPEAT I%=INSTR(TreeFile$,".",I%+1):IF I% P%=I%
+UNTIL I%=0
+IF P%=0 ENDPROC
+D$=LEFT$(TreeFile$,P%-1)
+b%!20=0:b%!24=0:PROCSend(OpenDir,D$,17,b%,0,0,28)
+ENDPROC
+
+REM ========================= Environment =========================
+
+DEF FNGetVar(Var$)
+LOCAL Len%
+SYS "XOS_ReadVarVal",Var$,b%,blen% TO,,Len%
+b%?Len%=CR%:=$b%
+
+REM ========================= Strings =========================
+
+REM Return the zero-terminated string at S% as a Basic string
+
+DEF FNGetZStr(S%)
+LOCAL P%:P%=S%
+WHILE ?P%:P%+=1:ENDWHILE
+$P%=""
+=$S%
+
+REM force a string to upper case for doing comparisons:
+
+DEF FNUpper($Scratch%)
+LOCAL P%:P%=Scratch%
+WHILE ?P%<>CR%
+  IF (?P%>=LCA%) AND (?P%<=LCZ%) ?P%=?P%AND&DF
+  P%+=1
+ENDWHILE
+=$Scratch%
+
+REM FNLower was here already, but actually was doing Upper - now fixed
+REM to actually force lower case as its name implies.
+
+DEF FNLower($Scratch%)
+LOCAL P%:P%=Scratch%
+WHILE ?P%<>CR%
+IF ?P%>=ASC"A" IF ?P%<=ASC"Z" ?P%=?P% OR &20
+P%+=1
+ENDWHILE
+=$Scratch%
+
+DEF FNWhite(C%)=C%=Tab% OR C%=LF% OR C%=Space%
+
+DEF FNAlpha(C$)
+LOCAL C%:C%=ASC(C$) AND &DF
+=C%>=ASC"A" AND C%<=ASC"Z"
+
+REM check that C$ contains a character allowed in a Year
+
+DEF FNDigit(C$)=(C$>="0" AND C$<="9")
+DEF FNYDigit(C$) = (C$="/") OR FNDigit(C$)
+
+DEF FNNumeric(C$)
+LOCAL I%,c$
+FOR I%=1 TO LEN(C$)
+ c$ = MID$(C$,I%,1)
+ IF (c$<"0") OR (c$>"9") THEN =FALSE
+NEXT
+=TRUE
+
+DEF FN_Number(C$)
+IF FNNumeric(C$) THEN = VAL(C$)
+= -1
+
+ REM ========================= Initialisation =========================
+
+DEF PROCInit
+PROCD("")
+Infinity%=999999              :REM Well off screen
+CharW%=16:CharH%=32           :REM System character size in OS units
+MinW%=600                     :REM Min width of main window work area
+Hash%=0                       :REM No hash table yet
+Modified%=FALSE
+ModifiedShown%=NOT Modified%  :REM Force title redraw
+LF%=10:CR%=13:CtrlC%=3:CtrlE%=5:CtrlQ%=17:CtrlS%=19
+Space%=ASC" ":LPar%=ASC"(":LBra%=ASC"[":LCA%=ASC"a":LCZ%=ASC"z"
+Slash%=ASC"/":Dot%=ASC"." :REM for Unix/RISC OS paths in html links
+Print%=&180:F1%=&181:F2%=&182:F3%=&183:F5%=&185
+Tab%=&18A:DownArrow%=&18E:UpArrow%=&18F
+ShfTab%=&19A
+CR4$=CHR$ CR%+CHR$ CR%+CHR$ CR%+CHR$ CR%
+
+DIM Ordinal$(9)
+Ordinal$()="th":Ordinal$(1)="st":Ordinal$(2)="nd":Ordinal$(3)="rd"
+
+DirLeft%=1:DirRight%=-1
+
+REM Palette entries &BBGGRR00
+Black%=0             :REM foreground
+White%=&FFFFFF00     :REM background
+Red%=&0000CC00:Green%=&00CC0000:Blue%=&CC000000
+
+REM WIMP Messages
+Quit=0
+DataSave=1:DataSaveAck=2:DataLoad=3:DataLoadAck=4:DataOpen=5
+PreQuit=8:OpenDir=&400:HelpRequest=&502:HelpReply=&503
+MenusDeleted=&400C9
+
+REM External edit messages
+EditRq=&45D80:EditAck=&45D81:EditReturn=&45D82
+EditAbort=&45D83:EditDataSave=&45D84
+ExtEdJob%=0
+
+blen%=2048:messlen%=400
+DIM b% blen%:DIM ind% TemplateSize%,indend% -1,mess% messlen%
+$b%="TASK":SYS "Wimp_Initialise",200,!b%,Task$ TO,Task%
+
+REM Files and filetypes
+
+SYS "OS_FSControl",31,"GEDCOM" TO,,TreeType%
+SYS "OS_FSControl",31,"Text" TO,,TextType%
+SYS "OS_FSControl",31,"DrawFile" TO,,DrawType%
+SYS "OS_FSControl",31,"Html" TO,,HtmlType%
+ReportType%=TextType% OR &10000
+AncType%=TextType% OR &20000
+FamType%=TextType% OR &30000
+SaveType%=0
+TreeLeaf$="Tree"
+NoteLeaf$="Notes"
+NoteFile$=FNGetVar("Wimp$ScrapDir")+"."+NoteLeaf$
+ReportLeaf$="Report"
+AncLeaf$="Ancestors"
+DrawLeaf$="DrawFile"
+HtmlLeaf$="index/htm"
+Scrap$="<Wimp$Scrap>"
+OptFile$="<Family$Dir>.Choices"
+
+REM Manifests needed for options:
+XrefError%=1:XrefWarn%=2:XrefIgnore%=3
+PROCLoadOpts
+
+REM For potentially indeterminate times, including those before 1900, cannot
+REM use OS conversion routines. Dates inside GEDCOM file are a standard
+REM format. You can display these (and edit them) in a format based on the
+REM international (and extremely logical) ISO 8601 format by loading the
+REM ISODateLib, or display and edit in the GEDCOM format with DefDateLib.
+REM You can provide any user-defined library instead. The Library to use
+REM is set by the "DateLib" option in the Choices file.
+LIBRARY "<Family$Dir>."+DateLib$
+
+REM static storage space for fields in edit dbox, to facilitate quick
+REM swapping between tabbed events
+DIM EditStatic% 32*256
+Birdate%  = EditStatic%
+Chrdate%  = Birdate%+256
+Bapdate%  = Chrdate%+256
+Deadate%  = Bapdate%+256
+Credate%  = Deadate%+256
+Burdate%  = Credate%+256
+Birtime%  = Burdate%+256
+Chrtime%  = Birtime%+256
+Baptime%  = Chrtime%+256
+Deatime%  = Baptime%+256
+Cretime%  = Deatime%+256
+Burtime%  = Cretime%+256
+Birplace% = Burtime%+256
+Chrplace% = Birplace%+256
+Bapplace% = Chrplace%+256
+Deaplace% = Bapplace%+256
+Creplace% = Deaplace%+256
+Burplace% = Creplace%+256
+Birsite%  = Burplace%+256
+Chrsite%  = Birsite%+256
+Bapsite%  = Chrsite%+256
+Deasite%  = Bapsite%+256
+Cresite%  = Deasite%+256
+Bursite%  = Cresite%+256
+Birsrc%   = Bursite%+256
+Chrsrc%   = Birsrc%+256
+Bapsrc%   = Chrsrc%+256
+Deasrc%   = Bapsrc%+256
+Cresrc%   = Deasrc%+256
+Bursrc%   = Cresrc%+256
+Deacause% = Bursrc%+256
+Burplot%  = Deacause%+256
+DIM MarrStatic% 15*256
+Engdate%  = MarrStatic%
+Mardate%  = Engdate%+256
+Divdate%  = Mardate%+256
+Engtime%  = Divdate%+256
+Martime%  = Engtime%+256
+Divtime%  = Martime%+256
+Engplace% = Divtime%+256
+Marplace% = Engplace%+256
+Divplace% = Marplace%+256
+Engsite%  = Divplace%+256
+Marsite%  = Engsite%+256
+Divsite%  = Marsite%+256
+Engsrc%   = Divsite%+256
+Marsrc%   = Engsrc%+256
+Divsrc%   = Marsrc%+256
+REM enumerated type for Calendar types:
+Unknowndatetype% = 0:Gregorian% = 1:Julian% = 2
+FrenchR% = 3:Roman% = 4:Hebrew% = 5
+REM the French dates have 12 months and several "Jours complementaire"
+REM which cannot be represented in an ISO date format. The Hebrew dates
+REM have thirteen months. Not clear whether this can be represented in
+REM an ISO format or not... Even GEDCOM hasn't decided what Roman dates
+REM look like yet...
+REM Load sprites into user sprite area used by FNGetTem
+LOCAL SpriteFile$
+SpriteFile$="<Family$Dir>.Sprites"
+Len%=FNFileLen(SpriteFile$)+4 :REM Add room for sprite area size.
+DIM Sprites% Len%
+Sprites%!0=Len%:Sprites%!8=16
+SYS "OS_SpriteOp",256+9,Sprites%              :REM Init area.
+SYS "OS_SpriteOp",256+10,Sprites%,SpriteFile$ :REM Load.
+
+REM Create windows
+
+SYS "Wimp_OpenTemplate",,"<Family$Dir>.Templates"
+CompWH%=FNGetTem("Comp"):$(b%!76)=FNMT("CoT")
+ObEdWH%=FNGetTem("Comp"):$(b%!76)=FNMT("ObT")
+EditWH%=FNGetTem("Edit"):$(b%!76)=FNMT("EdT")
+REMove EditNumb% = FALSE
+EditOpen% = FALSE: REM probably don't need this either - yes we do !
+EdIcTabs%=0:EdIcName%=1:EdIcTitl%=2:EdIcFather%=3:EdIcMother%=4
+EdIcDate%=5:EdIcTime%=6:EdIcPlace%=7:EdIcSite%=8:EdIcSpecial%=9
+EdBirTab%=0:EdChrTab%=1:EdBapTab%=2:EdDeaTab%=3:EdCreTab%=4:EdBurTab%=5
+EdLastTab%=EdBurTab%
+DIM IEvCalType%(1+EdLastTab%)
+FOR IEvTab% = EdBirTab% TO EdLastTab%
+  IEvCalType%(IEvTab%) = Gregorian%
+NEXT
+
+EdIcBirTab%=10:EdIcChrTab%=11:EdIcBapTab%=12
+EdIcDeaTab%=13:EdIcCreTab%=14:EdIcBurTab%=15
+EdIcMale%=17:PROCIcMT(17,"E17")
+EdIcFemale%=18:PROCIcMT(18,"E18")
+EdIcUnknown%=19:PROCIcMT(19,"E19")
+EdIcLvg%=20:PROCIcMT(20,"E20")
+EdIcCan%=21:PROCIcMT(21,"Can")
+EdIcOK%=22:PROCIcMT(22,"OK")
+EdIcHelp%=23:PROCIcMT(23,"Help")
+PROCIcMT(10,"E10"):PROCIcMT(11,"E11"):PROCIcMT(12,"E12")
+PROCIcMT(13,"E13"):PROCIcMT(14,"E14"):PROCIcMT(15,"E15")
+PROCIcMT(27,"E27"):PROCIcMT(28,"E28"):PROCIcMT(29,"Dat")
+PROCIcMT(30,"Tim"):PROCIcMT(31,"Pla"):PROCIcMT(32,"Sit")
+PROCIcMT(33,"Cau"):PROCIcMT(34,"Cal"):PROCIcMT(38,"Plt")
+PROCIcMT(42,"Src"):EdIcSrc%=43
+EdIcCause% = 33:EdIcPlot% = 38
+EdIcGreg%=36:PROCIcMT(36,"Grg")
+EdIcJul%=37:PROCIcMT(37,"Jul")
+REM background colours for icon 0
+DIM EdTabCol%(6)
+EdTabCol%(EdBirTab%)=12:EdTabCol%(EdChrTab%)=15:EdTabCol%(EdBapTab%)=10
+EdTabCol%(EdDeaTab%)= 9:EdTabCol%(EdCreTab%)=14:EdTabCol%(EdBurTab%)= 2
+
+GotoWH%=FNGetTem("Goto"):$(b%!76)=FNMT("GoT")
+GoIcName%=0:GoIcCan%=1:PROCIcMT(1,"Can")
+GoIcCur%=2:PROCIcMT(2,"Cur"):GoIcOK%=3:PROCIcMT(3,"OK")
+
+MarrWH%=FNGetTem("Fam"):$(b%!76)=FNMT("MaF")
+MaIcTabs%=0:MaIcHusb%=1:MaIcWife%=2:MaIcDate%=3:MaIcTime%=4
+MaIcPlac%=5:MaIcSite%=6:MaIcEngTab%=15:PROCIcMT(15,"En")
+MaIcMarTab%=16:PROCIcMT(16,"Ma"):MaIcDivTab%=17:PROCIcMT(17,"Di")
+PROCIcMT(8,"Hu"):PROCIcMT(9,"Wi"):PROCIcMT(10,"Dat"):PROCIcMT(11,"Tim")
+PROCIcMT(12,"Cal"):PROCIcMT(13,"Pla"):PROCIcMT(14,"Sit"):
+MaEngTab%=0:MaMarTab%=1:MaDivTab%=2:MaLastTab%=MaDivTab%
+DIM FEvCalType%(1+MaLastTab%)
+FOR FEvTab% = MaEngTab% TO MaLastTab%
+ FEvCalType%(FEvTab%) = Gregorian%
+NEXT
+MaIcGreg%=18:PROCIcMT(18,"Grg"):MaIcJul%=19:PROCIcMT(19,"Jul")
+MaIcCan%=20:PROCIcMT(20,"Can"):MaIcOK%=21:PROCIcMT(21,"OK")
+MaIcHelp%=22:PROCIcMT(22,"Help"):MaIcSrc%=24:PROCIcMT(23,"Src")
+REM background colours for icon 0
+DIM MaTabCol%(1+MaLastTab%)
+MaTabCol%(MaEngTab%)=12:MaTabCol%(MaMarTab%)=15:MaTabCol%(MaDivTab%)=2
+
+MarryWH%=FNGetTem("Marr"):$(b%!76)=FNMT("MT")
+MyIcSpouse%=1:MyIcDate%=2:MyIcTime%=3:MyIcPlac%=4:MyIcSite%=5
+MyIcGreg%=6:PROCIcMT(6,"Grg"):MyIcJul%=7:PROCIcMT(7,"Jul")
+PROCIcMT(8,"Mr"):PROCIcMT(9,"Dat"):PROCIcMT(10,"Tim")
+PROCIcMT(11,"Cal"):PROCIcMT(12,"Pla"):PROCIcMT(13,"Sit")
+MyIcCan%=14:PROCIcMT(14,"Can"):MyIcCur%=15:PROCIcMT(15,"Cur")
+MyIcOK%=16:PROCIcMT(16,"OK")
+
+REM Event types:
+EvBirt%= 1:EvChr% = 2:EvBapm%= 3:EvMarr%= 4
+EvDiv% = 5:EvDeat%= 6:EvCrem%= 7:EvBuri%= 8
+InfoWH%=FNGetTem("Info"):$(b%!76)=FNMT("InT")
+$b%!(4+88+20)=Task$
+Purpose$=FNMT("In1")
+$b%!(4+88+32+20)=Purpose$
+$b%!(4+88+64+20)=Author$
+$b%!(4+88+96+20)=InfoVersion$+" lang="+FNMT("Hl")
+PROCIcMT(4,"In4")
+PROCIcMT(5,"In5")
+PROCIcMT(6,"In6")
+PROCIcMT(7,"In7")
+MainWH%=FNGetTem("Main")
+ModsWH%=FNGetTem("Mods"):$(b%!76)="!"+Task$
+MoIcDisc%=0:PROCIcMT(0,"Dis")
+MoIcCan%=1:PROCIcMT(1,"Can")
+MoIcSave%=2:PROCIcMT(2,"Sav")
+PROCIcMT(3,"Mo3")
+NoteWH%=FNGetTem("Note"):NoteTitle%=b%!76
+SaveWH%=FNGetTem("Save"):$(b%!76)=FNMT("SaT"):SaIcFile%=0:SaIcSprite%=1
+SaIcOK%=2:SaIcCan%=3:PROCIcMT(2,"OK"):PROCIcMT(3,"Can")
+RepoWH%=FNGetTem("Repo"):$(b%!76)=FNMT("ReT")
+PROCIcMT(2,"OK"):PROCIcMT(3,"Can")
+DrawWH%=FNGetTem("Draw"):$(b%!76)=FNMT("DrT")
+PROCIcMT(2,"OK"):PROCIcMT(3,"Can")
+AncWH%=FNGetTem("Ancs"):$(b%!76)=FNMT("AnT")
+PROCIcMT(2,"OK"):PROCIcMT(3,"Can")
+FamWH%=FNGetTem("Fams"):$(b%!76)=FNMT("FaT")
+PROCIcMT(2,"OK"):PROCIcMT(3,"Can")
+MiscWH%=FNGetTem("Opts"):$(b%!76)=FNMT("MiT")
+MiIcXref%=0:MiIcDate%=1:MiIcXrCo%=2:MiIcDaCo%=3:REM only needed for help info
+PROCIcMT(2,"Mi2"):PROCIcMT(3,"Mi3")
+MiIcXrAl%=4:PROCIcMT(4,"Mi4")
+MiIcXrWn%=5:PROCIcMT(5,"Mi5")
+MiIcXrIs%=6:PROCIcMT(6,"Mi6"):REM Xref errors
+MiIcISO%=7:PROCIcMT(7,"Mi7")
+MiIcGED%=8:PROCIcMT(8,"Mi8")
+MiIcOtr%=9:PROCIcMT(9,"Mi9")
+MiIcStr%=10:REM Date format
+MiIcCan%=11:PROCIcMT(11,"Can")
+MiIcDef%=12:PROCIcMT(12,"Res")
+MiIcOK%=13:PROCIcMT(13,"OK")
+HtmlWH%=FNGetTem("Html"):$(b%!76)=FNMT("HtT")
+HtIcFile%=0:HtIcSprite%=1
+HtIcOK%=2:PROCIcMT(2,"OK"):PROCIcMT(3,"Can"):HtIcCan%=3
+PROCIcMT(4,"Ht4")
+HtIcIncH%=5:PROCIcMT(5,"Ht5")
+HtIcIncT%=6:PROCIcMT(6,"Ht6")
+HtIcOmit%=7:PROCIcMT(7,"Ht7")
+HtIcHdr%=8:HtIcTrl%=9
+PROCIconDead(HtmlWH%,HtIcHdr%,NOT FNSelIcon(HtmlWH%,HtIcIncH%))
+PROCIconDead(HtmlWH%,HtIcTrl%,NOT FNSelIcon(HtmlWH%,HtIcIncT%))
+SuppressLiving% = FNSelIcon(HtmlWH%,HtIcOmit%): REM was NOT :-( fixed 99.12.18
+StatWH%=FNGetTem("Stat"):StatTitle%=b%!76:$StatTitle%=FNMT("StT")
+StIcIcnt%=0:StIcImax%=1:StIcFcnt%=2:StIcFmax%=3
+PROCIcMT(4,"St4"):PROCIcMT(5,"St5"):PROCIcMT(6,"St6"):PROCIcMT(7,"St7")
+SYS "Wimp_CloseTemplate"
+PROCOpen(MainWH%)
+
+DIM BarIcText% 10,BarIcValid% 20
+b%!0=-1:b%!4=0:b%!8=0
+b%!12=68:b%!16=68:b%!20=&1700310B
+b%!24=BarIcText%:b%!28=BarIcValid%:b%!32=10
+$BarIcText%=""
+$BarIcValid%="S!"+Task$+CHR$0
+SYS "Wimp_CreateIcon",,b% TO BarIc%
+
+DIM Comp%(MaxComp%)
+
+REM Database structures
+
+ObTag%=0:ObVal%=4:ObId%=8:ObSubs%=12:ObNext%=16:ObSize%=20
+IdNext%=0:IdObj%=4:IdName%=8
+
+ObRef%=1                      :REM Flag set in ObVal if it's an obj ref
+                              :REM (but not a display structure pointer)
+
+InextId%=1:FnextId%=1:Ids%=0
+Icount%=0:Fcount%=0:PROCSetStats
+
+REM Display structure
+
+DIM xMax%(MaxGen%) :REM Current right edge of tree at each level
+
+DSx%=0:DSy%=4                 :REM Person's centre
+DSxmin%=8:DSxmax%=12          :REM Person+descendants extent
+DSSpNum%=16                   :REM Spouses numbered?
+DSName%=20                    :REM Pointer to displayed name
+DSSize%=24
+TopChil%=0
+
+REM Output types
+
+OutScreen%=1:OutPrint%=2:OutDraw%=3
+
+REM Buffers for date conversions
+
+DIM ReportTime% 8,FormattedStamp% 64
+DIM Scratch% 256
+
+ENDPROC
+
+DEF PROCIcMT(N%,S$)
+REM PRINT"Translating ";S$
+$b%!(4+88+N%*32+20)=FNMT(S$)
+ENDPROC
+
+DEF PROCIcBG(b%!0,b%!4,C%)
+REM set background colour of (window, icon, colour)
+b%!12 = 15<<28
+b%!8 = C%<<28
+SYS "Wimp_SetIconState",,b%
+ENDPROC
+
+REM ===================== Menus & dialog boxes =======================
+
+REM Create menus
+
+DEF PROCCrMenu
+SpouseM%=FNInitMenu("Sp",MaxSpouse%)
+REM you need to keep things in step in places like PROCOpenMenu (loop which
+REM greys inapplicable menu items) and PROCMenuClick (reacts to clicks)
+PersM%=FNMenu("Pe","Ed...^E,Mr:MarryWH%,UM:SpouseM%,Ma:SpouseM%,Ci...^C,Ol,Rm")
+PersNameLen%=128:DIM PersNameBuf% PersNameLen%
+MainM%=FNMenu("Fa","Pe:PersM%#IPersNameBuf%:PersNameLen%,GE:,Go  F5:GotoWH%,Sa   F3:SaveWH%,St:StatWH%,Qu   ^Q")
+REM Font list is set by PROCShowOpts
+FontSizeLen%=10:DIM FontSizeBuf% FontSizeLen%
+FontSizeM%=FNMenu("FS",":-1#WIFontSizeBuf%:FontSizeLen%")
+FontM%=FNMenu("Fo","Na,Si:FontSizeM%,OS,PR")
+ShowM%=FNMenu("Sh","FN,Da,SD,WD,YO,Ti")
+DrawScaleLen%=15:DIM DrawScaleBuf% DrawScaleLen%
+DrawScaleM%=FNMenu("Sc",":-1#WIDrawScaleBuf%:DrawScaleLen%")
+DrawWidthLen%=15:DIM DrawWidthBuf% DrawWidthLen%
+DrawWidthM%=FNMenu("LW",":-1#WIDrawWidthBuf%:DrawWidthLen%")
+DrawM%=FNMenu("Dr","Sc:DrawScaleM%,LW:DrawWidthM%")
+OptM%=FNMenu("Co","Fo:FontM%,Sh:ShowM%,Dr:DrawM%,Mc...,Sa")
+BarM%=FNMenu("Fa","In:InfoWH%,Pr,Co:OptM%,Rs,Rp:RepoWH%,AT:AncWH%,FM:FamWH%,Dr:DrawWH%,WP...,Sa   F3:SaveWH%,Qu   ^Q")
+Menu%=0                      :REM None open yet
+ENDPROC
+
+REM Display the appropriate menu for a click in WH%
+
+DEF PROCOpenMenu(X%,Y%,WH%)
+LOCAL I%,M$
+IF WH%=MainWH% Menu%=MainM% ELSE Menu%=BarM%
+IF Menu%=MainM% THEN
+  MenuPerson%=FNNear(X%,Y%)
+  REM En/disable entries in Person menu
+  FOR I%=1 TO 6:PROCShade(PersM%,I%,MenuPerson%=0):NEXT
+  PROCSetEdit(MenuPerson%): REM even if this is zero - edit a new person !
+  IF MenuPerson% THEN
+REMove    PROCSetEdit(MenuPerson%)
+    PROCSpouseMenu
+    M$=FNName(MenuPerson%)
+  ELSE
+    PROCSelIcon(EditWH%,EdIcMale%,TRUE)
+    M$=FNMT("Pe")
+  ENDIF
+  $PersNameBuf%=M$:$PersM%=LEFT$(M$,11)
+  $FNIcTxt(GotoWH%,GoIcName%)=""
+ELSE
+  PROCShowOpts
+  PROCSetMiscOpts(TRUE)
+ENDIF
+MenuX%=X%-64:MenuY%=Y%
+IF WH%<0 THEN
+  MenuY%=96:I%=Menu%+4        :REM Count items for icon bar menu
+  REPEAT I%+=24:MenuY%+=44::UNTIL !I% AND 128
+ENDIF
+SYS "Wimp_CreateMenu",,Menu%,MenuX%,MenuY%
+ENDPROC
+
+REM Open a window as a menu, cancelling any menus currently open
+
+DEF PROCMouseMenu(WH%)
+LOCAL X%,Y%
+CASE WH% OF
+WHEN SaveWH%:X%=-240:Y%=230
+WHEN GotoWH%:X%=-270:Y%=128
+WHEN EditWH%:X%=-430:Y%=472
+WHEN ModsWH%:X%=-530:Y%=140
+ENDCASE
+SYS "Wimp_GetPointerInfo",,b%
+Menu%=WH%:MenuX%=!b%+X%:MenuY%=b%!4+Y%
+SYS "Wimp_CreateMenu",,Menu%,MenuX%,MenuY%
+ENDPROC
+
+REM Set up edit dialog box to edit person P%
+
+DEF PROCSetEdit(P%)
+LOCAL S$,S%,Died%
+PROCSelIcon(EditWH%,EdIcLvg%,FALSE)
+IF P% THEN
+  $FNIcTxt(EditWH%,EdIcName%)=FNName(P%)
+  $FNIcTxt(EditWH%,EdIcTitl%)=FNTitle(P%)
+  S$=FNSex(P%)
+  PROCSelIcon(EditWH%,EdIcMale%,S$="M")
+  PROCSelIcon(EditWH%,EdIcFemale%,S$="F")
+  PROCSelIcon(EditWH%,EdIcUnknown%,(S$<>"M")AND(S$<>"F"))
+  S%=0:Died%=(FNGetSub(P%,DeatTg%,S%)<>0)
+  S%=0:Died%=Died%OR(FNGetSub(P%,BuriTg%,S%)<>0)OR(FNGetSub(P%,CremTg%,S%)<>0)
+  PROCIconDead(EditWH%,EdIcLvg%,Died%)
+  IF Died% PROCDelTag(P%,LvgTg%) ELSE S%=0:PROCSelIcon(EditWH%,EdIcLvg%,FNGetSub(P%,LvgTg%,S%))
+  $FNIcTxt(EditWH%,EdIcFather%)=FNName(FNFather(P%))
+  $FNIcTxt(EditWH%,EdIcMother%)=FNName(FNMother(P%))
+  $Birdate%=FN_UserDate(FNBirth(P%,IEvCalType%(EdBirTab%)))
+  $Birtime%=FNTime(P%,BirtTg%)
+  $Birplace%=FNPlace(P%,BirtTg%)
+  $Birsite%=FNSite(P%,BirtTg%)
+  $Birsrc% =FNSource(P%,BirtTg%)
+  $Chrdate%=FN_UserDate(FNChr(P%,IEvCalType%(EdChrTab%)))
+  $Chrtime%=FNTime(P%,ChrTg%)
+  $Chrplace%=FNPlace(P%,ChrTg%)
+  $Chrsite%=FNSite(P%,ChrTg%)
+  $Chrsrc% =FNSource(P%,ChrTg%)
+  $Bapdate%=FN_UserDate(FNBapm(P%,IEvCalType%(EdBapTab%)))
+  $Baptime%=FNTime(P%,BapmTg%)
+  $Bapplace%=FNPlace(P%,BapmTg%)
+  $Bapsite%=FNSite(P%,BapmTg%)
+  $Bapsrc% =FNSource(P%,BapmTg%)
+  $Deadate%=FN_UserDate(FNDeath(P%,IEvCalType%(EdDeaTab%)))
+  $Deatime%=FNTime(P%,DeatTg%)
+  $Deaplace%=FNPlace(P%,DeatTg%)
+  $Deasite%=FNSite(P%,DeatTg%)
+  $Deacause%=FNCaus(P%,DeatTg%)
+  $Deasrc% =FNSource(P%,DeatTg%)
+  $Credate%=FN_UserDate(FNCrem(P%,IEvCalType%(EdCreTab%)))
+  $Cretime%=FNTime(P%,CremTg%)
+  $Creplace%=FNPlace(P%,CremTg%)
+  $Cresite%=FNSite(P%,CremTg%)
+  $Cresrc% =FNSource(P%,CremTg%)
+  $Burdate%=FN_UserDate(FNBuri(P%,IEvCalType%(EdBurTab%)))
+  $Burtime%=FNTime(P%,BuriTg%)
+  $Burplace%=FNPlace(P%,BuriTg%)
+  $Bursite%=FNSite(P%,BuriTg%)
+  $Burplot%=FNPlot(P%,BuriTg%)
+  $Bursrc% =FNSource(P%,BuriTg%)
+ELSE
+  $FNIcTxt(EditWH%,EdIcName%)=""
+  $FNIcTxt(EditWH%,EdIcFather%)=""
+  $FNIcTxt(EditWH%,EdIcMother%)=""
+  PROCNewEdit
+ENDIF
+EdCurTab%=EdBirTab%
+PROCIcBG(EditWH%,EdIcTabs%,EdTabCol%(EdCurTab%))
+PROCIconHidden(EditWH%,EdIcPlot%)
+PROCIconHidden(EditWH%,EdIcSpecial%)
+PROCIconHidden(EditWH%,EdIcCause%)
+$FNIcTxt(EditWH%,EdIcDate%)=$Birdate%
+$FNIcTxt(EditWH%,EdIcTime%)=$Birtime%
+$FNIcTxt(EditWH%,EdIcPlace%)=$Birplace%
+$FNIcTxt(EditWH%,EdIcSite%)=$Birsite%
+$FNIcTxt(EditWH%,EdIcSrc%) =$Birsrc%
+PROCEditDatesOff
+CASE IEvCalType%(EdCurTab%) OF
+ WHEN Gregorian%: PROCSelIcon(EditWH%,EdIcGreg%,TRUE)
+ WHEN Julian%: PROCSelIcon(EditWH%,EdIcJul%,TRUE)
+ OTHERWISE: PROCSelIcon(EditWH%,EdIcJul%,FALSE):PROCSelIcon(EditWH%,EdIcGreg%,FALSE)
+ENDCASE
+EdIcLastWritable%=EdIcSite%
+ENDPROC
+
+DEF PROCEditDatesOff
+PROCSelIcon(EditWH%,EdIcGreg%,FALSE)
+PROCSelIcon(EditWH%,EdIcJul%,FALSE)
+REM and add for French, Roman, Hebrew or Unknown
+ENDPROC
+
+REM set all the unknowns for a new person (parents and part of name are
+REM inferred for a new child).
+
+DEF PROCNewEdit
+LOCAL I%
+FOR I% = 0 TO 25
+ EditStatic%!(I%<<8)=13
+NEXT
+$FNIcTxt(EditWH%,EdIcTitl%)=""
+PROCSelIcon(EditWH%,EdIcMale%,TRUE) :REM Default male.
+PROCSelIcon(EditWH%,EdIcFemale%,FALSE)
+PROCIconDead(EditWH%,EdIcLvg%,FALSE):REM we are allowed to say living
+PROCSelIcon(EditWH%,EdIcLvg%,FALSE):REM but not living by default
+ENDPROC
+
+REM Set up Event dialog box for marriage details of FAM F%
+
+DEF PROCSetMarr(F%)
+IF F%=0 ERROR ErrFatal%,"SetMarr"
+MenuFAM%=F%
+$Engdate%  = FN_UserDate(FNEnga(F%,FEvCalType%(MaEngTab%)))
+IF Debugging%<>0 PRINT"In SetMarr. EngaTg is "+$(EngaTg%+TagName%)
+$Engtime%  = FNTime(F%,EngaTg%)
+$Engplace% = FNPlace(F%,EngaTg%)
+$Engsite%  = FNSite(F%,EngaTg%)
+$Engsrc%   = FNSource(F%,EngaTg%)
+$Mardate%  = FN_UserDate(FNMarr(F%,FEvCalType%(MaMarTab%)))
+$Martime%  = FNTime(F%,MarrTg%)
+$Marplace% = FNPlace(F%,MarrTg%)
+$Marsite%  = FNSite(F%,MarrTg%)
+$Marsrc%   = FNSource(F%,MarrTg%)
+$Divdate%  = FN_UserDate(FNDiv(F%,FEvCalType%(MaDivTab%)))
+$Divtime%  = FNTime(F%,DivTg%)
+$Divplace% = FNPlace(F%,DivTg%)
+$Divsite%  = FNSite(F%,DivTg%)
+$Divsrc%   = FNSource(F%,DivTg%)
+MaCurTab% = MaMarTab%
+PROCIcBG(MarrWH%,MaIcTabs%,MaTabCol%(MaCurTab%))
+$FNIcTxt(MarrWH%,MaIcDate%)=$Mardate%
+$FNIcTxt(MarrWH%,MaIcTime%)=$Martime%
+$FNIcTxt(MarrWH%,MaIcPlac%)=$Marplace%
+$FNIcTxt(MarrWH%,MaIcSite%)=$Marsite%
+$FNIcTxt(MarrWH%,MaIcSrc%)=$Marsrc%
+$FNIcTxt(MarrWH%,MaIcHusb%)=FNName(Dad%)
+$FNIcTxt(MarrWH%,MaIcWife%)=FNName(Mum%)
+PROCMarrDatesOff
+CASE FEvCalType%(MaCurTab%) OF
+ WHEN Gregorian%: PROCSelIcon(MarrWH%,MaIcGreg%,TRUE)
+ WHEN Julian%: PROCSelIcon(MarrWH%,MaIcJul%,TRUE)
+ENDCASE
+!b%=MarrWH%:SYS "Wimp_GetWindowInfo",,b% :REM blk@4
+$b%!76=FNMT("MaF")+" ("+FNIdNoAt(F%)+")"
+ENDPROC
+
+DEF PROCMarrDatesOff
+PROCSelIcon(MarrWH%,MaIcGreg%,FALSE)
+PROCSelIcon(MarrWH%,MaIcJul%,FALSE)
+REM and add for French, Roman, Hebrew or Unknown
+ENDPROC
+
+REM Set up spouse menus
+
+DEF PROCSpouseMenu
+LOCAL L%,N%,P%,S%,SN%,SL%,W%
+$FNIcTxt(MarryWH%,GoIcName%)="" :REM Clear marry buf
+N%=0:P%=SpouseM%+28:W%=140
+SL%=0:S%=FNSpouses(MenuPerson%,SL%)
+WHILE S% AND N%<MaxSpouse%
+  SN%=FNGetVal(S%,NameTg%)
+  IF SN% THEN
+    !P%=0:P%!4=-1        :REM Not last, submenu
+    P%!8=&7000121        :REM Indirected
+    P%!12=SN%:P%!16=-1   :REM String, Validation
+    L%=LEN($SN%)+1:P%!20=L%:PROCMax(W%,16*L%)
+    P%+=24:N%+=1
+  ENDIF
+  S%=FNSpouses(MenuPerson%,SL%)
+ENDWHILE
+IF N% P%!-24=1<<7
+PROCShade(PersM%,2,N%=0)      :REM En/disable UnMarry entry
+PROCShade(PersM%,3,N%=0)      :REM and marriage details entry
+REMove - no longer exists ! PROCShade(PersM%,4,N%=0)      :REM and Divorce entry
+SpouseM%!16=W%                :REM Reset menu width
+ENDPROC
+
+REM Process a menu choice
+
+DEF PROCMenuClick(Choice0%,Choice1%,Choice2%,Choice3%)
+LOCAL But%,S%,N%
+SYS "Wimp_GetPointerInfo",,mess%:But%=mess%!8
+IF Menu%=MainM% Choice0%+=100
+CASE Choice0% OF
+ WHEN 1:PROCPrint
+ WHEN 2:PROCSetOpts(Choice1%,Choice2%,Choice3%,But%) :REM Choices
+ WHEN 3:IF NOT FNMods(".R") PROCReset
+ WHEN 4:PROCSave(RepoWH%,SaIcOK%,4)
+ WHEN 5:PROCSave(DrawWH%,SaIcOK%,4)
+ WHEN 6:PROCSave(AncWH%,SaIcOK%,4)
+ WHEN 7:PROCSave(FamWH%,SaIcOK%,4)
+ WHEN 8:PROCOpen(HtmlWH%)
+ WHEN 9,103:PROCSave(SaveWH%,SaIcOK%,4)
+ WHEN 10,105:PROCQuit
+ WHEN 100                     :REM Person submenu
+  CASE Choice1% OF
+   WHEN -1,0:REM PROCMouseMenu(EditWH%) - not persistent
+    PROCOpen(EditWH%): REM we need a persistent dbox
+    EditOpen% = TRUE
+   WHEN 2                      :REM UnMarry
+    IF Choice2%>-1 THEN
+      N%=SpouseM%!(28+24*Choice2%+12) :REM Name in menu
+      S%=FNLook($N%):IF S%=0 ERROR ErrFatal%,FNMT("Sp")
+      PROCUnMarry(MenuPerson%,S%)
+    ENDIF
+   WHEN 3                      :REM Marriage details
+    IF Choice2%>-1 THEN
+      N%=SpouseM%!(28+24*Choice2%+12) :REM Name in menu
+      S%=FNLook($N%):IF S%=0 ERROR ErrFatal%,FNMT("Sp")
+      PROCMarrDbox(MenuPerson%,S%)
+    ENDIF
+   WHEN 4:PROCEditChild(MenuPerson%)
+   WHEN 5:PROCOlder
+   WHEN 6:PROCKill(MenuPerson%):Icount%-=1:
+    PROCSetStats:IF Person%=MenuPerson% PROCGoto(0)
+  ENDCASE
+ WHEN 101:PROCObjEdit
+ WHEN 102:PROCMouseMenu(GotoWH%)
+ WHEN 103:PROCSetStats:PROCOpen(StatWH%)
+ENDCASE
+IF But%=1 THEN
+  IF Menu%=BarM% PROCShowOpts :REM Update ticks on choices
+  SYS "Wimp_CreateMenu",,Menu%,MenuX%,MenuY%
+ELSE
+  Menu%=0
+ENDIF
+ENDPROC
+
+REM E$ = "<Item>,<Item>,.."
+REM <Item> = "<String>:[<Sub_val>[#<Flags>]]"
+REM No <Sub_val> => -1
+REM Flags = I<ptr>:<len> => indirected (must be last flag)
+REM         W => writable
+
+DEF FNMenu(Title$,E$)
+LOCAL I%,M%,N%,Width%
+I%=1:N%=0:REPEAT N%+=1:I%=INSTR(E$,",",I%+1):UNTIL I%=0
+M%=FNInitMenu(Title$,N%)
+I%=M%+4:Width%=8
+REPEAT
+  I%+=24:E$=FNMenuItem(I%,E$)
+  IF I%!8 AND 1<<8 N%=LEN($(I%!12)) ELSE N%=LEN($(I%+12))
+  PROCMax(Width%,N%)
+UNTIL E$=""
+!I%=!I% OR 1<<7               :REM Last item
+M%!16=(Width%+1)*CharW%
+=M%
+
+DEF FNInitMenu(Title$,Entries%)
+LOCAL M%
+DIM M% 28+24*Entries%
+$M%=FNMT(Title$)
+M%?12=7:M%?13=2:M%?14=7:M%?15=0
+M%!16=160:M%!20=44:M%!24=0
+=M%
+
+DEF FNMenuItem(I%,E$)
+LOCAL Rest$,S$,P%,S%
+REM this-entry "," other-entries
+S%=INSTR(E$+",",",",S%):Rest$=MID$(E$,S%+1):E$=LEFT$(E$,S%-1)
+REM String-to-display ":" submenu
+S%=INSTR(E$+":",":")
+S$=LEFT$(E$,S%-1)
+REM Translate 2 char message token at start of string
+IF S$>"" S$=FNMT(LEFT$(S$,2))+MID$(S$,3)
+E$=MID$(E$,S%+1):IF E$="" E$="-1"
+!I%=0:I%!4=EVAL(E$):I%!8=&7000021
+REM sub-val "#" options
+P%=0:E$=MID$(E$,INSTR(E$+"#","#")+1)
+WHILE E$>""                   :REM Optional flags
+  CASE LEFT$(E$,1) OF
+   WHEN "I"                   :REM Indirect
+    I%!8=I%!8 OR 1<<8
+    S%=INSTR(E$,":")          :REM After pointer
+    P%=EVAL(MID$(E$,2,S%-2))  :REM Buf pointer
+    I%!12=P%:I%!16=-1
+    I%!20=EVAL(MID$(E$,S%+1)) :REM Buf len
+    E$=""                     :REM no more flags
+   WHEN "W":!I%=!I% OR 1<<2   :REM Writable
+  ENDCASE
+  E$=MID$(E$,2)
+ENDWHILE
+IF P%=0 THEN
+  P%=I%+12:S%=LEN(S$)+1       :REM Long string => indirect
+  IF S%>12 THEN
+    DIM P% S%
+    I%!8=I%!8 OR 1<<8:I%!12=P%:I%!16=-1:I%!20=S%
+  ENDIF
+ENDIF
+$P%=S$
+=Rest$
+
+REM (Un)Shade menu entry
+
+DEF PROCShade(Menu%,Entry%,Shade%)
+LOCAL B%:B%=1<<22
+Menu%+=28+24*Entry%+8         :REM Menu flags
+!Menu%=!Menu% AND NOT B% OR Shade% AND B%
+ENDPROC
+
+REM set a writable icon to be unselectable and if it has the caret, lose it
+
+DEF PROCIconDead(WH%,Ic%,Shade%)
+LOCAL B%:B%=1<<22
+!b%=WH%:b%!4=Ic%:b%!8=(1<<22)AND(Shade%<>0):b%!12=1<<22
+SYS "Wimp_SetIconState",,b%
+IF NOT Shade% ENDPROC:REM never reclaim caret
+SYS "Wimp_GetCaretPosition",,b%
+IF (!b%=WH%)AND(b%!4=Ic%) PROCCaret(-1,-1,0)
+ENDPROC
+
+DEF PROCIconHidden(WH%,Ic%)
+SYS "Wimp_GetCaretPosition",,b%
+IF (!b%=WH%)AND(b%!4=Ic%) PROCCaret(-1,-1,0)
+!b%=WH%:b%!4=Ic%
+b%!12=1<<23
+b%!8=1<<23
+SYS "Wimp_SetIconState",,b%
+ENDPROC
+
+DEF PROCIconReveal(b%!0,b%!4)
+b%!12=1<<23
+b%!8=0
+SYS "Wimp_SetIconState",,b%
+ENDPROC
+
+REM (Un)Tick menu entry
+
+DEF PROCSelEntry(Menu%,Entry%,Tick%)
+Menu%+=28+24*Entry%
+!Menu%=!Menu% AND NOT 1 OR (Tick%<>0) AND 1
+ENDPROC
+
+DEF PROCSetStats
+$FNIcTxt(StatWH%,StIcIcnt%)=STR$(Icount%)
+$FNIcTxt(StatWH%,StIcImax%)="I"+STR$(InextId%-1)
+$FNIcTxt(StatWH%,StIcFcnt%)=STR$(Fcount%)
+$FNIcTxt(StatWH%,StIcFmax%)="F"+STR$(FnextId%-1)
+ENDPROC
+
+REM ============================= Edit ===============================
+
+DEF PROCGoto(P%)
+Person%=P%
+Force%=2                      :REM Scroll window to centre new person
+REM Force note window and title
+IF P% THEN
+  $NoteTitle%=FNIdNoAt(P%)+" "+FNName(P%)
+  IF (Debugging%<>0) BPUT#Debugging%,"Goto "+$NoteTitle%
+  PROCOpenNotes
+ELSE
+  PROCClose(NoteWH%)
+  IF (Debugging%<>0) BPUT#Debugging%,"Goto (no-one)"
+ENDIF
+ENDPROC
+
+REM Create a level 0 NOTE object giving the current person's name
+
+DEF PROCSetPerson
+LOCAL Mod%,N%,O%,P%
+REM Kill any old person note
+P%=Root%+ObSubs%
+WHILE !P%
+  O%=!P%:N%=O%+ObNext%
+  IF O%!ObTag%=NoteTg% THEN
+    IF O%!ObVal% THEN
+      IF LEFT$($(O%!ObVal%),6)="Person" THEN
+        PROCFree(O%!ObVal%)
+        !P%=!N%:N%=P%
+      ENDIF
+    ENDIF
+  ENDIF
+  P%=N%
+ENDWHILE
+Mod%=Modified%                :REM Preserve modification state
+IF Person% PROCSetStr(Root%,NoteTg%,"Person "+FNName(Person%),TRUE)
+Modified%=Mod%
+ENDPROC
+
+REM Return the person near screen X%,Y%.  Try the dummy CHIL
+REM at the top of the tree first, then each member of each FAM.
+
+DEF FNNear(X%,Y%)
+LOCAL D%,DS%,F%,S%,R%
+R%=1.5*LineHeight%            :REM Distance from name centre
+!b%=MainWH%:SYS "Wimp_GetWindowState",,b%
+X%-=(b%!4-b%!20):Y%-=(b%!16-b%!24) :REM convert to work coords
+F%=0:S%=TopChil%
+WHILE S%>1
+  CASE S%!ObTag% OF
+  WHEN HusbTg%,WifeTg%,ChilTg%
+    DS%=ObVal%!(S%!ObSubs%)
+    D%=ABS(X%-DS%!DSx%)+ABS(Y%-DS%!DSy%)
+    IF D%<R% THEN=FNVal(S%)
+  ENDCASE
+  S%=S%!ObNext%
+  WHILE S%=0
+    IF FNGetSub(Root%,FamTg%,F%) S%=F%!ObSubs% ELSE S%=1
+  ENDWHILE
+ENDWHILE
+=0
+
+REM Open an Edit window for person P% (may be 0)
+
+DEF PROCEditPerson(P%)
+MenuPerson%=P%
+IF P% PROCSetEdit(P%)
+REM PROCMouseMenu(EditWH%) not persistent
+PROCOpen(EditWH%):EditOpen%=TRUE
+ENDPROC
+
+REM set radio buttons in Misc Options window
+
+DEF PROCSetMiscOpts(SetDateFormat%)
+  PROCSelIcon(MiscWH%,MiIcXrAl%,BadXrefAction%=XrefError%)
+  PROCSelIcon(MiscWH%,MiIcXrWn%,BadXrefAction%=XrefWarn%)
+  PROCSelIcon(MiscWH%,MiIcXrIs%,BadXrefAction%=XrefIgnore%)
+
+  PROCSelIcon(MiscWH%,MiIcISO%,ReportDateOption$="ISO")
+  PROCSelIcon(MiscWH%,MiIcGED%,ReportDateOption$="GED")
+  PROCSelIcon(MiscWH%,MiIcOtr%,LEN(ReportDateOption$)>3)
+  IF SetDateFormat% $FNIcTxt(MiscWH%,MiIcStr%)=ReportDateFormat$
+  PROCIconDead(MiscWH%,MiIcStr%,NOT FNSelIcon(MiscWH%,MiIcOtr%))
+ENDPROC
+
+REM Mouse or Key in Miscellaneous Options window
+
+DEF PROCMiscOpts(Ic%,But%)
+IF But%=CR% THEN
+  IF Ic%=MiIcStr% PROCSetMiscOpts(FALSE)
+  Ic%=MiIcOK%
+ENDIF
+CASE Ic% OF
+  WHEN MiIcISO%,MiIcGED%,MiIcOtr%
+    PROCSelIcon(MiscWH%,MiIcISO%,Ic%=MiIcISO%)
+    PROCSelIcon(MiscWH%,MiIcGED%,Ic%=MiIcGED%)
+    PROCSelIcon(MiscWH%,MiIcOtr%,Ic%=MiIcOtr%)
+    PROCIconDead(MiscWH%,MiIcStr%,Ic%<>MiIcOtr%)
+  WHEN MiIcCan%:
+    PROCClose(MiscWH%)
+    SYS "Wimp_CreateMenu",,-1
+    Menu%=0
+    ENDPROC
+  WHEN MiIcDef%: REM restore state before editing
+    PROCSetMiscOpts(TRUE)
+    REM do we need to reopen window or just force a redraw or what ?
+  WHEN MiIcOK%:
+    CASE TRUE OF
+      WHEN FNSelIcon(MiscWH%,MiIcISO%)
+        ReportDateOption$="ISO":ReportDateFormat$=ISODateFormat$
+      WHEN FNSelIcon(MiscWH%,MiIcGED%)
+        ReportDateOption$="GED":ReportDateFormat$=GEDDateFormat$
+      WHEN FNSelIcon(MiscWH%,MiIcOtr%)
+        ReportDateOption$=$FNIcTxt(MiscWH%,MiIcStr%)
+        ReportDateFormat$=ReportDateOption$
+      OTHERWISE
+        ReportDateOption$="ISO":ReportDateFormat$=ISODateFormat$
+    ENDCASE
+    CASE TRUE OF
+      WHEN FNSelIcon(MiscWH%,MiIcXrAl%)
+        BadXrefAction% = XrefError%
+      WHEN FNSelIcon(MiscWH%,MiIcXrWn%)
+        BadXrefAction% = XrefWarn%
+      WHEN FNSelIcon(MiscWH%,MiIcXrIs%)
+        BadXrefAction% = XrefIgnore%
+      OTHERWISE
+        BadXrefAction% = XrefError%
+    ENDCASE
+    PROCClose(MiscWH%)
+    SYS "Wimp_CreateMenu",,-1
+    Menu%=0
+    Force%=1
+ENDCASE
+ENDPROC
+
+REM Mouse or Key in Save as Web pages window
+
+DEF PROCHtmlOpts(Ic%,But%)
+IF (But%=CR%) AND (Ic%=HtIcFile%) PROCSave(HtmlWH%,Ic%,But%):ENDPROC
+IF But%>=16 PROCSave(HtmlWH%,Ic%,But%):ENDPROC
+REM similarly for an end of drag (not handled here...)
+CASE Ic% OF
+  WHEN HtIcIncH%
+    PROCSelIcon(HtmlWH%,Ic%,NOT FNSelIcon(HtmlWH%,Ic%))
+    PROCIconDead(HtmlWH%,HtIcHdr%,NOT FNSelIcon(HtmlWH%,Ic%))
+  WHEN HtIcIncT%
+    PROCSelIcon(HtmlWH%,Ic%,NOT FNSelIcon(HtmlWH%,Ic%))
+    PROCIconDead(HtmlWH%,HtIcTrl%,NOT FNSelIcon(HtmlWH%,Ic%))
+  WHEN HtIcOmit%
+    SuppressLiving% = NOT FNSelIcon(HtmlWH%,Ic%)
+    PROCSelIcon(HtmlWH%,Ic%,SuppressLiving%)
+  WHEN HtIcHdr%,HtIcTrl%
+    CASE But% OF
+      CR%,UpArrow%,DownArrow%
+        PROCCaret(HtmlWH%,(HtIcTrl%+HtIcHdr%)-Ic%,TRUE)
+        REM we shouldn't do that if the other icon is greyed out
+    ENDCASE
+  WHEN HtIcCan%
+    PROCClose(HtmlWH%)
+ENDCASE
+ENDPROC
+
+DEF PROCCaretChange(WH%,IH%,state%)
+IF WH%<>EditWH% ENDPROC
+  PROCIconDead(EditWH%,EdIcMore%,TRUE)
+ENDPROC
+
+REM Mouse or key in edit window.  Note CR is handled wrongly if there
+REM is any K command in a validation string. Do K stuff here instead.
+
+DEF PROCEdit(Ic%,But%)
+LOCAL S%,M%
+
+IF Ic%=EdIcCan% THEN
+  PROCClose(EditWH%):EditOpen% = FALSE
+  SYS "Wimp_CreateMenu",,-1
+  Menu%=0
+  ENDPROC
+ENDIF
+
+*|SOUND 1,-15,180,4
+CASE But% OF
+ WHEN 1,4
+  CASE Ic% OF
+   REM deal with icons which can accept the caret :
+   WHEN EdIcName%, EdIcTitl%, EdIcFather%, EdIcMother%, EdIcDate%, EdIcTime%, EdIcPlace%, EdIcSite%, EdIcSpecial%
+  ENDCASE
+ WHEN UpArrow%, DownArrow%
+  IF But%=UpArrow% THEN
+   S%=Ic%-1:IF S%<EdIcName% S%=EdIcLastWritable%
+  ELSE
+   S%=Ic%+1:IF S%>EdIcLastWritable% S%=EdIcName%
+  ENDIF
+
+  PROCCaret(EditWH%,S%,TRUE)
+  ENDPROC
+ WHEN CR%:Ic%=EdIcOK%:IF (Debugging%<>0) BPUT#Debugging%,"Got <cr> in Edit dbox"
+ WHEN CtrlS%
+  REM this will do for now, but if "Unknown" was selected, ctrl/S will give
+  REM you male, after which it will, as expected, swap betwen male and female
+  M%=FNSelIcon(EditWH%,EdIcMale%)
+  PROCSelIcon(EditWH%,EdIcMale%,NOT M%)
+  PROCSelIcon(EditWH%,EdIcFemale%,M%)
+ENDCASE
+REMove IF Ic%<>EdIcOK% ENDPROC
+CASE Ic% OF
+ WHEN EdIcOK%
+  LOCAL EditedPerson%: EditedPerson% = MenuPerson%
+  PROCEdited
+  REM this does indeed set MenuPerson, but doesn't do a redraw to show
+  REM the new person, which is no longer a show-stopper, but a bit off.
+  REM this should fix it. I believe the final ELSE clause can never happen:
+REMove this, it makes any new child added into the current person, which is
+REM bad news...  IF EditedPerson%=0 PROCGoto(MenuPerson%) ELSE IF Person% Force%=1 ELSE PROCGoto(MenuPerson%)
+
+  REM what we want to do is change to the newly added person if he/she is
+  REM unconnected with the displayed tree, but *not* to change current
+  REM person if the new person will be displayed on a redraw (which is
+  REM the case when we add a child, for example). The fix above did not do
+  REM this, but made a new child current, which was *not* what I wanted.
+  REM haven't figured quite how to do what I want, so for now, revert:
+  IF Person% THEN Force%=1 ELSE PROCGoto(MenuPerson%)
+ WHEN EdIcBirTab%, EdIcChrTab%, EdIcBapTab%, EdIcDeaTab%, EdIcCreTab%, EdIcBurTab%
+  EdNewTab% = Ic%-EdIcBirTab%
+  IF EdNewTab%<>EdCurTab% THEN
+   PROCUpdateEditBuffer
+   EdCurTab% = EdNewTab%
+   REM set background of tab icon to new colour:
+   PROCIcBG(EditWH%,EdIcTabs%,EdTabCol%(EdCurTab%))
+   $FNIcTxt(EditWH%,EdIcDate%)  = $(Birdate%+(EdCurTab%<<8))
+   $FNIcTxt(EditWH%,EdIcTime%)  = $(Birtime%+(EdCurTab%<<8))
+   $FNIcTxt(EditWH%,EdIcPlace%) = $(Birplace%+(EdCurTab%<<8))
+   $FNIcTxt(EditWH%,EdIcSite%)  = $(Birsite%+(EdCurTab%<<8))
+   $FNIcTxt(EditWH%,EdIcSrc%)   = $(Birsrc% +(EdCurTab%<<8))
+   PROCEditDatesOff
+   CASE IEvCalType%(EdCurTab%) OF
+     WHEN Gregorian%: PROCSelIcon(EditWH%,EdIcGreg%,TRUE)
+     WHEN Julian%: PROCSelIcon(EditWH%,EdIcJul%,TRUE)
+   ENDCASE
+   CASE Ic% OF
+    WHEN EdIcDeaTab%
+     PROCIconHidden(EditWH%,EdIcPlot%)
+     $FNIcTxt(EditWH%,EdIcSpecial%)=$Deacause%
+     PROCIconReveal(EditWH%,EdIcSpecial%)
+     PROCIconReveal(EditWH%,EdIcCause%)
+     EdIcLastWritable% = EdIcSpecial%
+    WHEN EdIcBurTab%
+     PROCIconHidden(EditWH%,EdIcCause%)
+     $FNIcTxt(EditWH%,EdIcSpecial%)=$Burplot%
+     PROCIconReveal(EditWH%,EdIcSpecial%)
+     PROCIconReveal(EditWH%,EdIcPlot%)
+     EdIcLastWritable% = EdIcSpecial%
+    OTHERWISE
+     PROCIconHidden(EditWH%,EdIcPlot%)
+     PROCIconHidden(EditWH%,EdIcSpecial%)
+     PROCIconHidden(EditWH%,EdIcCause%)
+     EdIcLastWritable% = EdIcSite%
+   ENDCASE
+   REM we need to force a redraw of the icons we changed. Does this do it ?
+   PROCIconReveal(EditWH%,EdIcDate%)
+   PROCIconReveal(EditWH%,EdIcTime%)
+   PROCIconReveal(EditWH%,EdIcPlace%)
+   PROCIconReveal(EditWH%,EdIcSite%)
+   PROCIconReveal(EditWH%,EdIcSrc%)
+  ENDIF
+ WHEN EdIcHelp%
+  OSCLI("Filer_Run <Family$Dir>.html.index/html")
+ENDCASE
+IF Ic%<>EdIcOK% ENDPROC
+PROCClose(EditWH%)
+EditOpen% = FALSE
+SYS "Wimp_CreateMenu",,-1:Menu%=0
+REMove IF Person% Force%=1 ELSE PROCGoto(MenuPerson%)
+ENDPROC
+
+DEF PROCUpdateEditBuffer
+$(Birdate%+(EdCurTab%<<8)) = $FNIcTxt(EditWH%,EdIcDate%)
+IEvCalType%(EdCurTab%) = Gregorian%
+CASE TRUE OF
+  REM redundant WHEN FNSelIcon(EditWH%,EdIcGreg%) IEvCalType%(EdCurTab%) = Gregorian%
+  WHEN FNSelIcon(EditWH%,EdIcJul%): IEvCalType%(EdCurTab%) = Julian%
+  REM and add for French, Roman, Hebrew or Unknown
+ENDCASE
+$(Birtime%+(EdCurTab%<<8)) = $FNIcTxt(EditWH%,EdIcTime%)
+$(Birplace%+(EdCurTab%<<8)) = $FNIcTxt(EditWH%,EdIcPlace%)
+$(Birsite%+(EdCurTab%<<8)) = $FNIcTxt(EditWH%,EdIcSite%)
+CASE EdCurTab% OF
+ WHEN EdDeaTab%: $Deacause%=$FNIcTxt(EditWH%,EdIcSpecial%)
+ WHEN EdBurTab%: $Burplot%=$FNIcTxt(EditWH%,EdIcSpecial%)
+ENDCASE
+ENDPROC
+
+REM Set edited details
+
+DEF PROCEdited
+LOCAL N$,Sex$,S%,Died%
+IF (Debugging%<>0) BPUT#Debugging%,"Edited"
+N$=$FNIcTxt(EditWH%,EdIcName%)
+IF N$="" ERROR ErrChide%,FNMT("NN")
+IF MenuPerson% THEN
+  IF FNName(MenuPerson%)<>N$ THEN
+    REM Name changed - reinsert
+    IF (Debugging%<>0) BPUT#Debugging%,"Reinserting "+FNName(MenuPerson%)+" as "+N$
+    PROCSetStr(MenuPerson%,NameTg%,N$,TRUE)
+    PROCRemSubObj(Root%,MenuPerson%)
+    PROCInsert(MenuPerson%)
+  ENDIF
+ELSE
+  MenuPerson%=FNFind(N$)
+ENDIF
+IF $FNIcTxt(EditWH%,EdIcTitl%) <> "" THEN
+  PROCSetStr(MenuPerson%,TitlTg%,$FNIcTxt(EditWH%,EdIcTitl%),TRUE)
+ELSE
+  PROCDelTag(MenuPerson%,TitlTg%)
+ENDIF
+REM update static buffers from the current tab (which has almost certainly
+REM been the one the user edited !)
+PROCUpdateEditBuffer
+REM now update the GEDCOM from the static buffers
+PROCSetEventTime(MenuPerson%,BirtTg%,$Birdate%,IEvCalType%(EdBirTab%),$Birtime%,FALSE)
+PROCSetEventLocn(MenuPerson%,BirtTg%,$Birplace%,$Birsite%,"",TRUE)
+PROCSetEventTime(MenuPerson%,ChrTg%,$Chrdate%,IEvCalType%(EdChrTab%),$Chrtime%,FALSE)
+PROCSetEventLocn(MenuPerson%,ChrTg%,$Chrplace%,$Chrsite%,"",TRUE)
+PROCSetEventTime(MenuPerson%,BapmTg%,$Bapdate%,IEvCalType%(EdBapTab%),$Baptime%,FALSE)
+PROCSetEventLocn(MenuPerson%,BapmTg%,$Bapplace%,$Bapsite%,"",TRUE)
+PROCSetEventTime(MenuPerson%,DeatTg%,$Deadate%,IEvCalType%(EdDeaTab%),$Deatime%,FALSE)
+PROCSetEventLocn(MenuPerson%,DeatTg%,$Deaplace%,$Deasite%,"",FALSE)
+PROCSetEventParm(MenuPerson%,DeatTg%,CausTg%,$Deacause%,TRUE)
+PROCSetEventTime(MenuPerson%,CremTg%,$Credate%,IEvCalType%(EdCreTab%),$Cretime%,FALSE)
+PROCSetEventLocn(MenuPerson%,CremTg%,$Creplace%,$Cresite%,"",TRUE)
+PROCSetEventTime(MenuPerson%,BuriTg%,$Burdate%,IEvCalType%(EdBurTab%),$Burtime%,FALSE)
+PROCSetEventLocn(MenuPerson%,BuriTg%,$Burplace%,$Bursite%,$Burplot%,TRUE)
+N$=$FNIcTxt(EditWH%,EdIcFather%):PROCFather(MenuPerson%,FNFind(N$))
+N$=$FNIcTxt(EditWH%,EdIcMother%):PROCMother(MenuPerson%,FNFind(N$))
+CASE TRUE OF
+WHEN FNSelIcon(EditWH%,EdIcMale%)  :Sex$="M"
+WHEN FNSelIcon(EditWH%,EdIcFemale%):Sex$="F"
+OTHERWISE                          :Sex$=""
+ENDCASE
+PROCSex(MenuPerson%,Sex$)
+REM risk that editor set the living flag and then added a date of death
+REM or burial. Disable the LVG tag in that case :
+S%=0:Died%=(FNGetSub(MenuPerson%,DeatTg%,S%)<>0)
+S%=0:Died%=Died%OR(FNGetSub(MenuPerson%,BuriTg%,S%)<>0)
+IF FNSelIcon(EditWH%,EdIcLvg%) AND (NOT Died%) THEN
+  PROCSetStr(MenuPerson%,LvgTg%,FNUpper(FNDateNow),TRUE)
+ELSE
+  PROCDelTag(MenuPerson%,LvgTg%)
+ENDIF
+ENDPROC
+
+REM Mouse or key in Family Events window. Note CR is handled wrongly if
+REM there is any K command in a validation string. Do K stuff here instead.
+
+DEF PROCFamEvents(Ic%,But%)
+LOCAL S%,M%
+
+IF Ic%=MaIcCan% THEN
+  PROCClose(MarrWH%)
+  SYS "Wimp_CreateMenu",,-1
+  Menu%=0
+  ENDPROC
+ENDIF
+
+CASE But% OF
+ WHEN 1,4
+  CASE Ic% OF
+   REM deal with icons which can accept the caret :
+   WHEN MaIcDate%,MaIcTime%,MaIcPlac%,MaIcSite%
+  ENDCASE
+ WHEN UpArrow%, DownArrow%
+  IF But%=UpArrow% THEN
+   S%=Ic%-1:IF S%<MaIcDate% S%=MaIcSite%
+  ELSE
+   S%=Ic%+1:IF S%>MaIcSite% S%=MaIcDate%
+  ENDIF
+
+  PROCCaret(MarrWH%,S%,TRUE)
+  ENDPROC
+ WHEN CR%:Ic%=MaIcOK%:IF (Debugging%<>0) BPUT#Debugging%,"Got <cr> in Marr dbox"
+ENDCASE
+CASE Ic% OF
+ WHEN MaIcOK%
+  PROC_FAMupdate(MenuFAM%)
+ WHEN MaIcEngTab%,MaIcMarTab%,MaIcDivTab%
+  MaNewTab% = Ic%-MaIcEngTab%
+  IF MaNewTab%<>MaCurTab% THEN
+   PROCUpdateMarrBuffer
+   MaCurTab% = MaNewTab%
+   REM set background of tab icon to new colour:
+   PROCIcBG(MarrWH%,MaIcTabs%,MaTabCol%(MaCurTab%))
+   $FNIcTxt(MarrWH%,MaIcDate%)=$(Engdate%+(MaCurTab%<<8))
+   $FNIcTxt(MarrWH%,MaIcTime%)=$(Engtime%+(MaCurTab%<<8))
+   $FNIcTxt(MarrWH%,MaIcPlac%)=$(Engplace%+(MaCurTab%<<8))
+   $FNIcTxt(MarrWH%,MaIcSite%)=$(Engsite%+(MaCurTab%<<8))
+   $FNIcTxt(MarrWH%,MaIcSrc%) =$(Engsrc% +(MaCurTab%<<8))
+   PROCMarrDatesOff
+   CASE FEvCalType%(MaCurTab%) OF
+    WHEN Gregorian%: PROCSelIcon(MarrWH%,MaIcGreg%,TRUE)
+    WHEN Julian%: PROCSelIcon(MarrWH%,MaIcJul%,TRUE)
+   ENDCASE
+   REM need a CASE Ic% OF if you choose to hide some fields in some tabs
+   REM we need to force a redraw of the icons we changed. Does this do it ?
+   PROCIconReveal(MarrWH%,MaIcDate%)
+   PROCIconReveal(MarrWH%,MaIcTime%)
+   PROCIconReveal(MarrWH%,MaIcPlac%)
+   PROCIconReveal(MarrWH%,MaIcSite%)
+   PROCIconReveal(MarrWH%,MaIcSrc%)
+  ENDIF
+ WHEN MaIcHelp%
+  OSCLI("Filer_Run <Family$Dir>.html.index/html")
+ENDCASE
+IF Ic%<>MaIcOK% ENDPROC
+PROCClose(MarrWH%)
+SYS "Wimp_CreateMenu",,-1:Menu%=0
+ENDPROC
+
+DEF PROCUpdateMarrBuffer
+$(Engdate%+(MaCurTab%<<8)) = $FNIcTxt(MarrWH%,MaIcDate%)
+FEvCalType%(MaCurTab%) = Gregorian%
+CASE TRUE OF
+  REM redundant WHEN FNSelIcon(MarrWH%,MaIcGreg%) FEvCalType%(MaCurTab%) = Gregorian%
+  WHEN FNSelIcon(MarrWH%,MaIcJul%): FEvCalType%(MaCurTab%) = Julian%
+  REM and add for French, Roman, Hebrew or Unknown
+ENDCASE
+$(Engtime%+(MaCurTab%<<8)) = $FNIcTxt(MarrWH%,MaIcTime%)
+$(Engplace%+(MaCurTab%<<8)) = $FNIcTxt(MarrWH%,MaIcPlac%)
+$(Engsite%+(MaCurTab%<<8)) = $FNIcTxt(MarrWH%,MaIcSite%)
+ENDPROC
+
+DEF PROC_FAMupdate(F%)
+IF (Debugging%<>0) BPUT#Debugging%,"FAMupdate. EngaTg now "+$(EngaTg%+TagName%)
+
+REM update static buffers from the current tab (which has almost certainly
+REM been the one the user edited !)
+PROCUpdateMarrBuffer
+PROCSetEventTime(F%,EngaTg%,$Engdate%,FEvCalType%(MaEngTab%),$Engtime%,FALSE)
+PROCSetEventLocn(F%,EngaTg%,$Engplace%,$Engsite%,"",TRUE)
+PROCSetEventTime(F%,MarrTg%,$Mardate%,FEvCalType%(MaMarTab%),$Martime%,FALSE)
+PROCSetEventLocn(F%,MarrTg%,$Marplace%,$Marsite%,"",TRUE)
+PROCSetEventTime(F%,DivTg%,$Divdate%,FEvCalType%(MaDivTab%),$Divtime%,FALSE)
+PROCSetEventLocn(F%,DivTg%,$Divplace%,$Divsite%,"",TRUE)
+ENDPROC
+
+REM Set the SubTag% parameter of P%'s Tag% event to Val$
+
+REM Obsoleted DEF PROCEventParm(P%,Tag%,SubTag%,Val$)
+*| On entry: P%   is the object (an INDI or FAM)
+*|           Tag% event tag (BIRT, CHR, BAPM, DEAT, BURI, MARR, DIV)
+*|           SubTag% parameter tag (DATE,TIME,PLAC,SITE,CEME,CAUS)
+*|           Val$ is the user-set string for the parameter
+IF P%=0 ERROR ErrFatal%,"PROCEventParm"
+*| Deal with special cases:
+IF (SubTag%=DateTg%) AND (Val$<>"") Val$=FN_GEDCOMdate(Val$)
+IF (Tag%=BuriTg%) AND (SubTag%=SiteTg%) SubTag%=CemeTg%
+
+*| First, does the object currently have a subobject for this event ?
+LOCAL Event%,Parm%:Event%=0
+IF FNGetSub(P%,Tag%,Event%)=0 THEN
+  IF Val$="" ENDPROC: REM no event, and no parameter set, do nothing
+  PROCSetSub(P%,Tag%,0,TRUE)
+  *| NB FNGetSub called for its side-effect on Event%:
+  *| it will always return non-zero because of the SetSub we just did
+  IF FNGetSub(P%,Tag%,Event%) PROCSetStr(Event%,SubTag%,Val$,TRUE)
+  ENDPROC
+ELSE
+  REM if there is a parameter to set, just set it, easy :-)
+  IF Val$<>"" PROCSetStr(Event%,SubTag%,Val$,TRUE):ENDPROC
+  *| but if parameter was to be cleared, we need to remove its
+  *| subobject if there was one (nothing to do if there wasn't):
+  Parm% = 0:IF FNGetSub(Event%,SubTag%,Parm%)=0 ENDPROC
+  *| there was a subobject, remove and free it:
+  PROCRemSubObj(Event%,Parm%)
+  PROCFreeOb(Parm%)
+  *| does the event have any parameters left ?
+  IF Event%!ObSubs%<>0 ENDPROC
+  *| the event object only existed to contain its spacetime parameters
+  PROCRemSubObj(P%,Event%)
+  PROCFreeOb(Event%)
+ENDIF
+ENDPROC
+
+***************************************************
+DEF PROCSetEventParm(O%,EvTg%,SubTag%,Val$,Remove%)
+***************************************************
+*| On entry: O%   is the object (an INDI or FAM)
+*|           EvTg% event tag (BIRT, CHR, BAPM, DEAT, CREM, BURI, MARR, DIV)
+*|           SubTag% parameter tag (DATE,TIME,CAUS)
+*|           Val$ is the user-set string for the parameter
+*|           Remove% specifies whether to remove the event object if empty
+*|            (caller: only set TRUE for the last SubTag to be dealt with)
+*|           Note that we should not *insert* a new EvTg if Val$ is ""
+*| Note 1:  only used for subobjects which themselves don't have subobjects
+*|          which we deal with.
+*|
+*************************************************
+
+IF O%=0 ERROR ErrFatal%,"PROCSetEventParm"
+
+LOCAL EvObj%,Val%:EvObj%=0
+*| transform value for special cases:
+IF (SubTag%=DateTg%) AND (Val$<>"") Val$=FN_GEDCOMdate(Val$)
+
+IF Val$="" THEN
+  IF (FNGetSub(O%,EvTg%,EvObj%)<>0) THEN
+REM test wrong way round :-(    IF Remove% PROCRemSubObj(EvObj%,SubTag%) ELSE PROCClearObject(EvObj%,SubTag%)
+    IF Remove% PROCClearObject(EvObj%,SubTag%) ELSE PROCDelTag(EvObj%,SubTag%)
+  ENDIF
+  ENDPROC
+ENDIF
+
+PROCEnsureObject(O%,EvTg%,Val%,EvObj%)
+PROCSetStr(EvObj%,SubTag%,Val$,TRUE)
+ENDPROC
+
+************************************************************
+DEF PROCSetEventTime(O%,EvTg%,Date$,Calendar%,Time$,Remove%)
+************************************************************
+*| On entry: O%   is the object (an INDI or FAM)
+*|           EvTg% event tag (BIRT, CHR, BAPM, DEAT, CREM, BURI for INDI
+*|                            ENGA, MARR, DIV for FAM)
+*|           Date$, Time$ values for the hierarchy of tags
+*|           Calendar% -1 not specified, otherwise may be one of
+*|           Gregorian%, Julian%, [FrenchR%, Roman%, Hebrew%]
+*| Note 1:  only used for subobjects which themselves don't have subobjects
+*|          which we deal with.
+************************************************************
+
+IF (Debugging%<>0) BPUT#Debugging%,"SetEventTime for "+$(EvTg%+4)+" "+Date$+" / "+Time$+" on object at "+STR$~(O%)
+IF O%=0 ERROR ErrFatal%,"PROCSetEventTime"
+
+LOCAL L%,SubTag%,SubObj%
+SubTag% = TimeTg%
+IF Date$<>"" Date$=FN_GEDCOMdate(Date$)
+L%=LEN(Date$)+LEN(Time$)
+IF L%<>0 THEN
+  PROCEnsureObject(O%,EvTg%,Val%,EvObj%)
+  PROCEnsureObject(EvObj%,DateTg%,Val%,DtObj%)
+  IF Date$="" THEN
+    PROCFree(Val%)
+  ELSE
+    CASE Calendar% OF
+      WHEN Gregorian%: REM do nothing
+      WHEN Julian% : Date$ = "@#DJULIAN@ "+Date$
+      WHEN FrenchR%: Date$ = "@#DFRENCH R@ "+Date$
+      WHEN Roman%  : Date$ = "@#DROMAN@ "+Date$
+      WHEN Hebrew% : Date$ = "@#DHEBREW@ "+Date$
+      WHEN Unknowndatetype% : Date$ = "@#DUNKNOWN@ "+Date$
+      OTHERWISE : ERROR ErrChide%,"Internal error: Unknown date type"
+    ENDCASE
+    PROCSetStr(EvObj%,DateTg%,Date$,TRUE)
+  ENDIF
+  L%-=LEN(Date$)
+  IF L%<>0 THEN
+    PROCEnsureObject(DtObj%,TimeTg%,Val%,TmObj%)
+    IF Time$="" PROCFree(Val%) ELSE PROCSetStr(DtObj%,TimeTg%,Time$,TRUE)
+  ELSE
+    PROCDelTag(DtObj%,TimeTg%)
+  ENDIF
+ELSE
+  EvObj% = 0:IF FNGetSub(O%,EvTg%,EvObj%)<>0 THEN PROCDelTag(EvObj%,DateTg%)
+ENDIF
+IF Remove% IF EvObj%!ObSubs%=0 PROCRemSubObj(O%,EvObj%)
+ENDPROC
+
+*********************************************************
+DEF PROCSetEventLocn(O%,EvTg%,Place$,Site$,Plot$,Remove%)
+*********************************************************
+*| On entry: O%   is the object (an INDI or FAM)
+*|           EvTg% event tag (BIRT, CHR, BAPM, DEAT, CREM, BURI, MARR, DIV)
+*|           Place$, Site$, Plot$ values for the hierarchy of tags
+*| Note 1: Plot$ should be "" unless EvTg%->"BURI"
+*| Note 2: see note 2 under PROCSetEventParm
+*********************************************************
+IF (Debugging%<>0) BPUT#Debugging%,"SetEventLocn "+Place$+" / "+Site$+" / "+Plot$
+IF O%=0 ERROR ErrFatal%,"PROCSetEventLocn"
+
+LOCAL L%,SubTag%,SubObj%
+CASE EvTg% OF
+  WHEN BuriTg%: SubTag% = CemeTg%
+  OTHERWISE:    SubTag% = SiteTg%
+ENDCASE
+
+L%=LEN(Place$)+LEN(Site$)+LEN(Plot$)
+
+IF L%<>0 THEN
+  PROCEnsureObject(O%,EvTg%,Val%,EvObj%)
+  PROCEnsureObject(EvObj%,PlacTg%,Val%,PlObj%)
+  IF Place$="" PROCFree(Val%) ELSE PROCSetStr(EvObj%,PlacTg%,Place$,TRUE)
+  L%-=LEN(Place$)
+  IF L%<>0 THEN
+    PROCEnsureObject(PlObj%,SubTag%,Val%,StObj%)
+    IF Site$="" PROCFree(Val%) ELSE PROCSetStr(PlObj%,SubTag%,Site$,TRUE)
+    L%-=LEN(Site$)
+      IF L%<>0 THEN
+        PROCEnsureObject(StObj%,PlotTg%,Val%,Val%)
+        PROCSetStr(StObj%,PlotTg%,Plot$,TRUE)
+      ELSE
+        PROCDelTag(StObj%,PlotTg%)
+      ENDIF
+  ELSE
+    PROCDelTag(PlObj%,SubTag%)
+  ENDIF
+ELSE
+  EvObj% = 0:IF FNGetSub(O%,EvTg%,EvObj%)<>0 THEN PROCDelTag(EvObj%,PlacTg%)
+ENDIF
+IF Remove% IF EvObj%!ObSubs%=0 PROCRemSubObj(O%,EvObj%)
+ENDPROC
+
+*****************************************************
+DEF PROCEnsureObject(P%,Tag%,RETURN Val%,RETURN Sub%)
+*****************************************************
+*|
+*| Ensure that a subobject with Tag% exists for object P%. If the subobject
+*|  has to be created, it should be created empty and Val% returned zero
+*|
+*| On Entry: P%   is the parent object
+*|           Tag% is the tag of the subobject
+*|
+*| On exit:  Val% is a pointer to any value found
+*|
+*****************************************************
+
+IF P%=0 ERROR ErrFatal%,"PROCEnsureObject"
+
+Sub%=0:Val%=0
+
+*| First, does the parent currently have a subobject for this tag ?
+
+IF FNGetSub(P%,Tag%,Sub%)=0 THEN
+
+  *| if not, then create an empty object
+  Sub% =FNObject(Tag%,0)
+  *| and link it to the parent
+  !FNTail(P%)=Sub%
+  Modified% = TRUE
+ELSE
+
+  Val% = FNVal(Sub%)
+ENDIF
+ENDPROC
+
+****************************
+DEF PROCClearObject(P%,Tag%)
+****************************
+*|
+*| If P% has a subobject for Tag%, clear its value. If there are no
+*| subsubobjects, then remove the subobject.
+*| On Entry: P%   is the parent object
+*|           Tag% is the tag of the subobject
+*|
+*************************************************
+
+IF P%=0 ERROR ErrFatal%,"PROCClearObject"
+LOCAL Sub%, Val%
+Sub% = 0
+
+*| First, does the parent currently have a subobject for this tag ?
+
+IF FNGetSub(P%,Tag%,Sub%)=0 ENDPROC
+
+Val% = FNVal(Sub%)
+PROCFree(Val%)
+
+*| if the subobject exists to contain subsubobjects, stet.
+IF Sub%!ObSubs%<>0 ENDPROC
+
+*| else remove the subobject completely
+PROCRemSubObj(P%,Sub%)
+PROCFreeOb(Sub%)
+ENDPROC
+
+DEF FNFather(P%)=FNParent(P%,HusbTg%)
+DEF FNMother(P%)=FNParent(P%,WifeTg%)
+
+REM Get the family pointed to by P%'s FAMC sub-object.  Return
+REM the person pointed to by its Tag% sub-object or 0 if none.
+
+DEF FNParent(P%,Tag%)
+IF P%=0 OR Tag%=0 ERROR ErrFatal%,"FNParent"
+P%=FNGetVal(P%,FamcTg%):IF P% THEN=FNGetVal(P%,Tag%)
+=0
+
+REM Return P%'s father, mother, self or 0.
+
+DEF FNFore(P%)
+LOCAL R%
+IF P%=0 THEN=0
+R%=FNFather(P%):IF R% THEN=R%
+R%=FNMother(P%):IF R% THEN=R%
+=P%
+
+REM WARNING these date routines now return a calendar type as a side effect
+DEF FNBirth(P%, RETURN calendar%):LOCALdate$
+date$=FNDate(P%,BirtTg%,calendar%):=date$
+DEF FNChr(P%, RETURN calendar%):LOCALdate$
+date$=FNDate(P%,ChrTg%,calendar%):=date$
+DEF FNBapm(P%, RETURN calendar%):LOCALdate$
+date$=FNDate(P%,BapmTg%,calendar%):=date$
+DEF FNDeath(P%, RETURN calendar%):LOCALdate$
+date$=FNDate(P%,DeatTg%,calendar%):=date$
+DEF FNCrem(P%, RETURN calendar%):LOCALdate$
+date$=FNDate(P%,CremTg%,calendar%):=date$
+DEF FNBuri(P%, RETURN calendar%):LOCALdate$
+date$=FNDate(P%,BuriTg%,calendar%):=date$
+
+DEF FNMarr(F%, RETURN calendar%):LOCALdate$
+date$=FNDate(F%,MarrTg%,calendar%):=date$
+
+DEF FNEnga(F%, RETURN calendar%):LOCALdate$
+date$=FNDate(F%,EngaTg%,calendar%):=date$
+
+DEF FNDiv(F%, RETURN calendar%):LOCALdate$
+date$=FNDate(F%,DivTg%,calendar%):=date$
+
+REM Return the value string for the DATE sub-object
+REM of P%'s event sub-object with Tag%
+
+DEF FNDate(P%,Tag%, RETURN calendar%)
+LOCAL E%,C%,date$,escape$
+*|IF P%=0 ERROR ErrFatal%,"FNDate"
+*|IF P%=0 ERROR ErrChide%,"FNDate from line "+STR$(line%)
+IF P%=0 THEN ="Date error"
+E%=0
+IF FNGetSub(P%,Tag%,E%) THEN
+ date$=FNGetStr(E%,DateTg%)
+ C%=INSTR(date$,"@")
+ calendar%=Gregorian%
+ IF C%=0 THEN=date$
+ C%=INSTR(date$," ")
+ escape$=LEFT$(date$,C%-1)
+ date$=MID$(date$,C%+1)
+ WHILE LEFT$(date$,1)=" ":date$=MID$(date$,2):ENDWHILE
+ CASE escape$ OF
+   WHEN "@#DJULIAN@":calendar%=Julian%
+   WHEN "@#DGREGORIAN@":calendar%=Gregorian%
+   WHEN "@#DFRENCH@":calendar%=FrenchR%
+   WHEN "@#DROMAN@":calendar%=Roman%
+   WHEN "@#DHEBREW@":calendar%=Hebrew%
+   OTHERWISE: calendar% = Unknowndatetype%
+ ENDCASE
+ =date$
+ELSE
+ =""
+ENDIF
+
+DEF FNTime(P%,Tag%)
+LOCAL E%
+IF P%=0 ERROR ErrFatal%,"FNTime"
+E%=0:IF FNGetSub(P%,Tag%,E%)=0 THEN=""
+P%=0:IF FNGetSub(E%,DateTg%,P%) THEN=FNGetStr(P%,TimeTg%)
+=""
+
+DEF FNPlace(P%,Tag%)
+LOCAL E%
+IF P%=0 ERROR ErrFatal%,"FNPlace"
+E%=0:IF FNGetSub(P%,Tag%,E%) THEN=FNGetStr(E%,PlacTg%)
+=""
+
+DEF FNSite(P%,Tag%)
+LOCAL E%,Site%
+IF P%=0 ERROR ErrFatal%,"FNSite"
+Site%=SiteTg%: IF Tag%=BuriTg% Site%=CemeTg%
+E%=0:IF FNGetSub(P%,Tag%,E%)=0 THEN=""
+P%=0:IF FNGetSub(E%,PlacTg%,P%) THEN=FNGetStr(P%,Site%)
+=""
+
+DEF FNPlot(P%,Tag%)
+LOCAL E%
+IF P%=0 ERROR ErrFatal%,"FNPlot"
+E%=0:IF FNGetSub(P%,Tag%,E%)=0 THEN=""
+P%=0:IF FNGetSub(E%,PlacTg%,P%)=0 THEN=""
+E%=0:IF FNGetSub(P%,CemeTg%,E%) THEN=FNGetStr(E%,PlotTg%)
+=""
+
+DEF FNCaus(P%,Tag%)
+LOCAL E%
+IF P%=0 ERROR ErrFatal%,"FNCaus"
+E%=0:IF FNGetSub(P%,Tag%,E%) THEN=FNGetStr(E%,CausTg%)
+=""
+
+DEF FNSource(P%,Tag%)
+REM temporary solution is just to get the cross reference and show it.
+REM Later we would try to get some meaningful text from the SOUR record(s)
+LOCAL E%,S%
+IF P%=0 ERROR ErrFatal%,"FNSource"
+E%=0:IF FNGetSub(P%,Tag%,E%) THEN
+ P%=0:S%=FNGetSub(E%,SourTg%,P%)
+ IF S%<>0 THEN=FNPrintStr(S%)
+ENDIF
+=""
+
+DEF PROCSex(P%,S$)
+IF P%=0 ERROR ErrFatal%,"PROCSex"
+PROCSetStr(P%,SexTg%,S$,TRUE)
+ENDPROC
+
+DEF FNSex(P%)=FNGetStr(P%,SexTg%)
+
+DEF PROCMaleFemale(RETURN Him%,RETURN Her%)
+IF FNSex(Him%)="F" OR FNSex(Her%)="M" SWAP Him%,Her%
+IF Him% PROCSex(Him%,"M")
+IF Her% PROCSex(Her%,"F")
+ENDPROC
+
+REM Swap MenuPerson% with his earlier sibling
+
+DEF PROCOlder
+LOCAL F%,P%,Old%,C%
+F%=FNGetVal(MenuPerson%,FamcTg%)
+IF F% THEN
+  Old%=0:P%=F%+ObSubs%
+  WHILE F% AND !P%
+    C%=!P%
+    IF C%!ObTag%=ChilTg% THEN
+      IF FNVal(C%)=MenuPerson% THEN
+        F%=0
+        IF Old% SWAP Old%!ObVal%,C%!ObVal%:Modified%=TRUE:Force%=1:ENDPROC
+      ENDIF
+      Old%=C%
+    ENDIF
+    P%=C%+ObNext%
+  ENDWHILE
+ENDIF
+ERROR ErrChide%,FNName(MenuPerson%)+" "+FNMT("NE")
+ENDPROC
+
+REM Fill in edit box for a new person whose parent is Dad% (may be female).
+REM If he has one spouse assume she is the child's other parent.
+REM If the child's father is known initialise his family name.
+
+DEF PROCEditChild(Dad%)
+LOCAL L%,Mum%,F$
+IF Dad%=0 PROCEditPerson(0):ENDPROC
+L%=0:Mum%=FNSpouses(Dad%,L%):IF FNSpouses(Dad%,L%) Mum%=0
+PROCMaleFemale(Dad%,Mum%)
+F$="":IF Dad% F$=FNFamSlash(FNName(Dad%)):IF F$>"" F$=" "+F$
+$FNIcTxt(EditWH%,EdIcName%)=F$
+$FNIcTxt(EditWH%,EdIcFather%)=FNName(Dad%)
+$FNIcTxt(EditWH%,EdIcMother%)=FNName(Mum%)
+PROCNewEdit
+PROCOpen(EditWH%):EditOpen%=TRUE
+PROCCaret(EditWH%,EdIcName%,FALSE) :REM Caret at start
+MenuPerson%=0                 :REM Create new person if edit completed
+ENDPROC
+
+DEF PROCFather(C%,P%)
+PROCChkSex(P%,"M","Ml")
+PROCParent(C%,P%,HusbTg%)
+ENDPROC
+
+DEF PROCMother(C%,P%)
+PROCChkSex(P%,"F","Fe")
+PROCParent(C%,P%,WifeTg%)
+ENDPROC
+
+DEF PROCChkSex(P%,Gender$,GT$)
+IF P%=0 ENDPROC
+CASE FNSex(P%) OF
+WHEN Gender$
+WHEN "":PROCSex(P%,Gender$)
+OTHERWISE:ERROR ErrChide%,FNName(P%)+" "+FNMT("IN")+" "+FNMT(GT$)
+ENDCASE
+ENDPROC
+
+REM Set C%'s Tag% parent to P%
+
+DEF PROCParent(C%,P%,Tag%)
+LOCAL Dad%,Mum%,F%,O%
+IF C%=0 ERROR ErrFatal%,"PROCParent"
+F%=FNGetVal(C%,FamcTg%):Dad%=0:Mum%=0
+REM ove C% from current family unless the parent is already there
+IF F% THEN
+  IF FNGetVal(F%,Tag%)=P% ENDPROC
+  Dad%=FNGetVal(F%,HusbTg%):Mum%=FNGetVal(F%,WifeTg%)
+  PROCRemSub(F%,ChilTg%,C%)
+  PROCChkFam(F%)
+ENDIF
+REM C% now an orphan.  Set new parent.
+IF Tag%=HusbTg% Dad%=P% ELSE Mum%=P%
+IF Dad%=0 IF Mum%=0 ENDPROC
+REM See if Dad has a family with Mum (either may be 0)
+F%=0
+IF Dad% THEN
+  O%=0
+  WHILE FNGetSub(Dad%,FamsTg%,O%) AND F%=0
+    F%=FNVal(O%):IF FNGetVal(F%,WifeTg%)<>Mum% F%=0
+  ENDWHILE
+ENDIF
+REM See if Mum has a family with Dad
+IF Mum% AND F%=0 THEN
+  O%=0
+  WHILE FNGetSub(Mum%,FamsTg%,O%) AND F%=0
+    F%=FNVal(O%):IF FNGetVal(F%,HusbTg%)<>Dad% F%=0
+  ENDWHILE
+ENDIF
+IF F%=0 F%=FNNewFam(Dad%,Mum%)
+PROCSetSub(C%,FamcTg%,F% OR ObRef%,TRUE)
+PROCSetSub(F%,ChilTg%,C% OR ObRef%,FALSE)
+PROCChkFam(F%)
+Modified%=TRUE:Force%=1
+ENDPROC
+
+REM ==================== Individuals & families ======================
+
+REM Look up name N$ and return person if found, else 0
+
+DEF FNLook(N$)
+LOCAL H%,P%
+H%=FNHash(N$):P%=Hash%!H%:IF P% IF FNName(P%)=N$ THEN=P%
+P%=0
+WHILE FNGetSub(Root%,IndiTg%,P%)
+  IF FNName(P%)=N$ Hash%!H%=P%:=P%
+ENDWHILE
+=0
+
+REM Find an existing person named N$ or create a new one
+
+DEF FNFind(N$)
+LOCAL P%
+IF N$="" THEN=0
+P%=FNLook(N$)
+IF P%=0 P%=FNNewIndi(N$):PROCInsert(P%) :REM Sort into Root%'s list
+=P%
+
+DEF PROCInitHash
+LOCAL H%
+HashSize%=1<<Log2Hash%:HashMask%=(HashSize%-1) AND NOT 3
+IF Hash%=0 DIM Hash% HashSize%
+FOR H%=0 TO HashSize%-1 STEP 4:Hash%!H%=0:NEXT
+ENDPROC
+
+DEF FNHash($b%)
+LOCAL I%,H%:H%=0
+FOR I%=0 TO 9:H%+=H%+b%?I%:NEXT
+=H% AND HashMask%
+
+DEF FNNewIndi(N$)
+LOCAL P%,Id$,Id%
+P%=FNObject(IndiTg%,0)
+Id$="I"+STR$(InextId%):InextId%+=1:Icount%+=1:PROCSetStats
+Id%=FNAlloc(IdName%+LEN(Id$)+1):$(Id%+IdName%)=Id$
+P%!ObId%=Id%+IdName%
+Id%!IdNext%=Ids%:Id%!IdObj%=P%:Ids%=Id%
+PROCSetStr(P%,NameTg%,N$,TRUE)
+IF N$>"" Hash%!FNHash(N$)=P%
+Modified%=TRUE:Force%=1
+=P%
+
+REM Every FAM member's first sub-object is a display structure
+
+DEF FNDStruct(P%)
+LOCAL D%,O%,S%
+S%=P%!ObSubs%
+IF S% IF S%!ObTag%=DispTg% THEN=S%!ObVal%
+REM P% points to a HUSB, WIFE or CHIL object. We need to indirect to
+REM get an actual name:
+IF (Debugging%<>0) THEN
+  BPUT#Debugging%,"New Display Struct for "+FNName(FNVal(P%))
+ENDIF
+D%=FNAlloc(DSSize%):D%!DSName%=0
+O%=FNObject(DispTg%,D%)
+P%!ObSubs%=O%:O%!ObNext%=S%
+=D%
+
+REM Create a new family with Dad% and Mum%.  Link it to them and v.v.
+
+DEF FNNewFam(Dad%,Mum%)
+LOCAL F%,Id$,Id%
+F%=FNObject(FamTg%,0)
+!FNTail(Root%)=F%
+Id$="F"+STR$(FnextId%):FnextId%+=1:Fcount%+=1:PROCSetStats
+Id%=FNAlloc(IdName%+LEN(Id$)+1):$(Id%+IdName%)=Id$
+F%!ObId%=Id%+IdName%
+Id%!IdNext%=Ids%:Id%!IdObj%=F%:Ids%=Id%
+IF Dad% PROCSetSub(F%,HusbTg%,Dad% OR ObRef%,TRUE):PROCSetSub(Dad%,FamsTg%,F% OR ObRef%,FALSE)
+IF Mum% PROCSetSub(F%,WifeTg%,Mum% OR ObRef%,TRUE):PROCSetSub(Mum%,FamsTg%,F% OR ObRef%,FALSE)
+=F%
+
+REM Add O% as an INDI just before the first INDI
+REM sub-object of root with a name after O%'s
+
+DEF PROCInsert(O%)
+LOCAL P%
+P%=FNPosition(O%)
+O%!ObNext%=!P%
+!P%=O%
+ENDPROC
+
+DEF FNPosition(O%)
+LOCAL P%,N$,NO$,F$,FO$
+NO$=FNName(O%):FO$=FNLower(FNFamName(NO$))
+P%=Root%+ObSubs%
+WHILE !P%
+  O%=!P%
+  IF O%!ObTag%=IndiTg% THEN
+    N$=FNName(O%):F$=FNLower(FNFamName(N$))
+    IF F$>FO$ THEN=P%
+    IF F$=FO$ IF N$>NO$ THEN=P%
+  ENDIF
+  P%=O%+ObNext%
+ENDWHILE
+=P%
+
+REM If family F% has < 2 members, unlink it & kill it
+
+DEF PROCChkFam(F%)
+LOCAL M%,N%,id$,id%
+IF F%=0 ERROR ErrFatal%,"PROCChkFam"
+S%=F%!ObSubs%:N%=0
+WHILE S% AND N%<2
+  CASE S%!ObTag% OF
+  WHEN ChilTg%,HusbTg%,WifeTg%:N%+=1
+  ENDCASE
+  S%=S%!ObNext%
+ENDWHILE
+REM IF N%<2 PROCKill(F%):Fcount%-=1:PROCSetStats
+REM PROCKill calls FNScan(Root%) which decrements Fcount% itself
+IF N%<2 THEN
+  id$ = FNIdNoAt(F%)
+  IF LEFT$(id$,1)="F" id%=VAL(MID$(id$,2)) ELSE id%=-1
+  PROCKill(F%)
+  IF id% = FnextId%-1 THEN FnextId%-=1
+  PROCSetStats
+ENDIF
+ENDPROC
+
+REM ============================= Notes ==============================
+
+REM Return Person%'s first or next CONT or NOTE sub-object.
+REM Call with N%=0 for first.  Result also returned in O%.
+
+DEF FNGetNote(RETURN N%,RETURN O%)
+IF N% THEN
+  IF O%=N% O%=0
+  O%=FNGetSub(N%,ContTg%,O%):IF O% THEN=O%
+ENDIF
+O%=FNGetSub(Person%,NoteTg%,N%):=O%
+
+DEF PROCOpenNotes
+LOCAL Lines%,N%,O%
+Lines%=0:N%=0
+WHILE FNGetNote(N%,O%):Lines%+=1:ENDWHILE
+!b%=NoteWH%:SYS "Wimp_GetWindowInfo",,b%
+PROCExtent(NoteWH%,b%!52-b%!44,(Lines%+1)*(CharH%+4),FALSE)
+ENDPROC
+
+REM Draw Person's first NOTE object and any CONT sub-objects
+
+DEF PROCDrawNote(X%,Y%)
+LOCAL N%,O%
+IF Person%=0 ENDPROC
+X%+=8:Y%-=8:N%=0
+WHILE FNGetNote(N%,O%)
+  IF O%!ObVal% MOVE X%,Y%:PRINT $(O%!ObVal%);
+  Y%-=CharH%+4
+ENDWHILE
+ENDPROC
+
+REM Broadcast a request for an external edit of P%'s
+REM notes.  Should get EditAck reply or EditRq bounce.
+
+DEF PROCEditNotes
+LOCAL I%,N$
+IF Person%=0 ERROR ErrFatal%,"PROCEditNotes"
+mess%!20=TextType%
+mess%!24=1                    :REM Arbitrary client job handle
+mess%!28=1                    :REM Continue editing?
+REM Tidy name for use as job parent Id
+N$=FNName(Person%)
+WHILE N$>"" AND NOT FNAlpha(N$) N$=MID$(N$,2):ENDWHILE
+I%=1
+WHILE I%<=LEN(N$)
+  IF FNAlpha(MID$(N$,I%)) I%+=1 ELSE N$=LEFT$(N$,I%-1)+MID$(N$,I%+1)
+ENDWHILE
+$(mess%+32)=LEFT$(N$,19)+CHR$0 :REM Parent ID.
+PROCSend(EditRq,NoteLeaf$,18,mess%,0,0,52)
+ENDPROC
+
+DEF PROCWriteNotes(F$)        :REM Write notes to a file
+LOCAL F%
+F%=OPENOUT(F$)
+PROCWriteNotesFile(F%,"")
+CLOSE #F%
+PROCSetFileType(F$,TextType%)
+ENDPROC
+
+DEF PROCWriteNotesFile(F%,Prefix$)
+LOCAL O%,N%:N%=0
+WHILE FNGetNote(N%,O%)
+  BPUT#F%,Prefix$+FNNull(O%!ObVal%)
+ENDWHILE
+ENDPROC
+
+REM Read notes for the current person from a file
+
+DEF PROCLoadNotes(F$)
+LOCAL F%,P%
+F%=OPENIN(F$):IF F%=0 ERROR ErrChide%,FNMT("CR")+" "+F$
+IF Person%=0 ERROR ErrChide%,FNMT("NP")
+REM Delete all Person's existing note sub-objects
+PROCDelTag(Person%,NoteTg%)
+P%=FNTail(Person%)
+IF NOT EOF#F% THEN
+  !P%=FNObject(NoteTg%,FNString(GET$#F%)):P%=!P%+ObSubs%
+ENDIF
+WHILE NOT EOF#F%
+  !P%=FNObject(ContTg%,FNString(GET$#F%)):P%=!P%+ObNext%
+ENDWHILE
+CLOSE #F%
+IF F$=NoteFile$ OR F$=Scrap$ PROCDelFile(NoteFile$) :REM Delete scrap file.
+PROCOpenNotes
+Modified%=TRUE
+ENDPROC
+
+REM =========================== Spouses ==============================
+
+REM Return P%'s first spouse if F%=0 else return next
+REM spouse.  Update F% to P%'s FAMS.  Return 0 when no
+REM more spouses.  Ignore families with unknown spouse.
+
+DEF FNSpouses(P%,RETURN F%)
+LOCAL H%,W%,FO%
+IF P%=0 ERROR ErrFatal%,"FNSpouses 1"
+WHILE FNGetSub(P%,FamsTg%,F%)
+  FO%=FNVal(F%)
+  H%=FNGetVal(FO%,HusbTg%)
+  W%=FNGetVal(FO%,WifeTg%)
+  CASE P% OF
+  WHEN H%:IF W% THEN=W%
+  WHEN W%:IF H% THEN=H%
+  REM P% is neither spouse in one of his FAMSs
+  OTHERWISE:ERROR ErrFatal%,"FNSpouses "+STR$ F%+" "+STR$ FO%+" "+FNTagStr(FO%!ObTag%)
+  ENDCASE
+ENDWHILE
+=0
+
+REM Ensure that there is a family with parents Mum% and Dad%
+
+DEF PROCMarry(Dad%,Mum%)
+LOCAL F%,O%,H%,W%
+IF Dad%=0 OR Mum%=0 ENDPROC
+PROCMaleFemale(Dad%,Mum%)     :REM Ensure Dad% is male
+O%=0:H%=-1:W%=-1              :REM Dad already married?
+WHILE FNGetSub(Dad%,FamsTg%,O%)
+  F%=FNVal(O%):H%=FNGetVal(F%,HusbTg%):W%=FNGetVal(F%,WifeTg%)
+  IF H%=Dad% IF W%=Mum% ENDPROC
+ENDWHILE
+IF F%=0 THEN
+  O%=0:H%=-1:W%=-1            :REM Mum already married?
+  WHILE FNGetSub(Mum%,FamsTg%,O%)
+    F%=FNVal(O%):H%=FNGetVal(F%,HusbTg%):W%=FNGetVal(F%,WifeTg%)
+    IF H%=Dad% IF W%=Mum% ENDPROC
+  ENDWHILE
+ENDIF
+REM Add new spouse to arbitrary existing single-parent family if any
+CASE TRUE OF
+WHEN H%=0:
+  PROCSetSub(F%,HusbTg%,Dad% OR ObRef%,TRUE)
+  PROCSetSub(Dad%,FamsTg%,F% OR ObRef%,FALSE)
+WHEN W%=0:
+  PROCSetSub(F%,WifeTg%,Mum% OR ObRef%,TRUE)
+  PROCSetSub(Mum%,FamsTg%,F% OR ObRef%,FALSE)
+OTHERWISE:F%=FNNewFam(Dad%,Mum%)
+ENDCASE
+FEvCalType%(MaMarTab%)=Gregorian%
+CASE TRUE OF
+  REM redundant WHEN FNSelIcon(MarryWH%,MyIcGreg%) FEvCalType%(MaMarTab%) = Gregorian%
+  WHEN FNSelIcon(MarryWH%,MyIcJul%): FEvCalType%(MaMarTab%) = Julian%
+  REM and add for French, Roman, Hebrew or Unknown
+ENDCASE
+PROCSetEventTime(F%,MarrTg%,$FNIcTxt(MarryWH%,MyIcDate%),FEvCalType%(MaMarTab%),$FNIcTxt(MarryWH%,MyIcTime%),FALSE)
+PROCSetEventLocn(F%,MarrTg%,$FNIcTxt(MarryWH%,MyIcPlac%),$FNIcTxt(MarryWH%,MyIcSite%),"",TRUE)
+Modified%=TRUE:Force%=1
+PROCClearMarry
+ENDPROC
+
+DEF PROCClearMarry
+*| clear the entries from the Marry dbox icons ready for next time
+$FNIcTxt(MarryWH%,MyIcSpouse%)=""
+$FNIcTxt(MarryWH%,MyIcDate%)=""
+$FNIcTxt(MarryWH%,MyIcTime%)=""
+$FNIcTxt(MarryWH%,MyIcPlac%)=""
+$FNIcTxt(MarryWH%,MyIcSite%)=""
+ENDPROC
+
+REM Remove mother from family in which Dad%
+REM and Mum% are parents if neither is null
+
+DEF PROCUnMarry(Dad%,Mum%)
+LOCAL F%,O%
+IF Dad%=0 OR Mum%=0 ENDPROC
+PROCMaleFemale(Dad%,Mum%)
+O%=0
+WHILE FNGetSub(Dad%,FamsTg%,O%)
+  F%=FNVal(O%)
+  IF FNGetVal(F%,WifeTg%)=Mum% THEN
+    PROCRemSub(F%,WifeTg%,Mum%)
+    PROCRemSub(Mum%,FamsTg%,F%)
+    PROCChkFam(F%)
+    Modified%=TRUE:Force%=1
+    ENDPROC
+  ENDIF
+ENDWHILE
+ERROR ErrChide%,FNName(Dad%)+" "+FNMT("NM")+" "+FNName(Mum%)
+ENDPROC
+
+DEF PROCMarrDbox(Dad%,Mum%)
+LOCAL F%,O%
+IF Dad%=0 OR Mum%=0 ENDPROC
+PROCMaleFemale(Dad%,Mum%)
+O%=0
+WHILE FNGetSub(Dad%,FamsTg%,O%)
+  F%=FNVal(O%)
+  IF FNGetVal(F%,WifeTg%)=Mum% THEN
+    PROCSetMarr(F%)
+    PROCMouseMenu(MarrWH%)
+    ENDPROC
+  ENDIF
+ENDWHILE
+ERROR ErrChide%,FNName(Dad%)+" "+FNMT("NM")+" "+FNName(Mum%)
+ENDPROC
+
+DEF FNOppSex(P%)
+CASE FNSex(P%) OF
+WHEN "M":="F"
+WHEN "F":="M"
+ENDCASE
+=""
+
+REM ======================== Name completion =========================
+
+REM Try to complete the name in an icon. Set WHComp%
+REM and IHComp% to the icon we are completing.
+
+DEF PROCComplete(WH%,IH%,Dir%)
+LOCAL A%,ReqSex$
+REM restrict search to one gender, or not do one at all ?
+ReqSex$=""
+CASE WH% OF
+WHEN EditWH%
+  CASE IH% OF
+  WHEN EdIcFather%:ReqSex$="M"
+  WHEN EdIcMother%:ReqSex$="F"
+  WHEN EdIcName%
+  OTHERWISE:ENDPROC :REM Only for mother, father, name.
+  ENDCASE
+WHEN MarryWH%:ReqSex$=FNOppSex(MenuPerson%)
+WHEN GotoWH%
+OTHERWISE: ENDPROC
+ENDCASE
+A%=FNIcTxt(WH%,IH%)
+$A%=FNComplete($A%,ReqSex$,Dir%)
+PROCCaret(WH%,IH%,Dir%=DirRight%)
+WHComp%=WH%:IHComp%=IH%
+ENDPROC
+
+REM Return longest unambiguous completion of N$ in direction Dir% with given
+REM sex.  If > 1 match, open the pick window else close it.
+
+DEF FNComplete(N$,ReqSex$,Dir%)
+LOCAL Len%,P%,Common$,PN$,LowN$
+LowN$=FNLower(N$)
+NComp%=0:Common$="*":Len%=LEN(N$)
+P%=0
+WHILE FNGetSub(Root%,IndiTg%,P%)
+  IF ReqSex$="" OR FNSex(P%)=ReqSex$ THEN
+    PN$=FNName(P%)
+    IF FNLower(FNend(PN$,Len%,Dir%))=LowN$ THEN
+      IF NComp%<=MaxComp% Comp%(NComp%)=P%:NComp%+=1
+      Common$=FNCommon(Common$,PN$,Dir%) :REM Max shared prefix/suffix
+    ENDIF
+  ENDIF
+ENDWHILE
+IF NComp%=0 VDU 7
+IF NComp%>1 PROCOpenComp ELSE PROCClose(CompWH%)
+IF Common$="" OR Common$="*" THEN=N$
+=Common$
+
+REM Return longest common prefix (DirRight%) or Suffix (DirLeft%)
+
+DEF FNCommon(P$,N$,Dir%)
+LOCAL L%
+IF P$="*" THEN=N$
+P$=FNLower(P$)
+IF P$=FNLower(N$) THEN=N$
+L%=1:
+WHILE FNend(P$,L%,Dir%)=FNLower(FNend(N$,L%,Dir%)):L%+=1:ENDWHILE
+=FNend(N$,L%-1,Dir%)
+
+REM The reason that DirLeft% and DirRight% look the wrong way round is that
+REM if you are extending a string in the direction left, it is the chunk at
+REM the RIGHT$(... end which you have already matched
+
+DEF FNend(P$,L%,Dir%)
+CASE Dir% OF
+  WHEN DirLeft%: =RIGHT$(P$,L%)
+  WHEN DirRight%:=LEFT$(P$,L%)
+ENDCASE
+
+DEF PROCOpenComp
+LOCAL N$,I%,M%,D%,ShowYearOnly%:M%=0:D%=0
+ShowYearOnly% = TRUE
+FOR I%=0 TO NComp%-1
+  N$=""
+  IF ShowTitle% N$ = FNTitle(Comp%(I%)):IF N$<>"" N$+=" "
+  N$ += FNName(Comp%(I%))
+  PROCMax(M%,LEN(N$))
+  PROCMax(D%,LEN(FNDates(Comp%(I%))))
+NEXT
+I%=NComp%:IF I%>MaxComp% I%+=1
+PROCExtent(CompWH%,(M%+D%+3)*CharW%,I%*CharH%+16,TRUE)
+CompX2%=M%+1
+ENDPROC
+
+DEF PROCDrawComp(XW%,YW%)
+LOCAL I%,N$,ShowYearOnly%,W%
+ShowYearOnly% = TRUE
+FOR I%=0 TO NComp%-1
+  W%=0
+  MOVE XW%+8,YW%-8-CharH%*I%
+  IF ShowTitle% THEN
+    N$ = FNTitle(Comp%(I%))
+    IF N$<>"" N$+=" "
+    PRINT N$;:W%=LEN(N$)
+  ENDIF
+  PROCSexColour(Comp%(I%))
+  N$ = FNName(Comp%(I%))
+  N$ += STRING$(CompX2%-LEN(N$)-W%," ")
+  PRINT N$;
+  PROCColour(Black%)
+  PRINT FNDates(Comp%(I%))
+NEXT
+IF NComp%>MaxComp% MOVE XW%+8,YW%-8-CharH%*NComp%:PRINT "..."
+ENDPROC
+
+REM Click in completion list.  Set text in icon being completed.
+
+DEF PROCComp(Y%)
+LOCAL I%,YW%,IH%,WH%
+!b%=CompWH%:SYS "Wimp_GetWindowState",,b%
+YW%=b%!16-b%!24
+I%=(YW%-8-Y%) DIV CharH%
+IF I%>=NComp% ENDPROC
+REM Set text in icon.  Ensure window open and redraw icon
+$FNIcTxt(WHComp%,IHComp%)=FNName(Comp%(I%))
+PROCClose(CompWH%)
+PROCOpen(WHComp%):PROCCaret(WHComp%,IHComp%,TRUE)
+ENDPROC
+
+REM =========================== Messages =============================
+
+REM Received a type 17 or 18 message.  The message is at b%.
+
+DEF PROCReceive(Size%,SrcTask%,HisRef%,Action%)
+LOCAL P%,Type%,F$
+REM Ignore own messages.
+IF SrcTask%=Task% ENDPROC
+REM PROCD("Rec &"+STR$~Action%)
+CASE Action% OF
+WHEN Quit:Modified%=FALSE:PROCQuit
+WHEN PreQuit
+  IF NOT Modified% ENDPROC
+  IF FNNotOK(FNMT("UC")) THEN
+    b%!12=HisRef%:SYS "Wimp_SendMessage",19,b%
+  ENDIF
+WHEN DataSave,EditDataSave
+  REM He has data for us.  Tell him where to stick it.  Notes might be
+  REM considered 'safe' but that confuses !Zap so say they're unsafe.
+  b%!36=-1
+  PROCSend(DataSaveAck,Scrap$,17,b%,SrcTask%,HisRef%,44)
+WHEN DataSaveAck              :REM He says where to save data
+  SYS "Wimp_CreateMenu",,-1:Menu%=0
+  F$=FNGetZStr(b%+44)
+  PROCSaveType(F$,b%!36>=0)
+  REM Tell him to load data from file.  Rest of mess set up from our
+  REM DataSave.  This should be sent as type 18 (recorded) but StrongEd
+  REM doesn't seem to reply soon enough.
+  PROCSend(DataLoad,F$,17,mess%,SrcTask%,HisRef%,44)
+WHEN DataLoad                 :REM He wants us to load a file
+  Type%=b%!40
+  F$=FNGetZStr(b%+44)
+  CASE b%!20 OF
+    WHEN -2, MainWH%: REM only accept loads into iconbar or main window
+    WHEN NoteWH%: IF b%!40<>TextType% ENDPROC:REM ah, oops :-) also need to accept notes back ...
+    WHEN HtmlWH%: REM drag files to the header/trailer icons to include
+      REM we could reject non-HtmlType% files here ...
+      CASE b%!24 OF
+        WHEN HtIcHdr%
+          $FNIcTxt(HtmlWH%,HtIcHdr%)=F$
+          PROCCaret(HtmlWH%,HtIcHdr%,TRUE)
+        WHEN HtIcTrl%
+          $FNIcTxt(HtmlWH%,HtIcTrl%)=F$
+          PROCCaret(HtmlWH%,HtIcTrl%,TRUE)
+      ENDCASE
+      ENDPROC
+    OTHERWISE:
+      REM Notes seem to come back with window handle &10001, as well as
+      REM filename <Wimp$Scrap> and type Text. For now just bin any real
+      REM window handles we haven't already trapped. CompWH% s.b. lowest:
+      IF (b%!20>=CompWH%) OR (b%!40<>TextType%) ENDPROC
+  ENDCASE
+  SYS "Wimp_GetPointerInfo",,b%
+  PROCLoad(F$,b%!12=-2)       :REM Reset for drag to icon bar
+  REM Tell him we got it.  StrongED is logical but non-standard
+  REM because it looks at b%!36 from DataLoadAck instead of DataSaveAck.
+  b%!36=-1                    :REM For naughty StrongED.
+  PROCSend(DataLoadAck,F$,17,b%,SrcTask%,HisRef%,44)
+  IF F$=Scrap$ PROCDelFile(Scrap$)
+  IF Type%=TextType% PROCExtEdAbort
+WHEN DataOpen                 :REM Load a Filer_Run file
+  IF b%!40<>TreeType% ENDPROC
+  F$=FNGetZStr(b%+44)
+  REM Acknowledge DataOpen now in case load fails
+  b%!36=-1                    :REM For naughty StrongED (see above)
+  PROCSend(DataLoadAck,F$,17,b%,SrcTask%,HisRef%,44)
+  PROCLoad(F$,TRUE)           :REM Reset for DataOpen
+WHEN DataLoadAck              :REM He has loaded & deleted data
+WHEN EditAck                  :REM External edit request accepted
+  ExtEdJob%=b%!24
+  mess%!20=ExtEdJob%          :REM Job handle
+  mess%!36=0                  :REM Estimated data size
+  mess%!40=TextType%
+  PROCSend(EditDataSave,NoteLeaf$,18,mess%,SrcTask%,HisRef%,44)
+  SaveType%=TextType%         :REM ember what we're saving
+WHEN HelpRequest
+  F$=FNHelp(b%!32,b%!36)
+  IF F$>"" PROCSend(HelpReply,F$,17,b%,SrcTask%,HisRef%,20)
+WHEN MenusDeleted
+  Menu%=0
+ENDCASE
+ENDPROC
+
+REM Received a type 19 (acknowledge) message (in b%).  If it appears to
+REM come from this task then it is an unanswered type 18 (recorded).
+
+DEF PROCRcvAck(Size%,SrcTask%,Action%)
+LOCAL P%,Type%,F$
+IF SrcTask%<>Task% ENDPROC
+REM It's one of mine
+CASE Action% OF
+WHEN EditRq                   :REM Unanswered External edit request
+  PROCWriteNotes(NoteFile$)
+  OSCLI "Filer_Run "+NoteFile$ :REM Hope an editor will catch it
+REM OTHERWISE PROCD("Ack "+STR$~Action%)
+ENDCASE
+ENDPROC
+
+REM Send a message containing a string
+
+DEF PROCSend(Action%,String$,N%,Buf%,Dest%,Ref%,Offset%)
+Buf%!12=Ref%
+Buf%!16=Action%
+PROCMessStr(Buf%,Offset%,String$)
+SYS "Wimp_SendMessage",N%,Buf%,Dest%
+ENDPROC
+
+REM Insert String$ at Offset% in message in Buf%.  Set message length.
+
+DEF PROCMessStr(Buf%,Offset%,String$)
+$(Buf%+Offset%)=String$+CHR$0
+!Buf%=(Offset%+4+LEN(String$)) AND NOT 3
+ENDPROC
+
+REM Close any external edit job
+
+DEF PROCExtEdAbort
+IF ExtEdJob%=0 ENDPROC
+mess%!12=0                    :REM My ref
+mess%!16=EditAbort
+mess%!20=0                    :REM Reserved
+mess%!24=ExtEdJob%
+mess%!0=28
+SYS "Wimp_SendMessage",17,mess%,SrcTask%
+ExtEdJob%=0                   :REM No current external edit
+ENDPROC
+
+DEF FNHelp(WH%,IH%)
+LOCAL T$
+T$=FNMHelp(WH%,IH%)
+IF T$>"" T$=FNMT(T$)
+=T$
+
+DEF FNMHelp(WH%,IH%)
+CASE WH% OF
+WHEN -2:="H01"
+WHEN MainWH%:="H02"
+WHEN NoteWH%:="H03"
+WHEN CompWH%:="H04"
+WHEN InfoWH%:="H05"
+WHEN EditWH%
+  CASE IH% OF
+    WHEN EdIcName%:="H06"
+    WHEN EdIcBorn%:="H07"
+    WHEN EdIcDied%:="H08"
+    WHEN EdIcFather%:="H09"
+    WHEN EdIcMother%:="H10"
+    WHEN EdIcMale%:="H11"
+    WHEN EdIcFemale%:="H12"
+    WHEN EdIcCan%:="H13"
+    WHEN EdIcOK%:="H14"
+    WHEN EdIcTitl%:="H35"
+    WHEN EdIcChr%:="H36"
+    WHEN EdIcBapm%:="H37"
+    WHEN EdIcCrem%:="H108"
+    WHEN EdIcBuri%:="H38"
+    WHEN EdIcLvg%:="H39"
+    WHEN EdIcMore%:="H109"
+    WHEN EdIcUpd%:="H116"
+  ENDCASE
+WHEN GotoWH%
+  CASE IH% OF
+    WHEN GoIcName%:="H15"
+    WHEN GoIcCan%:="H16"
+    WHEN GoIcCur%:="H25"
+    WHEN GoIcOK%:="H17"
+  ENDCASE
+WHEN MarryWH%
+  CASE IH% OF
+    WHEN MyIcSpouse%:="H18"
+    WHEN MyIcDate%:="H40"
+    WHEN MyIcPlac%:="H41"
+    WHEN MyIcSite%:="H42"
+    WHEN MyIcCan%:="H19"
+    WHEN MyIcCur%:="H25"
+    WHEN MyIcOK%:="H20"
+  ENDCASE
+WHEN ModsWH%
+  CASE IH% OF
+    WHEN MoIcDisc%:="H29"
+    WHEN MoIcCan%:="H30"
+    WHEN MoIcSave%:="H31"
+  ENDCASE
+WHEN RepoWH%
+  CASE IH% OF
+    WHEN SaIcFile%:="H28"
+    WHEN SaIcSprite%:="H26"
+    WHEN SaIcOK%:="H27"
+    WHEN SaIcCan%:="H24"
+  ENDCASE
+WHEN SaveWH%
+  CASE IH% OF
+    WHEN SaIcFile%:="H21"
+    WHEN SaIcSprite%:="H22"
+    WHEN SaIcOK%:="H23"
+    WHEN SaIcCan%:="H24"
+  ENDCASE
+WHEN DrawWH%
+  CASE IH% OF
+    WHEN SaIcFile%:="H32"
+    WHEN SaIcSprite%:="H33"
+    WHEN SaIcOK%:="H34"
+    WHEN SaIcCan%:="H24"
+  ENDCASE
+WHEN AncWH%
+  CASE IH% OF
+    WHEN SaIcFile%:="H43"
+    WHEN SaIcSprite%:="H44"
+    WHEN SaIcOK%:="H45"
+    WHEN SaIcCan%:="H24"
+  ENDCASE
+WHEN FamWH%
+  CASE IH% OF
+    WHEN SaIcFile%:="H46"
+    WHEN SaIcSprite%:="H47"
+    WHEN SaIcOK%:="H48"
+    WHEN SaIcCan%:="H24"
+  ENDCASE
+WHEN HtmlWH%
+  CASE IH% OF
+    WHEN HtIcFile%:="H98"
+    WHEN HtIcSprite%:="H99"
+    WHEN HtIcOK%:="H100"
+    WHEN HtIcCan%:="H24"
+    WHEN HtIcIncH%:="H101"
+    WHEN HtIcIncT%:="H102"
+    WHEN HtIcOmit%:="H103"
+    WHEN HtIcHdr%,HtIcTrl%:="H104"
+    WHEN 4:="H105"
+  ENDCASE
+WHEN MiscWH%
+  CASE IH% OF
+    WHEN MiIcXref%,MiIcXrCo%:="H86"
+    WHEN MiIcXrAl%:="H87"
+    WHEN MiIcXrWn%:="H88"
+    WHEN MiIcXrIs%:="H89"
+    WHEN MiIcDate%,MiIcDaCo%:="H90"
+    WHEN MiIcISO%:="H91"
+    WHEN MiIcGED%:="H92"
+    WHEN MiIcOtr%:="H93"
+    WHEN MiIcStr%:="H94"
+    WHEN MiIcCan%:="H95"
+    WHEN MiIcDef%:="H96"
+    WHEN MiIcOK%:="H97"
+  ENDCASE
+ENDCASE
+=""
+
+REM ============================= Load ===============================
+
+REM Check the command line for file to load (and print)
+
+DEF PROCArgs
+LOCAL I%,PrintIt%
+SYS "OS_GetEnv" TO Cmd$
+UseNewHeapCode% = VAL(FNArg("-newheap","0"))
+IF (Debugging%<>0) BPUT#Debugging%,"-newheap >"+FNArg("-newheap","0")+"<"
+IF (UseNewHeapCode%<>0) THEN
+  IF (Debugging%<>0) BPUT#Debugging%,"Setting InitHeapSize% manually"
+  REM soon, get InitHeapSize from a -heap arg
+  InitHeapSize% = 1752*1024
+ENDIF
+LoadFile$ = FNArg("-f","")
+IF LoadFile$="" ENDPROC
+PROCLoad(LoadFile$,TRUE)
+PrintIt% = "No"<>FNArg("-print","No")
+IF PrintIt% PROCPrint
+ENDPROC
+
+DEF FNArg(opt$,default$)
+LOCAL I%,arg$
+I% = INSTR(Cmd$,opt$)
+IF I%=0 THEN =default$
+arg$=MID$(Cmd$,I%+1+LEN(opt$))
+WHILE LEFT$(arg$)=" ":arg$=RIGHT$(arg$):ENDWHILE
+I% = INSTR(arg$," ")
+IF I%=0 THEN = arg$
+= LEFT$(arg$,I%-1)
+
+DEF PROCLoad(F$,Reset%)
+LOCAL F%,T%
+LOCAL ERROR
+SYS "OS_File",17,F$ TO F%,,T%:T%=T%>>8 AND &FFF
+IF F%<>1 ERROR ErrChide%,FNMT("NF")+": '"+F$+"'"
+IF T%=TextType% PROCLoadNotes(F$):ENDPROC
+IF Reset% IF FNMods(F$) ENDPROC
+IF T%<>TreeType% IF FNNotOK(FNMT("UF")) ENDPROC
+ON ERROR LOCAL RESTORE ERROR:ERROR ErrChide%,FNMT("CR")+" '"+F$+"'"
+F%=OPENIN(F$):IF F%=0 ERROR ErrChide%,"dummy"
+ON ERROR LOCAL RESTORE ERROR:PROCLoadError(F%,F$)
+IF Reset% PROCReset ELSE Reset%=Root%!ObSubs%=0
+Force%=2                      :REM Main win to be redrawn & recentred
+SYS "Hourglass_On"
+PROCEscape(TRUE)
+PROCLoadGed(F%,Reset%)
+PROCEscape(FALSE)
+SYS "Hourglass_Off"
+RESTORE ERROR
+CLOSE #F%
+IF Reset% PROCSetFile(F$) ELSE Modified%=TRUE
+PROCGoto(Person%)             :REM Set current person
+ENDPROC
+
+DEF PROCLoadError(F%,F$)
+CLOSE #F%
+PROCEscape(FALSE)
+PROCReset
+ERROR ErrChide%,FNMT("BF")+": '"+F$+"' ("+REPORT$+FNMT("al")+STR$(ERL)+")"
+ENDPROC
+
+DEF PROCEscape(On%)
+SYS "OS_Byte",229,On%=0
+ENDPROC
+
+REM ============================= Save ===============================
+
+REM Save, Draw, Ancestors, Report or Web Pages chosen in the menu or dbox
+
+DEF PROCSave(WH%,IH%,But%)
+LOCAL IB%,X0%,Y0%,P%,LP%,F$
+P%=FNIcTxt(WH%,SaIcFile%):F$=$P%:LP%=P%
+WHILE ?P%>31
+  IF ?P%=ASC"." LP%=P%+1
+  P%+=1
+ENDWHILE:$P%="":SaveLeaf$=$LP%
+REM ember what we're saving
+CASE WH% OF
+  WHEN SaveWH%:SaveType%=TreeType%
+  WHEN RepoWH%:SaveType%=ReportType%
+  WHEN AncWH%:SaveType%=AncType%
+  WHEN FamWH%:SaveType%=FamType%
+  WHEN DrawWH%:SaveType%=DrawType%
+  WHEN HtmlWH%:SaveType%=HtmlType%
+  OTHERWISE:
+ENDCASE
+IF IH%=SaIcFile% IF But%=CR% IH%=SaIcOK%
+CASE IH% OF
+ WHEN SaIcCan%:PROCClose(WH%):SYS "Wimp_CreateMenu",,-1:Menu%=0
+ WHEN SaIcSprite%:IF But%>=16 PROCStartDrag(WH%)
+ WHEN SaIcOK%
+   IF F$=Scrap$ OR INSTR(F$,".") OR INSTR(F$,":") THEN
+     PROCSaveType(F$,TRUE)
+   ELSE
+     ERROR ErrChide%,FNMT("TS")
+     REM this just seems to move the window irritatingly: PROCMouseMenu(WH%)
+   ENDIF
+ENDCASE
+ENDPROC
+
+REM Start dragging file sprite
+
+DEF PROCStartDrag(WH%)
+!b%=WH%:SYS "Wimp_GetWindowInfo",,b%
+IB%=b%+4+88+32*SaIcSprite%    :REM File sprite icon block
+X0%=b%!4-b%!20:Y0%=b%!16-b%!24:REM Work origin
+b%!4=5                        :REM Fixed box
+b%!8=X0%+!IB%:b%!12=Y0%+IB%!4 :REM Screen coords of icon
+b%!16=X0%+IB%!8
+b%!20=Y0%+IB%!12
+b%!24=0:b%!28=0               :REM Limits
+b%!32=Infinity%:b%!36=Infinity%
+SYS "Wimp_DragBox",,b%
+ENDPROC
+
+REM Drag for save done.  Send DataSave msg.
+
+DEF PROCDragDone
+SYS "Wimp_GetPointerInfo",,b%
+mess%!12=0                    :REM My ref
+mess%!16=DataSave             :REM I've got some data for you
+mess%!20=b%!12:mess%!24=b%!16 :REM Window & icon handles
+mess%!28=!b%:mess%!32=b%!4    :REM X,Y
+mess%!36=0                    :REM File size
+mess%!40=SaveType%            :REM File type
+PROCMessStr(mess%,44,SaveLeaf$)
+SYS "Wimp_SendMessage",18,mess%,b%!12,b%!16
+ENDPROC
+
+REM Call the right routine to write the current filetype
+
+DEF PROCSaveType(F$,Safe%)
+CASE SaveType% OF
+WHEN TreeType%  :PROCSaveAs(F$,Safe%)
+WHEN TextType%  :PROCWriteNotes(F$)
+WHEN ReportType%:PROCReport(F$)
+WHEN AncType%   :PROCAncTree(F$)
+WHEN FamType%   :PROCFamRept(F$)
+WHEN DrawType%  :PROCWriteDraw(F$)
+WHEN HtmlType%  :PROCWriteHtml(F$)
+OTHERWISE       :ERROR ErrFatal%,"PROCSaveType"
+ENDCASE
+SYS "Wimp_CreateMenu",,-1:Menu%=0
+ENDPROC
+
+REM Save data to a temporary file in case write fails then rename as F$
+REM we don't do this if the destination is the scrapfile, and shouldn't
+REM do so if the destination is a device either (in which case we should
+REM also not regard the saved data as safe)
+
+DEF PROCSaveAs(F$,Safe%)
+LOCAL F%,Temp$:Temp$=F$
+LOCAL ERROR
+PROCSetPerson                 :REM Note current person
+PROCSetHeadTrlr
+IF F$<>Scrap$ THEN
+  IF RIGHT$(Temp$,1)=":" Safe%=FALSE ELSE RIGHT$(Temp$,1)="="
+ENDIF
+ON ERROR LOCAL RESTORE ERROR:ERROR ErrChide%,FNMT("CC")+" ("+REPORT$+")"
+F%=OPENOUT(Temp$)
+ON ERROR LOCAL CLOSE #F%:RESTORE ERROR:ERROR ErrChide%,FNMT("SF")+" ("+REPORT$+":"+STR$(ERL)+")"
+SYS "Hourglass_On"
+PROCEscape(TRUE)
+PROCSaveSubs(F%,Root%,0)
+PROCEscape(FALSE)
+SYS "Hourglass_Off"
+CLOSE #F%
+IF Temp$<>F$ THEN
+  ON ERROR LOCAL RESTORE ERROR:ERROR ErrChide%,FNMT("CN")+" '"+F$+"' ("+REPORT$+")"
+  PROCDelFile(F$)             :REM Remove old F$
+  SYS "OS_FSControl",25,Temp$,F$ :REM Rename
+ENDIF
+RESTORE ERROR
+PROCSetFileType(F$,TreeType%)
+IF Safe% PROCSetFile(F$)
+ENDPROC
+
+REM Set up HEAD and TRLR objects, preserving modification
+
+DEF PROCSetHeadTrlr
+LOCAL H%,Mod%,S%
+Mod%=Modified%:H%=0
+IF FNGetSub(Root%,HeadTg%,H%)=0 THEN
+  H%=FNObject(HeadTg%,0)
+  H%!ObNext%=Root%!ObSubs%
+  Root%!ObSubs%=H%
+ENDIF
+REM product name should be unique in first ten chars, with no embedded space
+REM so not  PROCSetStr(H%,SourTg%,"Acorn Archimedes !"+Task$,TRUE)
+PROCSetStr(H%,SourTg%,"!"+Task$+"_for_RISC_OS",TRUE)
+S%=0:PROCSetStr(FNGetSub(H%,SourTg%,S%),VersTg%,Version$,TRUE)
+PROCSetSub(H%,GedcTg%,0,TRUE)
+S%=0:PROCSetStr(FNGetSub(H%,GedcTg%,S%),VersTg%,"5.3",TRUE)
+S%=0:PROCSetStr(FNGetSub(H%,GedcTg%,S%),FormTg%,"LINEAGE-LINKED", TRUE)
+S%=0:PROCSetStr(FNGetSub(H%,GedcTg%,S%),LangTg%,FNMT("lang"),TRUE)
+
+PROCDelTag(Root%,TrlrTg%)        :REM Kill old trailer
+PROCSetSub(Root%,TrlrTg%,0,TRUE) :REM Ensure last
+Modified%=Mod%
+ENDPROC
+
+DEF PROCSaveSubs(F%,O%,Level%)
+LOCAL S%
+S%=O%!ObSubs%
+WHILE S%
+  PROCSaveObj(F%,S%,Level%)
+  PROCSaveSubs(F%,S%,Level%+1)
+  S%=S%!ObNext%
+ENDWHILE
+ENDPROC
+
+DEF PROCSaveObj(F%,O%,Level%)
+LOCAL T%,Val$
+T%=O%!ObTag%:IF T%?TagFlags% AND ProgTag% ENDPROC
+BPUT#F%,STR$(Level%)+" ";
+IF Level%=0 THEN
+REMBPUT#F%,FNId(O%)+" ";
+  CASE T% OF
+    WHEN IndiTg%,FamTg%: BPUT#F%,FNId(O%)+" ";
+    WHEN HeadTg%,TrlrTg%,NoteTg%:
+    OTHERWISE: BPUT#F%,FNId(O%)+" ";
+  ENDCASE
+ENDIF
+BPUT#F%,FNTagStr(T%);
+Val$=FNPrintStr(O%):IF Val$>"" BPUT#F%," "+Val$;
+BPUT#F%,""
+ENDPROC
+
+DEF PROCSetFile(F$)           :REM Now editing unmodified tree file F$
+CASE F$ OF
+WHEN Scrap$:ENDPROC
+WHEN ""    :TreeFile$="<"+FNMT("UT")+">":F$=TreeLeaf$
+OTHERWISE  :TreeFile$=F$
+ENDCASE
+$StatTitle%=FNMT("StT")+" "+FNLeaf(TreeFile$)
+$FNIcTxt(SaveWH%,SaIcFile%)=F$
+Modified%=FALSE
+ModifiedShown%=NOT Modified% :REM Force title bar redraw
+ENDPROC
+
+DEF FNLeaf($Scratch%)
+LOCAL P%,LP%:P%=Scratch%:LP%=P%
+WHILE ?P%>31
+  IF ?P%=Dot% LP%=P%+1
+  P%+=1
+ENDWHILE:=$LP%
+
+REM Write a report to text file F$
+
+DEF PROCReport(F$)
+LOCAL F%
+LOCAL ERROR
+ON ERROR LOCAL RESTORE ERROR:ERROR ErrChide%,FNMT("CC")+" ("+REPORT$+")"
+F%=OPENOUT(F$)
+ON ERROR LOCAL CLOSE #F%:RESTORE ERROR:ERROR ErrChide%,FNMT("SF")+" ("+REPORT$+":"+STR$(ERL)+")"
+SYS "Hourglass_On"
+PROCEscape(TRUE)
+PROCWriteReport(F%)
+PROCEscape(FALSE)
+SYS "Hourglass_Off"
+CLOSE #F%
+RESTORE ERROR
+PROCSetFileType(F$,ReportType%)
+IF F$<>Scrap$ $FNIcTxt(RepoWH%,SaIcFile%)=F$
+ENDPROC
+
+DEF PROCWriteReport(F%)
+LOCAL CO%,FO%,Fam%,R%,S%
+LOCAL Person%,ShowYearOnly%   :REM Override globals
+ShowYearOnly%=FALSE
+BPUT#F%,TreeFile$
+BPUT#F%,FNTreeStamp
+Person%=0
+WHILE FNGetSub(Root%,IndiTg%,Person%)
+  BPUT#F%,""
+  BPUT#F%,FNName(Person%)+"  ("+FNDates(Person%)+")"
+  R%=FNFather(Person%):IF R% BPUT#F%,"  Father: "+FNName(R%)
+  R%=FNMother(Person%):IF R% BPUT#F%,"  Mother: "+FNName(R%)
+  Fam%=0
+  WHILE FNGetSub(Person%,FamsTg%,Fam%)
+    FO%=FNVal(Fam%)
+    S%=FNGetVal(FO%,HusbTg%)
+    IF S% IF S%<>Person% BPUT#F%,"  Husband: "+FNName(S%)
+    S%=FNGetVal(FO%,WifeTg%)
+    IF S% IF S%<>Person% BPUT#F%,"  Wife: "+FNName(S%)
+    CO%=0
+    WHILE FNGetSub(FO%,ChilTg%,CO%)
+      BPUT #F%,"    Child: "+FNName(FNVal(CO%))
+    ENDWHILE
+  ENDWHILE
+  PROCWriteNotesFile(F%,"  ")
+ENDWHILE
+ENDPROC
+
+DEF PROCFamRept(F$)
+LOCAL F%
+LOCAL ERROR
+ON ERROR LOCAL RESTORE ERROR:ERROR ErrChide%,FNMT("CC")+" ("+REPORT$+")"
+F%=OPENOUT(F$)
+ON ERROR LOCAL CLOSE #F%:RESTORE ERROR:ERROR ErrChide%,FNMT("SF")+" ("+REPORT$+":"+STR$(ERL)+")"
+SYS "Hourglass_On"
+PROCEscape(TRUE)
+PROCWriteFamilies(F%)
+PROCEscape(FALSE)
+SYS "Hourglass_Off"
+CLOSE #F%
+RESTORE ERROR
+PROCSetFileType(F$,TextType%)
+IF F$<>Scrap$ $FNIcTxt(FamWH%,SaIcFile%)=F$
+ENDPROC
+
+DEF PROCWriteFamilies(F%)
+LOCAL P%,Family%,ShowYearOnly%   :REM Override globals
+ShowYearOnly%=FALSE
+REMoved PROCTreeStamp
+BPUT#F%,TreeFile$
+BPUT#F%,FNTreeStamp
+Family%=0
+WHILE FNGetSub(Root%,FamTg%,Family%)
+  BPUT#F%,STRING$(80,"-")
+  BPUT#F%,"Family "+FNIdNoAt(Family%)+":"
+  BPUT#F%,10
+  P%=FNGetVal(Family%,HusbTg%):IF P%<>0 PROCFamMember("Husband ",P%)
+  P%=FNGetVal(Family%,WifeTg%):IF P%<>0 PROCFamMember("Wife    ",P%)
+  PROCFamWed(Family%)
+  P% = 0:WHILE FNGetSub(Family%,ChilTg%,P%)
+    PROCFamMember("Child   ",FNVal(P%))
+  ENDWHILE
+  BPUT#F%,10
+ENDWHILE
+ENDPROC
+
+DEF PROCFamMember(Role$,P%)
+LOCAL L%,S$,D$:S$=""
+IF ShowTitle% S$=FNTitle(P%):IF S$<>"" S$+=" "
+S$+=FNName(P%)
+L%=LEN(S$)
+D$=FN_UserDate(FNBirth(P%,dummy%))
+IF D$<>"" S$+=STRING$(42-L%," ")+"b "+D$
+L%=LEN(S$)
+D$=FN_UserDate(FNDeath(P%,dummy%))
+IF D$<>"" S$+=STRING$(57-L%," ")+"d "+D$
+BPUT#F%,Role$+S$
+ENDPROC
+
+DEF PROCFamWed(Fam%)
+LOCAL D$
+D$ = FNEventData(Fam%,MarrTg%,CHR$(10))
+IF D$<>"" BPUT#F%,FNMT("Md")+D$
+ENDPROC
+
+REM return spacetime data for an event for printout or report
+
+DEF FNEventData(P%,Tg%,br$)
+*|
+*| On Entry: P% is the FAM or INDI object with which the event is associated
+*|           Tg% is the tag of the event
+*|          br$ is an optional end-of-line string to split the returned value
+
+IF P%=0 ERROR ErrFatal%,"FNEventData"
+LOCAL L%,S$,D$,P$,D%:D%=0
+*| is there a relevant event record ?
+IF FNGetSub(P%,Tg%,D%)=0 THEN =""
+D$ = FN_UserDate(FNGetStr(D%,DateTg%))
+IF D$<>"" THEN
+  D$ = " "+D$
+  S$ = FNGetStr(D%,TimeTg%)
+  IF S$<>"" D$+=" "+S$
+ENDIF
+P$ = FNGetStr(D%,PlacTg%)
+IF P$<>"" THEN
+  S$ = FNSite(P%,Tg%)
+  IF S$<>"" P$=S$+", "+P$
+  P$=" "+P$
+  IF (Tg%=BuriTg%) AND (S$<>"") THEN
+    S$ = FNPlot(P%,Tg%)
+    IF S$<>"" P$=" "+S$+","+P$
+  ENDIF
+  IF D$<>"" P$=br$+"       "+P$
+  D$+=P$
+ENDIF
+IF Tg%=DeatTg% THEN
+  P$ = FNGetStr(D%,CausTg%)
+  IF P$<>"" IF D$<>"" P$=br$+"       Cause: "+P$:D$+=P$
+ENDIF
+=D$
+
+REM generate a GEDCOM format date for the present moment
+
+DEF FNDateNow
+LOCAL S%
+!ReportTime% = 3
+SYS "OS_Word",14,ReportTime%
+SYS "OS_ConvertDateAndTime",ReportTime%,FormattedStamp%,64,"%dy %m3 %ce%yr" TO ,S%
+?S%=CR%
+=$FormattedStamp%
+
+REM generate a time/datestamp string for a report from the time now
+
+DEF FNTreeStamp
+LOCAL S%
+!ReportTime% = 3
+SYS "OS_Word",14,ReportTime%
+SYS "OS_ConvertDateAndTime",ReportTime%,FormattedStamp%,64,ReportDateFormat$ TO ,S%
+?S%=CR%
+=$FormattedStamp%
+
+REM write a report containing an ancestor tree from the current Person
+
+DEF PROCAncTree(F$)
+LOCAL F%
+LOCAL ERROR
+ON ERROR LOCAL RESTORE ERROR:ERROR ErrChide%,FNMT("CC")+" ("+REPORT$+")"
+F%=OPENOUT(F$)
+ON ERROR LOCAL CLOSE #F%:RESTORE ERROR:ERROR ErrChide%,FNMT("SF")+" ("+REPORT$+":"+STR$(ERL)+")"
+SYS "Hourglass_On"
+PROCEscape(TRUE)
+PROCAncestorTree(Person%,0,0)
+PROCEscape(FALSE)
+SYS "Hourglass_Off"
+CLOSE #F%
+RESTORE ERROR
+PROCSetFileType(F$,TextType%)
+IF F$<>Scrap$ $FNIcTxt(AncWH%,SaIcFile%)=F$
+ENDPROC
+
+REM Recursively write an ancestor tree from person P%
+
+DEF PROCAncestorTree(P%,N%,Context%)
+LOCAL I%,N$
+IF P%=0 ENDPROC
+LOCAL ERROR
+ON ERROR RESTORE ERROR:PROCError:ENDPROC
+IF N%>MaxGen% ERROR ErrChide%,FNMT("Td"):ENDPROC
+PROCAncestorTree(FNFather(P%),N%+1,Context%OR(1<<(N%+1)))
+IF N%>0 THEN
+ FORI%=1 TO N%
+  IF I%=N% THEN
+    IF ((Context%>>N%)AND1)<>0 BPUT#F%,"/-"; ELSE BPUT#F%,"\-";
+  ELSE
+    IF ((Context%>>I%)AND1)<>((Context%>>(I%+1))AND1) BPUT#F%,"| "; ELSE BPUT#F%,"  ";
+  ENDIF
+ NEXT
+ENDIF
+N$="":IF ShowTitle% N$ = FNTitle(P%):IF N$<>"" N$+=" "
+BPUT#F%,"- "+N$+FNName(P%)+" "+FNDates(P%)
+PROCAncestorTree(FNMother(P%),N%+1,Context%)
+ENDPROC
+
+REM set up to build a complete HTML edifice from the tree
+
+DEF PROCWriteHtml(F$)
+LOCAL Hdr$,InsH%,Trl$,InsT%,Path$,Rext$,Uext$,H%,T%,I%,Ix%
+LOCAL ERROR
+Hdr$="":Trl$="":H%=0:T%=0
+Path$ = LEFT$(F$,LEN(F$)-LEN(SaveLeaf$))
+Rext$="":Uext$=""
+I% = INSTR(SaveLeaf$,"/")
+IF I%<>0 THEN Rext$=MID$(SaveLeaf$,I%):Uext$=FNdeUnix(Rext$)
+ON ERROR LOCAL RESTORE ERROR:ERROR ErrChide%,FNMT("CC")+" ("+REPORT$+")"
+Ix%=OPENOUT(F$)
+ON ERROR LOCAL RESTORE ERROR:PROCFileClose:ERROR ErrChide%,FNMT("SF")+" ("+REPORT$+":"+STR$(ERL)+")"
+IF FNSelIcon(HtmlWH%,HtIcIncH%) H%=FNInclude($FNIcTxt(HtmlWH%,HtIcHdr%),"NH")
+IF FNSelIcon(HtmlWH%,HtIcIncT%) T%=FNInclude($FNIcTxt(HtmlWH%,HtIcTrl%),"NT")
+SYS "Hourglass_On"
+PROCEscape(TRUE)
+PROCBuildWebPage(Ix%)
+PROCEscape(FALSE)
+SYS "Hourglass_Off"
+PROCFileClose
+RESTORE ERROR
+PROCSetFileType(F$,HtmlType%)
+ENDPROC
+
+REM output the complete family tree as HTML pages, one per individual and
+REM one index. Omit dates from living people if SuppressLiving% is set
+
+DEF PROCBuildWebPage(ix%)
+LOCAL CO%,FO%,Fam%,Q%,R%,S%,if%,Id$,Event$,Link$,T$,Fcnt%,NoInfo%
+LOCAL Person%,ShowYearOnly%   :REM Override globals
+LOCAL ERROR
+ShowYearOnly%=FALSE
+Person%=0
+PROCHtmlHeader(ix%,"Person Index")
+PROCCopyInclude(H%,ix%)
+BPUT#ix%,"<table>"
+WHILE FNGetSub(Root%,IndiTg%,Person%)
+  NoInfo% = (FNGetVal(Person%,LvgTg%)<>0) AND SuppressLiving%
+  Id$ = FNIdNoAt(Person%)
+  Fcnt%=0
+  PROCIndexLine(Person%)
+  if%=FNNewIndiPage(Path$+Id$+Rext$)
+  PROCHtmlHeader(if%,FNName(Person%))
+  PROCCopyInclude(H%,if%)
+  BPUT#if%,"<h1>";
+  REM IF ShowTitle% - no, always show title in main heading
+  T$=FNTitle(Person%):IF T$<>"" BPUT#if%,T$+" &nbsp; ";
+  BPUT#if%,"<u>"+FNName(Person%)+"</u>&nbsp;<img src=""";
+  CASE FNSex(Person%) OF
+    WHEN "M":BPUT#if%,"sex/m.gif";
+    WHEN "F":BPUT#if%,"sex/f.gif";
+    OTHERWISE:BPUT#if%,"sex/u.gif";
+  ENDCASE
+  BPUT#if%,""" align=middle></h1>"
+  IF NoInfo% THEN
+    BPUT#if%,FNMT("DO")
+  ELSE
+    T$ = FNGetStr(Person%,OccuTg%)
+    IF T$<>"" BPUT#if%,"<em>"+FNMT("Oc")+":</em> "+T$
+    BPUT#if%,"<ul>"
+    Event$=FNEventData(Person%,BirtTg%,"<br>")
+    IF Event$<>"" BPUT#if%,"<li><em>"+FNMT("Bi")+":</em> "+Event$
+    Event$=FNEventData(Person%,ChrTg%,"<br>")
+    IF Event$<>"" BPUT#if%,"<li><em>"+FNMT("Cd")+":</em> "+Event$
+    Event$=FNEventData(Person%,BapmTg%,"<br>")
+    IF Event$<>"" BPUT#if%,"<li><em>"+FNMT("Bd")+":</em> "+Event$
+    Event$=FNEventData(Person%,DeatTg%,"<br>")
+    IF Event$<>"" BPUT#if%,"<li><em>"+FNMT("De")+":</em> "+Event$
+    Event$=FNEventData(Person%,CremTg%,"<br>")
+    IF Event$<>"" BPUT#if%,"<li><em>"+FNMT("Cn")+":</em> "+Event$
+    Event$=FNEventData(Person%,BuriTg%,"<br>")
+    IF Event$<>"" BPUT#if%,"<li><em>"+FNMT("Bu")+":</em> "+Event$
+    BPUT#if%,"</ul>"
+  ENDIF
+  BPUT#if%,"<hr>"
+  BPUT#if%,"<pre>"
+  R%=FNFather(Person%)
+  IF R% Q%=FNFather(R%) ELSE Q%=0
+  BPUT#if%,"                                        "+FNAncLink(Q%)
+  BPUT#if%," "+FNAncLink(R%)+"|"
+  IF R% Q%=FNMother(R%) ELSE Q%=0
+  BPUT#if%,"|                                      |"+FNAncLink(Q%)
+  BPUT#if%,"|-- "+FNName(Person%):REM BPUT#if%,"|"
+  R%=FNMother(Person%)
+  IF R% Q%=FNFather(R%) ELSE Q%=0
+  BPUT#if%,"|                                       "+FNAncLink(Q%)
+  BPUT#if%,"|"+FNAncLink(R%)+"|"
+  IF R% Q%=FNMother(R%) ELSE Q%=0
+  BPUT#if%,"                                       |"+FNAncLink(Q%)
+  BPUT#if%,"</pre>"
+  BPUT#if%,"<hr><p>"
+  Fam%=0:FO%=0
+  WHILE FNGetSub(Person%,FamsTg%,Fam%)
+    FO%=FNVal(Fam%)
+    BPUT#if%,FNFamOrdinal(Fcnt%)
+    S%=FNGetVal(FO%,HusbTg%)
+    IF S% IF S%<>Person% BPUT#if%,"<em>"+FNMT("Hu")+":</em> <a href="""+FNIdNoAt(S%)+Uext$+""">"+FNName(S%)+"</a><br>"
+    S%=FNGetVal(FO%,WifeTg%)
+    IF S% IF S%<>Person% BPUT#if%,"<em>"+FNMT("Wi")+":</em> <a href="""+FNIdNoAt(S%)+Uext$+""">"+FNName(S%)+"</a><br>"
+    IF NOT NoInfo% THEN
+      Event$=FNEventData(FO%,MarrTg%,"<br>")
+      IF Event$<>"" BPUT#if%,"<ul><li><em>"+FNMT("Ma")+": </em> "+Event$+"</ul>"
+      Event$=FNEventData(FO%,DivTg%,"<br>")
+      IF Event$<>"" BPUT#if%,"<ul><li><em>"+FNMT("Di")+":  </em> "+Event$+"</ul>"
+    ENDIF
+    CO%=0:ol$=""
+    IF FNGetSub(FO%,ChilTg%,CO%) THEN
+      BPUT#if%,"<ol>"
+      S%=FNVal(CO%)
+      BPUT#if%,"<li> "
+      IF ShowTitle% T$=FNTitle(S%):IF T$<>"" BPUT#if%,T$+" ";
+      BPUT#if%,"<a href="""+FNIdNoAt(S%)+Uext$+""">"+FNName(S%)+"</a><br>"
+      WHILE FNGetSub(FO%,ChilTg%,CO%)
+        S%=FNVal(CO%)
+        BPUT#if%,"<li> "
+        IF ShowTitle% T$=FNTitle(S%):IF T$<>"" BPUT#if%,T$+" ";
+        BPUT#if%,"<a href="""+FNIdNoAt(S%)+Uext$+""">"+FNName(S%)+"</a><br>"
+      ENDWHILE
+      BPUT#if%,"</ol>"
+    ENDIF
+  ENDWHILE
+  IF FO%<>0 BPUT#if%,"<hr>"
+  S%=0
+  IF (NOT NoInfo%) AND FNGetSub(Person%,NoteTg%,S%) THEN
+    PROCWriteNotesFile(if%,"<br>")
+    BPUT#if%,"<hr>"
+  ENDIF
+  PROCCopyInclude(T%,if%)
+  BPUT#if%,"<p><a href="""+FNdeUnix(SaveLeaf$)+""">"+FNMT("Ho")+"</a>"
+  PROCHtmlTrailer(if%)
+  CLOSE#if%:if%=0
+  PROCSetFileType(Path$+Id$+Rext$,HtmlType%)
+ENDWHILE
+BPUT#ix%,"</table>"
+PROCCopyInclude(T%,ix%)
+PROCHtmlTrailer(ix%)
+CLOSE#ix%:ix%=0
+PROCClose(HtmlWH%)
+OSCLI("CDIR "+Path$+"sex")
+OSCLI("Copy <Family$Dir>.GIFs.m/gif "+Path$+"sex.m/gif F ~V ~C ~P")
+OSCLI("Copy <Family$Dir>.GIFs.f/gif "+Path$+"sex.f/gif F ~V ~C ~P")
+OSCLI("Copy <Family$Dir>.GIFs.u/gif "+Path$+"sex.u/gif F ~V ~C ~P")
+ENDPROC
+
+REM convert Unix style filename to RISC OS style (or vice versa) for links
+
+DEF FNdeUnix($Scratch%)
+LOCAL P%:P%=Scratch%
+WHILE (?P%)>31
+  IF ?P%=Slash% ?P%=Dot% ELSE IF ?P%=Dot% ?P%=Slash%
+  P%+=1
+ENDWHILE
+=$Scratch%
+
+REM attempt to create a new html page for an INDI. Most likely error is
+REM directory full, if user is in a Filecore directory :-(
+
+DEF FNNewIndiPage(if$)
+LOCAL ERROR
+ON ERROR LOCAL RESTORE ERROR:ERROR ErrChide%,FNMT("CC")+" ("+REPORT$+")"
+=OPENOUT(if$)
+
+REM output common lines needed at the head of every html page
+REM we might want to provide a dbox to customise some of this ...
+
+DEF PROCHtmlHeader(I%,Title$)
+LOCAL ReportDateFormat$
+REM date format for META tag is standardised:
+ReportDateFormat$="%ce%yr-%mn-%dyT%24:%mi+00:00"
+BPUT#I%,"<!DOCTYPE html PUBLIC ""-//W3C//DTD HTML 4.0//EN"">"
+BPUT#I%,"<html lang="""+FNMT("Hl")+""">"
+BPUT#I%,"<head>"
+BPUT#I%,"<title>"+Title$+"</title>"
+BPUT#I%,"<META name=""generator"" content=""!"+Task$+"_for_RISC_OS "+Version$+""">"
+BPUT#I%,"<META name=""date"" content="""+FNTreeStamp+""">"
+BPUT#I%,"</head>"
+BPUT#I%,"<body>"
+ENDPROC
+
+REM generate a table row for the html index page
+
+DEF PROCIndexLine(P%)
+BPUT#ix%,"<tr><td>";
+IF ShowTitle% T$=FNTitle(P%):IF T$<>"" BPUT#ix%,T$+" ";
+BPUT#ix%,"<a href="""+FNIdNoAt(P%)+Uext$+""">"+FNName(P%)+"</a></td><td>";
+IF NoInfo% BPUT#ix%,FNMT("LI")+"</td></tr>" ELSE BPUT#ix%,"("+FNDates(P%)+")</td></tr>"
+ENDPROC
+
+REM include a complete copy of file open on handle F%, in output on handle I%
+
+DEF PROCCopyInclude(F%,I%)
+IF F%=0 ENDPROC
+PTR#F%=0
+WHILE NOTEOF#F%
+  BPUT#I%,GET$#F%
+ENDWHILE
+ENDPROC
+
+REM format a name for the two-level ancestor tree on an html page
+
+DEF FNAncLink(Q%)
+IF Q%<>0 THEN
+  LOCAL T$:T$=""
+  IF ShowTitle% T$=FNTitle(Q%):IFT$<>"" T$+="_"
+  Link$=FNName(Q%)
+  ="_"+T$+"<a href="""+FNIdNoAt(Q%)+Uext$+""">"+Link$+STRING$(37-(LEN(Link$)+LEN(T$)),"_")+"</a>"
+ELSE
+  =STRING$(38,"_")
+ENDIF
+
+REM header line for "1st family", "2nd family" etc. in html page
+
+DEF FNFamOrdinal(RETURN C%)
+C%+=1
+="<em>"+STR$(C%)+Ordinal$(C%MOD10)+" Family:</em><br>"
+
+REM common lines at the end of every html page
+
+DEF PROCHtmlTrailer(I%)
+BPUT#I%,"</body>"
+BPUT#I%,"</html>"
+ENDPROC
+
+REM check that an include file for the head/foot of an html page exists
+REM and is of the correct type. If so, open it for input.
+
+DEF FNInclude(File$,Err$)
+LOCAL F%,t%
+  IF File$="" ERROR ErrChide%,FNMT(Err$)
+  SYS "OS_File",17,File$ TO F%,,t%:t%=t%>>8 AND &FFF
+  IF F%<>1 ERROR ErrChide%,FNMT("NF")+": '"+File$+"'"
+  IF t%<>HtmlType% ERROR ErrChide%,FNMT("NW")+": '"+File$+"'"
+=OPENIN(File$)
+
+REM check if any of the files we were using is open, and if so, close it
+
+DEF PROCFileClose
+IF ix%<>0 CLOSE#ix%:ix%=0
+IF H%<>0 CLOSE#H%:H%=0
+IF T%<>0 CLOSE#T%:T%=0
+if%=if%:IF if%<>0 CLOSE#if%:if%=0
+ENDPROC
+
+REM ======================== File Operations =========================
+
+DEF PROCModified              :REM Reflect modification in title bar
+LOCAL T$
+IF ModifiedShown%=Modified% ENDPROC
+REM Redraw title bar
+T$="!Family"+FNMT("dv")+" "+TreeFile$:IF Modified% T$+=" *"
+!b%=MainWH%:SYS "Wimp_GetWindowInfo",,b% :REM blk@4
+$b%!76=T$
+IF b%!32 AND 1<<16 SYS "Wimp_ForceRedraw",-1,b%!4,b%!16,b%!12,b%!16+44
+ModifiedShown%=Modified%
+ENDPROC
+
+REM Return the length of File$ or -1 if not found
+
+DEF FNFileLen(File$)
+LOCAL Found%,L%
+SYS "OS_File",17,File$ TO Found%,,,,L%
+IF Found%=1 THEN=L%
+=-1
+
+REM Set filetype for given file. Check it exists first - it is not beyond
+REM users to do something like saving a report to printer:, which is
+REM perfectly feasible, but cannot have it's type set...
+
+DEF PROCSetFileType(File$,Type%)
+LOCAL Found%
+SYS "OS_File",17,File$ TO Found%
+IF Found%=1 SYS "OS_File",18,File$,Type%
+ENDPROC
+
+REM Delete file F$ if it exists
+
+DEF PROCDelFile(F$)
+SYS "OS_File",6,F$
+ENDPROC
+
+REM ============================ GEDCOM ==============================
+
+REM Root% points to a level -1 pseudo-object.   Each object has a tag,
+REM a value, and a list of sub-objects.  Object values are initially
+REM pointers to strings but GEDCOM cross-references (Ids) are replaced
+REM by pointers to the referenced objects with the ObRef% bit set.
+
+REM Ids% points to a list of Ids.  Each Id has a pointer to the
+REM next Id, a pointer to the object it stands for, and a name.
+
+REM (Re)initialise everything, free all heap
+
+DEF PROCReset
+PROCSetFile("")
+$FNIcTxt(RepoWH%,SaIcFile%)=ReportLeaf$
+$FNIcTxt(DrawWH%,SaIcFile%)=DrawLeaf$
+PROCSetEdit(0)
+PROCResetHeap
+FontM%!32=-1                  :REM Font menu heap pointer invalid
+PROCClose(NoteWH%)
+NoteBuf%=0
+PROCInitHash :REM Hash table for looking up names
+Root%=FNObject(RootTg%,0)
+Person%=0
+Force%=1
+InextId%=1:FnextId%=1:Ids%=0:Icount%=0:Fcount%=0:PROCSetStats
+ENDPROC
+
+REM Load objects from a file and build a heirarchy under R%. If loading
+REM into an empty database (Reset%<>0) then R% is Root% otherwise add
+REM the new objects under a temporary root R% and then merge into Root%.
+
+DEF PROCLoadGed(F%,Reset%)
+LOCAL Id%,Id$,Level%,O%,R%,SubTl%(),Tag$,Value$,T%
+REM Where to hang next object at each level. Root object is level -1.
+REM does the memory get released when we DIM a LOCAL array ?
+DIM SubTl%(MaxLevel%):SubTl%()=0
+Ids%=0                        :REM No inter-file cross references
+IF Reset% THEN
+  R%=Root%:InextId%=1:FnextId%=1:Icount%=0:Fcount%=0:PROCSetStats
+ELSE
+  R%=FNObject(RootTg%,0)
+ENDIF
+SubTl%(0)=FNTail(R%)
+REM Skip to header AERW 1999.03.03 this never finds the header,
+REM 'cos !Family has put an ID in it, ie. "0 @6@ HEAD"
+REPEAT O%=PTR#F%:UNTIL GET$#F%="0 HEAD" OR EOF #F%
+IF EOF#F% PTR#F%=0 ELSE PTR#F%=O%
+WHILE NOT EOF#F%
+  PROCGedLine(F%,Level%,Id$,Tag$,Value$)
+  IF Level%>=0 THEN
+    O%=FNObject(FNTag(Tag$),FNString(Value$))
+    SubTl%(Level%+1)=O%+ObSubs%:SubTl%(Level%+2)=0
+    T%=SubTl%(Level%):IF T%=0 ERROR ErrChide%,FNMT("BL")+": "+$b%
+    !T%=O%:SubTl%(Level%)=O%+ObNext%
+    IF Id$>"" THEN
+      Id%=FNAlloc(IdName%+LEN(Id$)+1):$(Id%+IdName%)=Id$
+      O%!ObId% = Id%+IdName%
+      Id%!IdNext%=Ids%:Id%!IdObj%=O%:Ids%=Id%
+      IF (Tag$="INDI") THEN
+        Icount%+=1:PROCSetStats
+        IF (LEFT$(Id$,1)="I") THEN
+          Id$ = MID$(Id$,2)
+          I% = FN_Number(Id$)
+          IF I%>=InextId% InextId% = I%+1:PROCSetStats
+        ENDIF
+      ENDIF
+      IF (Tag$="FAM") THEN
+        Fcount% += 1:PROCSetStats
+        IF (LEFT$(Id$,1)="F") THEN
+          Id$ = MID$(Id$,2)
+          I% = FN_Number(Id$)
+          IF I%>=FnextId% FnextId% = I%+1:PROCSetStats
+        ENDIF
+      ENDIF
+    ENDIF
+  ENDIF
+ENDWHILE
+PROCXRef(R%)
+REMWHILE Ids%:PROCFree(Ids%):Ids%=Ids%!IdNext%:ENDWHILE  :REM Free ids
+IF NOT Reset% PROCMerge(R%):PROCFree(R%)
+PROCFindPerson
+ENDPROC
+
+REM Merge New%'s sub-objects into Root%'s.  INDIs
+REM are sorted in by name, others are appended.
+
+DEF PROCMerge(New%)
+LOCAL E%,O%,N%,P%
+REM Find tail of Root%'s subs
+E%=FNTail(Root%)
+O%=New%!ObSubs%
+WHILE O%
+  N%=O%!ObNext%
+  IF O%!ObTag%=IndiTg% P%=FNPosition(O%) ELSE P%=E%
+  O%!ObNext%=!P%:!P%=O%
+  IF P%=E% E%=O%+ObNext%
+  O%=N%
+ENDWHILE
+ENDPROC
+
+DEF PROCGedLine(F%,RETURN Level%,RETURN Id$,RETURN Tag$,RETURN Value$)
+LOCAL I%,P%
+$b%=GET$#F%:P%=b%
+WHILE FNWhite(?P%):P%+=1:ENDWHILE
+IF ?P%=CR% Level%=-1:ENDPROC  :REM Ignore empty line
+Level%=VAL($P%)               :REM Level number
+IF Level%=0 THEN
+  IF NOT FNDigit($P%) CLOSE#F%:ERROR ErrChide%,FNMT("ML")+": "+$b%
+  SYS "Hourglass_Percentage",100*PTR#F% DIV EXT#F%
+ENDIF
+IF Level%>MaxLevel% CLOSE#F%:ERROR ErrChide%,FNMT("BL")+": "+$b%
+REM Strip trailing spaces
+I%=P%+LEN($P%)-1:WHILE FNWhite(?I%):I%-=1:ENDWHILE:I%?1=CR%
+I%=INSTR($P%," "):IF I%=0 CLOSE#F%:ERROR ErrChide%,FNMT("MG")+": "+$b%
+P%+=I%                        :REM Optional xref id
+IF ?P%=ASC"@" THEN
+  P%+=1:I%=INSTR($P%,"@")
+  IF I%=0 CLOSE#F%:ERROR ErrChide%,FNMT("BC")+": "+$b%
+  Id$=LEFT$($P%,I%-1)
+  P%+=I%                      :REM After trailing @
+ELSE Id$=""
+ENDIF
+IF ?P%=Space% P%+=1           :REM (Not really) optional delimiter
+I%=INSTR($P%," ")             :REM Delimiter after tag?
+IF I% Tag$=LEFT$($P%,I%-1) ELSE Tag$=$P%:I%=LEN(Tag$)
+Value$=$(P%+I%)               :REM Optional line items
+ENDPROC
+
+REM Convert a pointer to a cross-ref id.
+REM Just use its word offset into the heap.
+*| This ensured that there is no continuity of ID from a loaded file to
+*| the saved file, which was a major pain in the arse, so has been fixed.
+
+REM DEF FNId(V%)="@"+STR$((V%-Heap%)>>2)+"@"
+DEF FNId(V%)
+="@"+FNIdNoAt(V%)+"@"
+
+DEF FNIdNoAt(V%)
+*| On entry: V% is a pointer to an object. In practice this should only be
+*|             called for objects which actually have a cross-reference ID,
+*|             currently only FAM and INDI objects, though SOUR is a likely
+*|             candidate in the future ...
+IF V%!ObId%<>0 THEN=$(V%!ObId%)
+=STR$((V%-Heap%)>>2) :REM default for things we may have overlooked
+
+REM Set Person% to the person named in a level 0 NOTE or the last INDI
+
+DEF PROCFindPerson
+LOCAL O%,Val$
+O%=Root%!ObSubs%
+WHILE O%
+  CASE O%!ObTag% OF
+  WHEN IndiTg%:Person%=O%
+  WHEN NoteTg%
+    Val$=FNNull(O%!ObVal%)
+    IF LEFT$(Val$,6)="Person" Person%=FNFind(MID$(Val$,8)):ENDPROC
+  ENDCASE
+  O%=O%!ObNext%
+ENDWHILE
+ENDPROC
+
+REM Call PROCDeref for O% and its sub-objects recursively
+
+DEF PROCXRef(O%)
+PROCDeref(O%)
+IF O%=0 ENDPROC:REM added to deal with Xrefs pointing out of loaded file
+O%=O%!ObSubs%:WHILE O%:PROCXRef(O%):O%=O%!ObNext%:ENDWHILE
+ENDPROC
+
+REM If O%'s value string is a GEDCOM pointer @id@ then
+REM replace it with a pointer to the object with that Id if the
+REM cross-reference was found in this file. Otherwise just preserve it
+
+DEF PROCDeref(O%)
+LOCAL S$,Val%,Target%
+Val%=O%!ObVal%:IF Val%=0 ENDPROC
+IF ?Val%<>ASC"@" ENDPROC
+S$=$(Val%+1)
+IF RIGHT$(S$,1)<>"@" ENDPROC
+S$=LEFT$(S$,LEN(S$)-1)
+Target%=FNIdObj(S$)
+IF Target%=0 THEN
+  CASE LEFT$(S$,1) OF
+    WHEN "F","I","0","1","2","3","4","5","6","7","8","9":ERROR ErrChide%,FNMT("BC")+" "+$Val%
+  ENDCASE
+  IF BadXrefAction%=XrefError% ERROR ErrChide%,FNMT("BC")+" "+$Val%
+  REM we have already done a warning or ignored, according to option
+  ENDPROC
+ENDIF
+REM IF Target%=0 ENDPROC - not quite good enough :-(
+PROCFree(Val%)
+O%!ObVal%=Target% OR ObRef%   :REM Flag as reference
+ENDPROC
+
+REM Return the object with Id$, if it is in the loaded file
+
+DEF FNIdObj(Id$)
+LOCAL I%:I%=Ids%
+IF Id$="" ERROR ErrFatal%,"FNIdObj"
+REM Always bomb out with bad family or individual pointers or old-style
+REM numeric ones whose function we can't ascertain:
+CASE LEFT$(Id$,1) OF
+  WHEN "F","I","0","1","2","3","4","5","6","7","8","9":
+    LOCAL BadXrefAction%:BadXrefAction%=XrefError%
+ENDCASE
+WHILE I%
+  IF $(I%+IdName%)=Id$ THEN=I%!IdObj%
+  I%=I%!IdNext%
+ENDWHILE
+LOCAL ERROR
+ON ERROR LOCAL RESTORE ERROR:PROCError:=0
+REM cross-references may be to another file, so optionally do a warning only
+CASE BadXrefAction% OF
+  WHEN XrefError%: ERROR ErrChide%,FNMT("BC")+": "+Id$
+  WHEN XrefWarn%:  PROCWarn(FNMT("XN")+" @"+Id$+"@")
+  WHEN XrefIgnore%:REM ignore silently
+ENDCASE
+REM unfortunately, by this stage we don't have enough context to report
+REM which line of the file the problem arose in. This is a slight blow,
+REM since a joke cross-reference in a tag we support for structure (like
+REM HUSB, WIFE, CHIL, FAMC, FAMS) is going to cause trouble later if it
+REM is replaced by a null pointer. The best we could do is to really do
+REM an error for Id$ starting "F" or "I".
+=0
+
+REM ========================= GEDCOM edit ============================
+
+REM Create a window to display and edit all GEDCOM fields.
+REM (Under construction).
+
+DEF PROCObjEdit
+LOCAL y%
+!b%=ObEdWH%:SYS "Wimp_GetWindowInfo",,b%
+y%=b%!56                      :REM Work max y
+z=FNOERecurse(Root%,-1,0,y%,-Infinity%,-Infinity%)
+b%!48=y%-8
+SYS "Wimp_DeleteWindow",,b%
+SYS "Wimp_CreateWindow",,b%+4 TO ObEdWH%
+PROCOpen(ObEdWH%)
+ENDPROC
+
+DEF PROCDrawObEd(XW%,YW%,YMin%,YMax%)
+YW%-=8
+z=FNOERecurse(Root%,-1,XW%+8,YW%,YMin%-CharH%,YMax%+CharH%)
+ENDPROC
+
+DEF PROCObEdClick(Y%)
+LOCAL YW%,S%
+!b%=ObEdWH%:SYS "Wimp_GetWindowState",,b%
+YW%=b%!16-b%!24
+S%=FNOERecurse(Root%,-1,0,YW%,Y%+8,-Infinity%)
+IF S%=0 THEN ENDPROC
+REM ?? PROCD(FNTagStr(S%!ObTag%))
+ENDPROC
+
+REM If YW%<YMax% then draw object S%.  Update YW%.
+REM If YW%<Ymin% then return S% else recurse on S%'s
+REM subobjects.  Return 0 to continue the recursion.
+
+DEF FNOERecurse(S%,Depth%,XW%,RETURN YW%,YMin%,YMax%)
+LOCAL F%,T%,X%,L$
+T%=S%!ObTag%:F%=T%?TagFlags%
+IF S%<>Root% IF F% AND ProgTag% THEN=0
+IF YW%<YMax% THEN
+  IF XW%>=0 X%=XW%:IF Depth%>0 X%+=2*Depth%*CharW%
+  IF Depth%=0 MOVE X%,YW%:PRINT FNId(S%);
+  MOVE X%+8*CharW%,YW%:PRINT FNTagStr(T%);" ";FNPrintStr(S%)
+ENDIF
+YW%-=CharH%:IF YW%<YMin% THEN=S%
+S%=S%!ObSubs%
+WHILE S%
+  X%=FNOERecurse(S%,Depth%+1,XW%,YW%,YMin%,YMax%):IF X% THEN=X%
+  S%=S%!ObNext%
+ENDWHILE
+=0
+
+REM ============================= Tags ===============================
+
+REM Return the (new) tag with name T$
+
+DEF FNTag(T$)
+LOCAL T%:T%=Tags%
+WHILE T%
+  IF $(T%+TagName%)=T$ THEN=T%
+  T%=T%!TagNext%
+ENDWHILE
+=FNMkTag(T$)
+
+DEF FNMkTag(T$)
+LOCAL T%
+DIM T% TagName%+LEN(T$)+1
+T%?TagFlags%=0
+T%!TagNext%=Tags%
+$(T%+TagName%)=T$
+Tags%=T%
+=T%
+
+DEF FNTagStr(T%)=$(T%+TagName%)
+
+REM Initialise tags structures and linked list
+DEF PROCInitTags
+REM A tag is a pointer to a structure consisting of
+TagNext% =0                   :REM Next tag pointer
+                              :REM Other fields, e.g. help string
+TagFlags%=4                   :REM Flag byte
+TagName% =5                   :REM Variable length, CR terminated
+Tags%=0                       :REM Pointer to first tag
+REM Tag flags
+ProgTag%=1                    :REM Program only object - not saved
+
+REM Flag for PROCMark, PROCScan stored in object's tag pointer
+Dead%=1
+
+REM Create tags used explicitly by code
+HeadTg%=FNMkTag("HEAD")
+SourTg%=FNMkTag("SOUR")
+VersTg%=FNMkTag("VERS")
+GedcTg%=FNMkTag("GEDC")
+TrlrTg%=FNMkTag("TRLR")
+IndiTg%=FNMkTag("INDI")
+NameTg%=FNMkTag("NAME")
+TitlTg%=FNMkTag("TITL")
+SexTg%= FNMkTag("SEX" )
+OccuTg%=FNMkTag("OCCU")
+DateTg%=FNMkTag("DATE")
+TimeTg%=FNMkTag("TIME")
+BirtTg%=FNMkTag("BIRT")
+PlacTg%=FNMkTag("PLAC")
+SiteTg%=FNMkTag("SITE")
+BapmTg%=FNMkTag("BAPM")
+ChrTg%=FNMkTag("CHR")
+DeatTg%=FNMkTag("DEAT")
+CausTg%=FNMkTag("CAUS")
+CremTg%=FNMkTag("CREM"):REM GEDCOM 5.5
+BuriTg%=FNMkTag("BURI")
+CemeTg%=FNMkTag("CEME")
+PlotTg%=FNMkTag("PLOT")
+LvgTg% =FNMkTag("LVG" )
+FamTg%= FNMkTag("FAM" )
+NoteTg%=FNMkTag("NOTE")
+ContTg%=FNMkTag("CONT")
+FamsTg%=FNMkTag("FAMS")
+FamcTg%=FNMkTag("FAMC")
+HusbTg%=FNMkTag("HUSB")
+WifeTg%=FNMkTag("WIFE")
+EngaTg%=FNMkTag("ENGA")
+MarrTg%=FNMkTag("MARR")
+MarlTg%=FNMkTag("MARL")
+DivTg% =FNMkTag("DIV" )
+ChilTg%=FNMkTag("CHIL")
+FormTg%=FNMkTag("FORM")
+LangTg%=FNMkTag("LANG")
+SubmTg%=FNMkTag("SUBM")
+AddrTg%=FNMkTag("ADDR")
+EmailTg%=FNMkTag("_EMAIL")
+REM ProgTag% objects are for internal use only
+RootTg%=FNMkTag("root"):RootTg%?TagFlags%+=ProgTag%
+REM Display structure pointer
+DispTg%=FNMkTag("disp"):DispTg%?TagFlags%+=ProgTag%
+ENDPROC
+
+REM ============================ Syntax ==============================
+
+REM Load GEDCOM syntax description ??
+
+DEF PROCSyntax
+LOCAL F%,F$
+F$="<Family$Dir>.GEDSyn"
+F%=OPENIN(F$):IF F%=0 ERROR ErrChide%,FNMT("CR")+" "+F$
+WHILE NOT EOF#F%
+  $b%=GET$#F%
+  CASE ?b% OF
+  WHEN ASC"#",CR%:REM Ignore comments and blank lines
+  WHEN ASC"$":REM Print name
+  WHEN ASC":":REM tag
+  WHEN ASC"?":REM Help string
+  OTHERWISE  :REM sub-objects
+  ENDCASE
+ENDWHILE
+CLOSE #F%
+ENDPROC
+
+REM ============================= Print ==============================
+
+DEF PROCPrint
+LOCAL F%,OldJob%,Page%,More%,x%,y%,dx%,dy%,N%
+LOCAL Left%,Bottom%,Right%,Top%,Height%,Width%
+REM Error handler must be local so we can restore the old one
+LOCAL ERROR
+IF Person%=0 ERROR ErrChide%,FNMT("NP")
+OldJob%=-1:F%=0
+ON ERROR LOCAL RESTORE ERROR:PROCPrintErr
+F%=OPENOUT("Printer:")
+SYS "PDriver_SelectJob",F%,"Tree" TO OldJob%
+SYS "PDriver_Info" TO,,,N%
+IF N% AND 1<<29 THEN
+  SYS "PDriver_DeclareFont",,Font$
+  SYS "PDriver_DeclareFont"
+ENDIF
+REM Get printable paper area limits in millipoints
+SYS "PDriver_PageSize" TO,,,Left%,Bottom%,Right%,Top%
+REM Size in OS units.  1 OS unit = 400 millipoints = 1/180".
+Width%=(Right%-Left%) DIV mPtPerOS%:Height%=(Top%-Bottom%) DIV mPtPerOS%
+IF Rotate% SWAP Width%,Height%
+UseFont%=TRUE:PROCCalcAll     :REM Recalculate positions for printing
+Force%=1                      :REM Set to recalculate for screen
+Page%=1                       :REM Identify rectangle to print
+REM Work area is (0,yMin%)..(xMax%,0).  Maximise overlap between pages
+N%=(xMax%+Width%-1) DIV Width%
+IF N%>1 dx%=(xMax%-Width%) DIV (N%-1) ELSE dx%=Width%
+N%=(-yMin%+Height%-1) DIV Height%
+IF N%>1 dy%=(-yMin%-Height%) DIV (N%-1) ELSE dy%=Height%
+SYS "Hourglass_On"
+REM (x%,y%) = work coords of bottom left of page to print
+FOR y%=yMin% TO 0-Height% STEP dy%:FOR x%=0 TO xMax%-Width% STEP dx%
+  REM Set page coords of work area origin
+  XW%=-x%:YW%=-y%
+  REM Set page coords of rectangle to print at b% in OS units
+  b%!0=0:b%!4=0:b%!8=Width%:b%!12=Height%
+  REM Set transform table at b%+16.  x'=(a*x+c*y)>>16  y'=(b*x+d*y)>>16
+  REM Print position of transformed bottom left at b%+32 in millipoints.
+  REM Seascape (clockwise) is more natural than landscape (anticlockwise)
+  REM for continuous paper since x=0 will be at the top.
+  IF Rotate% THEN
+    b%!16=0:b%!20=-1<<16:b%!24=1<<16:b%!28=0  :REM Seascape x'=y y'=-x
+    b%!32=Left%:b%!36=Top%                    :REM Rotate 90 clockwise
+  ELSE
+    b%!16=1<<16:b%!20=0:b%!24=0:b%!28=1<<16   :REM Portrait  x'=x  y'=y
+    b%!32=Left%:b%!36=Bottom%                 :REM No rotation
+  ENDIF
+  SYS "PDriver_GiveRectangle",Page%,b%,b%+16,b%+32,White%
+  SYS "PDriver_DrawPage",1,b%,Page%,STR$(XW%)+","+STR$(YW%) TO More%
+  WHILE More%
+    PROCDisplay(b%!0-XW%,b%!4-YW%,b%!8-XW%,b%!12-YW%,OutPrint%)
+    SYS "PDriver_GetRectangle",,b% TO More%
+  ENDWHILE
+  Page%+=1
+NEXT,
+SYS "Hourglass_Off"
+SYS "PDriver_EndJob",F%
+SYS "PDriver_SelectJob",OldJob%
+CLOSE #F%
+ENDPROC
+
+DEF PROCPrintErr
+IF OldJob%>=0 THEN
+  IF F% SYS "PDriver_AbortJob",F%
+  SYS "PDriver_SelectJob",OldJob%
+ENDIF
+IF F% CLOSE #F%
+SYS "Hourglass_Smash"
+ERROR ErrChide%,REPORT$
+ENDPROC
+
+REM ========================= Write Draw file ========================
+
+DEF PROCWriteDraw(F$)
+LOCAL XW%,YW%                 :REM Override PROCdisplay global work origin
+SYS "Hourglass_On"
+PROCdw_open(F$)               :REM open draw file
+PROCdw_font(Font$)            :REM set up font
+UseFont%=TRUE:PROCCalcAll     :REM Recalculate positions for drawing
+Force%=1                      :REM Set to recalculate for screen
+REM Draw with bottom left = 0,0 in infinite clip rectangle
+XW%=-xMin%:YW%=-yMin%
+PROCDisplay(-Infinity%,-Infinity%,Infinity%,Infinity%,OutDraw%)
+PROCdw_close
+IF F$<>Scrap$ $FNIcTxt(DrawWH%,SaIcFile%)=F$
+SYS "Hourglass_Off"
+ENDPROC
+
+REM Open draw file and initialise variables
+
+DEF PROCdw_open(fnam$)
+dw_fh%=OPENOUT(fnam$):IF dw_fh%=0 ENDPROC
+dw_file$=fnam$
+REM Initialise bounding box and font
+dw_xmn%=Infinity%:dw_xmx%=-Infinity%
+dw_ymn%=Infinity%:dw_ymx%=-Infinity%
+dw_ft%=0                      :REM System font
+REM Write header
+BPUT#dw_fh%,"Draw";:PROCdw_word(201):PROCdw_word(0)
+BPUT#dw_fh%,"Family      ";   :REM Name must be 12 characters
+PTR#dw_fh%=40                 :REM Skip bounding box for now
+ENDPROC
+
+REM Terminate and close file
+
+DEF PROCdw_close
+IF dw_fh%=0 ENDPROC
+PTR#dw_fh%=24                 :REM Output bounding box
+PROCdw_cd(dw_xmn%,dw_ymn%):PROCdw_cd(dw_xmx%,dw_ymx%)
+CLOSE#dw_fh%:dw_fh%=0         :REM Close draw file
+PROCSetFileType(dw_file$, DrawType%)
+ENDPROC
+
+REM Make font object
+
+DEF PROCdw_font(font$)
+IF dw_fh%=0 ENDPROC
+PROCdw_word(0)                  :REM Object type 0
+PROCdw_word((LEN(font$)+13)ANDNOT3):REM Length
+dw_ft%=1
+BPUT#dw_fh%,dw_ft%
+PROCdw_string(font$)
+ENDPROC
+
+REM Draw some text
+
+DEF PROCdw_text(x1%,y1%,size%,colour%,text$)
+IF dw_fh%=0 ENDPROC
+SYS "Font_SetFont",Font%
+SYS "Font_StringBBox",,text$ TO,xx1%,yy1%,xx2%,yy2%
+x2%=x1%+(xx2%-xx1%)DIV mPtPerOS%:y2%=y1%+(yy2%-yy1%)DIV mPtPerOS%
+PROCdw_word(1)                :REM Object type 1
+PROCdw_word((LEN(text$)+56)ANDNOT3):REM Length
+PROCdw_bx                     :REM 4 words of bounding box
+PROCdw_word(colour%)          :REM Text colour
+PROCdw_word(&FFFFFF00)        :REM Background colour
+PROCdw_word(dw_ft%)           :REM Font
+PROCdw_word(size%*640*DrawScale):REM Nominal size of font
+PROCdw_word(size%*640*DrawScale)
+PROCdw_cd(x1%,y1%)            :REM Start coords
+PROCdw_string(text$)
+ENDPROC
+
+REM Output a null-terminated string.  Pad to word boundary.
+
+DEF PROCdw_string(S$)
+BPUT#dw_fh%,S$;
+LOCAL P%:P%=PTR#dw_fh% AND 3
+REPEAT:BPUT#dw_fh%,0:P%+=1:UNTIL P%=4
+ENDPROC
+
+REM Draw a line
+
+DEF PROCdw_line(x1%,y1%,x2%,y2%,colour%)
+IF dw_fh%=0 ENDPROC
+PROCdw_word(2)                :REM Object type 2
+PROCdw_word(68)               :REM Length
+PROCdw_bx                     :REM 4 words of bounding box
+PROCdw_word(-1)               :REM No fill
+PROCdw_word(colour%)
+PROCdw_word(DrawWidth%)
+PROCdw_word(0)                :REM Style
+PROCdw_word(2)                :REM Move
+PROCdw_cd(x1%,y1%)            :REM Start coords
+PROCdw_word(8)                :REM DRAW
+PROCdw_cd(x2%,y2%)            :REM Start coords
+PROCdw_word(0)                :REM End path
+ENDPROC
+
+REM Output bounding box x1%,y1% - x2%,y2%
+
+DEF PROCdw_bx
+LOCAL xx1%,yy1%,xx2%,yy2%
+xx1%=x1%:yy1%=y1%:xx2%=x2%:yy2%=y2%
+IF xx1%>xx2% SWAP xx1%,xx2%
+IF yy1%>yy2% SWAP yy1%,yy2%
+PROCdw_cd(xx1%,yy1%):PROCdw_cd(xx2%,yy2%)
+REM Update overall box
+PROCMin(dw_xmn%,xx1%):PROCMin(dw_ymn%,yy1%)
+PROCMax(dw_xmx%,xx2%):PROCMax(dw_ymx%,yy2%)
+ENDPROC
+
+REM Output coordinate pair.  Convert from OS
+REM coords (1/180") to draw units (1/(180*256)").
+
+DEF PROCdw_cd(X%,Y%)
+PROCdw_word((X%<<8)*DrawScale):PROCdw_word((Y%<<8)*DrawScale)
+ENDPROC
+
+REM Output word
+
+DEF PROCdw_word(word%)
+BPUT#dw_fh%,word%:BPUT#dw_fh%,word%>>8
+BPUT#dw_fh%,word%>>16:BPUT#dw_fh%,word%>>24
+ENDPROC
+
+REM ==================== Low-level memory allocation =================
+
+DEF PROCInitHeap
+SYS "Wimp_SlotSize",-1,-1 TO InitSlotSize%
+IF (Debugging%<>0) BPUT#Debugging%,"InitSlot &"+STR$~(InitSlotSize%)
+Heap% = HIMEM        :REM is the address of the end of the slot size
+IF Heap%<END+VarSize% THEN REM problem
+IF (Debugging%<>0) BPUT#Debugging%,"Space for our variables : Heap "+STR$~(Heap%)+" END "+STR$~(END)+" VarSize "+STR$~(VarSize%)
+IF (Debugging%<>0) DIM AtestBit% 1:BPUT#Debugging%,"New variables allocated from "+STR$~(AtestBit%)
+HeapSize% = 0        :REM initially ...
+InitHeapSize% = (InitHeapSize% + 3) AND (NOT 3) :REM word boundary
+REM actually getting the space etc. is done by ResetHeap
+ENDPROC
+
+REM Free% points after last block allocated or at lowest freed.  Block
+REM starts with 4-byte count of following bytes.  Count is multiple
+REM of 4.  Bit 0 => block in use.  Coalesce as much as possible on
+REM allocation.  Only zero size block is last block.  Musn't leave a
+REM zero size block when allocating part of a block.  HeapFree% is
+REM total free space including count words of free blocks.
+
+DEF PROCResetHeap
+REM we assume caller has already binned all his pointers into the heap
+IF UseNewHeapCode%=0 THEN
+  IF (Debugging%<>0) BPUT#Debugging%,"Old code to reset heap"
+  HeapSize%=HeapEnd%-Heap%
+  HeapLow%=0.05*HeapSize%       :REM Warn if less free
+  !Heap%=HeapSize%-8            :REM 8 bytes = two count words
+  Heap%!(HeapSize%-4)=0         :REM End marker: no bytes, free
+  Free%=Heap%
+  HeapFree%=HeapSize%
+ELSE
+  IF (Debugging%<>0) BPUT#Debugging%,"New code to reset heap"
+  REM return to initial size for heap
+  SYS "Wimp_SlotSize",InitSlotSize%+InitHeapSize%,-1 TO NewSlotSize%
+  CurSlotSize% = NewSlotSize%
+  HeapSize% = CurSlotSize% - InitSlotSize%
+  SYS "OS_Heap",0,Heap%,,HeapSize%
+  HeapLow%=0.05*InitHeapSize%       :REM Warn if less free
+  HeapFree%=InitHeapSize%           :REM minus some overhead ?
+  HeapLow%=0.05*InitHeapSize%       :REM Warn if less free
+ENDIF
+HeapWarn%=HeapLow%            :REM Warn if less than this free
+ENDPROC
+
+DEF FNAlloc(W%)
+*| On entry W% is the number of bytes required
+*| the amount actually allocated will be rounded up to a word boundary
+LOCAL E%,N%,S%,B%
+IF W%=0 THEN=0
+W%=(W%+3) AND NOT 3
+IF UseNewHeapCode%=0 THEN
+REM  IF (Debugging%<>0) BPUT#Debugging%,"Old code to allocate heap space"
+  B%=Free%
+  REPEAT
+    S%=!B% AND NOT 1             :REM Size of cur block
+    IF S%=0 ERROR ErrChide%,FNMT("OM")
+    N%=B%+4+S%                   :REM Next block
+    CASE TRUE OF
+      WHEN (!B% AND 1)>0           :B%=N%:S%=0 :REM not free, try next
+      WHEN (!N% AND 1)=0 AND !N%<>0:!B%+=!N%+4:S%=0 :REM this and next free, amalgamate, then look again
+      WHEN S%<W%                   :B%=N% :REM this free, but too small, try next
+      WHEN S%=W%                   :Free%=N% :REM this free, exact fit, use it
+      WHEN S%>W%                   :E%=S%-W%-4 :REM free, big enough
+        REM if E%=0, then free space is 4 bytes, too small for a block, so
+        REM we don't use this free block. E%>0, use this block, and make
+        REM the spare into a free block, pointed to by Free%
+        IF E% Free%=B%+4+W%:!Free%=E% ELSE B%=N%:S%=0
+    ENDCASE
+  UNTIL S%>=W%
+  !B%=W% OR 1
+  HeapFree%-=W%+4
+  =B%+4
+ELSE
+  IF (Debugging%<>0) BPUT#Debugging%,"New code to allocate heap space"
+  SYS "OS_Heap",2,Heap%,,W% TO ,,B%
+  IF B%=0 ERROR ErrChide%,FNMT("OM")
+  REM actually, at that point we should get more heap space
+  =B%
+ENDIF
+ENDPROC
+
+REM Free block at A%.  Freeing any number of
+REM objects will not disturb their contents.
+
+DEF PROCFree(A%)
+IF A%=0 ENDPROC
+IF UseNewHeapCode%=0 THEN
+REM  IF (Debugging%<>0) BPUT#Debugging%,"Old code to free heap"
+  A%-=4
+  IF (!A% AND 1)=0 ERROR ErrFatal%,"PROCFree not heap"
+  IF (!A% AND NOT 1)=0 ERROR ErrFatal%,"PROCFree size 0"
+  !A%-=1
+  IF A%<Free% Free%=A%
+  HeapFree%+=(!A%)+4
+ELSE
+  IF (Debugging%<>0) BPUT#Debugging%,"New code to free heap"
+  SYS "OS_Heap",3,Heap%,A%
+  REM should use the X SWI and produce local errorchide
+ENDIF
+ENDPROC
+
+REM Free old block O% and copy (some of)
+REM its contents to a new one of size S%
+
+REM DEF PROCRealloc(RETURN O%,S%)
+REM LOCAL I%,N%
+REM S%=(S%+3) AND NOT 3
+REM N%=FNAlloc(S%)
+REM IF O%=0 O%=N%:ENDPROC
+REM PROCMin(S%,FNSize(O%))
+REM FOR I%=0 TO S%-1 STEP 4:N%!I%=O%!I%:NEXT
+REM PROCFree(O%)
+REM O%=N%
+REM ENDPROC
+
+REM Make a heap copy of string S$.  An empty string
+REM is not stored, it is replaced by null pointers.
+
+DEF FNString(S$)
+LOCAL A%
+IF S$="" THEN=0
+A%=FNAlloc(LEN(S$)+1)
+$A%=S$
+=A%
+
+REM DEF FNSize(A%)
+REM IF A%=0 ERROR ErrFatal%,"FNSize"
+REM =A%!-4 AND NOT 1
+
+DEF PROCCheckFree
+LOCAL K$
+CASE FreeDisplay% OF
+ WHEN ShowHeap%
+  K$=STR$(HeapFree% DIV 1024)
+ WHEN ShowVars%
+  K$=STR$(Heap%-END)
+ENDCASE
+IF $BarIcText%<>K$ THEN
+  IF Debugging% BPUT#Debugging%,K$
+  b%!0=-1:b%!4=BarIc%:b%!8=0:b%!12=0
+  $BarIcText%="    "
+  SYS "Wimp_SetIconState",,b%
+  $BarIcText%=K$
+  SYS "Wimp_SetIconState",,b%
+ENDIF
+IF HeapFree%>HeapWarn% ENDPROC
+IF UseNewHeapCode%=0 THEN
+  IF (Debugging%<>0) BPUT#Debugging%,"Old code to warn memory low"
+  HeapWarn%=-1 :REM Inhibit warning until next PROCResetHeap
+  ERROR ErrChide%,FNMT("MW")
+ELSE
+  IF (Debugging%<>0) BPUT#Debugging%,"New code to allocate more heap"
+  REM grow heap in 20% chunks
+  NewHeapSize% = HeapSize% + (InitHeapSize% / 5)
+  NewHeapSize% = (NewHeapSize% + 3) AND (NOT 3) :REM word boundary
+  SYS "Wimp_SlotSize",InitSlotSize%+NewHeapSize%,-1 TO NewSlotSize%
+  CurSlotSize% = NewSlotSize%
+  NewHeapSize% = NewSlotSize%-InitSlotSize%
+  SYS "OS_Heap",5,Heap%,,NewHeapSize%-HeapSize%
+  REM Adjust HeapFree% too...
+  HeapFree% += NewHeapSize%-HeapSize%
+  HeapSize% = NewHeapSize%
+ENDIF
+ENDPROC
+
+REM ============================ Choices =============================
+
+REM Set default choices and load from file
+
+DEF PROCLoadOpts
+LOCAL F%,L$,K$,V$
+REM Font$,PtSize is the font used for printing
+Font$="Trinity.Medium":PtSize=10   :REM Like Postscript Times
+REM Font$="System.Fixed":PtSize=12 :REM Looks just like system font
+REM Should the above font be used on screen as well?
+ScreenUseFont%=FALSE
+REM Should person's family name be shown if same as father's?
+ShowFamilyName%=TRUE
+REM Should dates be shown?
+ShowDates%=TRUE
+REM Should Dates be shown for spouses too ?
+ShowSDates%=TRUE
+REM Should wedding dates be shown ?
+ShowMDates%=TRUE
+REM Should only year be shown?
+ShowYearOnly%=FALSE
+REM Should Titles be included in display/reports/completions ?
+SHowTitle%=TRUE
+REM Print rotated?
+Rotate%=TRUE
+REM Draw scale
+DrawScale=1.0
+REM Draw line width
+DrawWidth%=4
+REM Whether to ignore cross-references not in file:
+BadXrefAction% = XrefError%
+REM Format for date/time at head of report
+REM this is a determinate time, so can use standard OS_ConvertDateAndTime
+ISODateFormat$ = "%ce%yr.%mn.%dy %24:%mi:%se"
+GEDDateFormat$ = "%dy %m3 %ce%yr %24:%mi:%se"
+
+F%=OPENIN(OptFile$)
+IF F% THEN
+  WHILE NOT EOF #F%
+    L$=GET$#F%
+    PROCKeyVal(L$,K$,V$)
+    CASE K$ OF
+    WHEN "Font"          :Font$=V$
+    WHEN "PointSize"     :PtSize=VAL(V$)
+    WHEN "ScreenUseFont" :ScreenUseFont%=VAL(V$)
+    WHEN "ShowFamilyName":ShowFamilyName%=VAL(V$)
+    WHEN "ShowDates"     :ShowDates%=VAL(V$)
+    WHEN "SpouseDates"   :ShowSDates%=VAL(V$)
+    WHEN "MarrDates"     :ShowMDates%=VAL(V$)
+    WHEN "ShowYearOnly"  :ShowYearOnly%=VAL(V$)
+    WHEN "ShowTitle"     :ShowTitle%=VAL(V$)
+    REM Accept "Landscape" for v2.02 backward compatibility
+    WHEN "Landscape","Rotate":Rotate%=VAL(V$)
+    WHEN "DrawScale"     :DrawScale=VAL(V$)
+    WHEN "DrawWidth"     :DrawWidth%=VAL(V$)
+    WHEN "BadXrefAction" :BadXrefAction%=VAL(V$)
+      IF (BadXrefAction%<XrefError%) OR (BadXrefAction%>XrefIgnore%) BadXrefAction%=XrefError%
+    WHEN "ReportDate"    :ReportDateOption$=V$
+      CASE ReportDateOption$ OF
+        WHEN "ISO": ReportDateFormat$=ISODateFormat$
+        WHEN "GED": ReportDateFormat$=GEDDateFormat$
+        OTHERWISE:  ReportDateFormat$=ReportDateOption$
+      ENDCASE
+    WHEN "DateLib"       :DateLib$=V$
+    ENDCASE
+  ENDWHILE
+  CLOSE #F%
+ENDIF
+PROCFindFont(Font$,PtSize)
+ENDPROC
+
+DEF PROCKeyVal(Line$,RETURN Key$,RETURN Val$)
+LOCAL I%
+I%=INSTR(Line$,":")
+Key$=LEFT$(Line$,I%-1)
+IF I%=0 OR INSTR(Key$," ") Key$="":Val$="":ENDPROC
+REPEAT I%+=1:UNTIL MID$(Line$,I%,1)<>" "
+Val$=MID$(Line$,I%)
+ENDPROC
+
+DEF PROCSaveOpts
+LOCAL F%
+F%=OPENOUT(OptFile$)
+BPUT#F%,"Font:"+Font$
+BPUT#F%,"PointSize:"+STR$ PtSize
+BPUT#F%,"ScreenUseFont:"+STR$ ScreenUseFont%
+BPUT#F%,"ShowFamilyName:"+STR$ ShowFamilyName%
+BPUT#F%,"ShowDates:"+STR$ ShowDates%
+BPUT#F%,"SpouseDates:"+STR$(ShowSDates%)
+BPUT#F%,"MarrDates:"+STR$(ShowMDates%)
+BPUT#F%,"ShowYearOnly:"+STR$ ShowYearOnly%
+BPUT#F%,"ShowTitle:"+STR$(ShowTitle%)
+BPUT#F%,"Rotate:"+STR$ Rotate%
+BPUT#F%,"DrawScale:"+STR$ DrawScale
+BPUT#F%,"DrawWidth:"+STR$ DrawWidth%
+BPUT#F%,"BadXrefAction:"+STR$(BadXrefAction%)
+BPUT#F%,"ReportDate:"+ReportDateOption$
+BPUT#F%,"DateLib:"+DateLib$
+CLOSE #F%
+ENDPROC
+
+REM Set up choices menu
+
+DEF PROCShowOpts
+LOCAL M%,MenuLen%,IndLen%
+SYS "Font_ListFonts",,,1<<19 OR 1<<21 TO,,,MenuLen%,,IndLen%
+REM FontM%!32 points to font name submenu+indirect data if > 0
+M%=FontM%!32:IF M%>0 PROCFree(M%)
+M%=FNAlloc(MenuLen%+IndLen%)
+SYS "Font_ListFonts",,M%,1<<19 OR 1<<21,MenuLen%,M%+MenuLen%,IndLen%,Font$
+FontM%!32=M%
+$FontSizeBuf%=STR$(PtSize)+CHR$0
+PROCSelEntry(FontM%,2,ScreenUseFont%)
+PROCSelEntry(FontM%,3,Rotate%)
+PROCSelEntry(ShowM%,0,ShowFamilyName%)
+PROCSelEntry(ShowM%,1,ShowDates%)
+PROCSelEntry(ShowM%,2,ShowSDates%)
+PROCSelEntry(ShowM%,3,ShowMDates%)
+PROCSelEntry(ShowM%,4,ShowYearOnly%)
+PROCSelEntry(ShowM%,5,SHowTitle%)
+$DrawScaleBuf%=STR$(DrawScale)+CHR$0
+$DrawWidthBuf%=STR$(DrawWidth%)+CHR$0
+ENDPROC
+
+REM Event in choices menu
+
+DEF PROCSetOpts(Choice1%,Choice2%,Choice3%,But%)
+LOCAL F,F%,F$
+CASE Choice1% OF
+WHEN 0                        :REM Font
+  CASE Choice2% OF
+  WHEN 0:REM Decode font id into mess% and copy to F$
+         SYS "Font_DecodeMenu",,FontM%!32,b%+12,mess%,messlen% TO,,,F$,F%
+         IF F% PROCFindFont(F$,PtSize):Force%=1
+  WHEN 1:F=VAL($FontSizeBuf%)
+         PROCFindFont(Font$,F):Force%=1
+  WHEN 2:ScreenUseFont%=NOT ScreenUseFont%
+         Force%=1
+  WHEN 3:Rotate%=NOT Rotate%
+  ENDCASE
+WHEN 1                        :REM Show
+  CASE Choice2% OF
+  WHEN 0:ShowFamilyName%=NOT ShowFamilyName%
+  WHEN 1:ShowDates%=NOT ShowDates%
+  WHEN 2:ShowSDates%=NOT ShowSDates%
+  WHEN 3:ShowMDates%=NOT ShowMDates%
+  WHEN 4:ShowYearOnly%=NOT ShowYearOnly%
+  WHEN 5:ShowTitle%=NOT ShowTitle%
+  ENDCASE
+  Force%=1
+WHEN 2                        :REM Draw
+  CASE Choice2% OF
+  WHEN 0:DrawScale=VAL($DrawScaleBuf%)
+  WHEN 1:DrawWidth%=VAL($DrawWidthBuf%)
+  ENDCASE
+WHEN 3                        :REM Misc Opts
+  PROCOpen(MiscWH%)
+WHEN 4:PROCSaveOpts
+ENDCASE
+ENDPROC
+
+DEF PROCFindFont(F$,S)
+LOCAL O%:O%=Font%
+LOCAL ERROR
+SYS "Font_ReadScaleFactor" TO,mPtPerOS%
+ON ERROR LOCAL RESTORE ERROR:ERROR ErrChide%,REPORT$
+SYS "Font_FindFont",,F$,16*S,16*S TO Font%
+RESTORE ERROR
+IF O% SYS "Font_LoseFont",O%
+Font$=F$:PtSize=S
+ENDPROC
+
+REM ========================== MessageTrans ==========================
+
+DEF FN_Country(CheckDir$)
+LOCAL T%,C%,type%:T%=1
+REM OS_Byte zero to get an OS version string
+SYS "XOS_Byte",0,0,0 TO C%
+REM C%-><word>,"RISC OS x.yz ( date )"
+IF C%?12>&32 SYS "Territory_Number" TO T%
+IF T%<>1 C%=T% ELSE SYS"OS_Byte",&46,127 TO ,C%
+SYS8,5,CheckDir$+STR$(C%)+CHR$(0) TO type%
+IF type%<>1 C%=1 :REM en-gb messages required to exist :-)
+=STR$(C%)
+
+DEF PROCMTLoad(MTFile$)
+LOCAL MTB%
+SYS "OS_Module",6,,,17+LEN(MTFile$) TO,,MTFile% :REM Allocate RMA
+$(MTFile%+16)=MTFile$
+DIM MTB% FNFileLen(MTFile$)
+SYS "MessageTrans_OpenFile",MTFile%,MTFile%+16,MTB%
+ENDPROC
+
+REM Look up a token in the Messages file.  No substitution allowed.
+
+DEF FNMT(Tok$)
+LOCAL L%,R%
+SYS "MessageTrans_Lookup",MTFile%,Tok$ TO,,R%,L%
+$(R%+L%)=""
+=$R%
+
+REM ========================== Quit & error ==========================
+
+DEF PROCQuit
+IF (Debugging%<>0) BPUT#Debugging%,"In PROCQuit"
+IF (Debugging%<>0) CLOSE#Debugging%:Debugging%=0
+IF FNMods(".Q") ENDPROC
+PROCExtEdAbort
+IF Font% SYS "Font_LoseFont",Font%
+IF Task% $b%="TASK":SYS "Wimp_CloseDown",Task%,!b%
+END
+ENDPROC
+
+REM Errors < 0 are expected - retain error handler and return.
+REM Error 0 is untrappable so won't be passed here.
+REM Errors > 0 are fatal - cancel error handler and quit.
+
+
+REM a problem arises with RISC OS 3.5 and above, in that ERR=-1 or 1
+REM activates a bit of the Wimp in which these error numbers are hard-coded
+REM to be interpreted as program errors, which means you get the "!Family
+REM may have gone wrong..." dbox and you have to click "Describe" to find
+REM out what the actual problem is. This is undesirable, so the error numbers
+REM are now set at the start of PROCInit and interpreted here;
+REM Errors ErrChide% indicate a probable user error, which is recoverable
+REM                  once user has been moaned at.
+REM Errors ErrFatal% mean the program has a problem
+REM if BASIC itself, or something in the OS raises the ERROR, then we have
+REM no control over the error number, and should treat it as recoverable
+REM (since the user may need to continue the program to work out why the
+REM problem occurred), but should probably go with the "!Family may have
+REM gone wrong" dialogue, if available.
+
+DEF PROCError
+LOCAL At$,R%
+IF ERR<>ErrChide% At$=FNMT("al")+STR$(ERL)+"!)" ELSE At$=""
+!b%=ERR:$(b%+4)=REPORT$+At$+CHR$0
+CASE ERR OF
+  WHEN ErrChide%
+    SYS "Wimp_ReportError",b%,1,Task$ TO,R%
+  WHEN ErrFatal%
+    SYS "Wimp_ReportError",b%,3,Task$ TO,R%
+  OTHERWISE
+    SYS "Wimp_ReportError",b%,(2<<9)OR(1<<8)OR3,Task$ TO,R%
+ENDCASE
+REM IF ERR<>ErrChide% AND R%=2 ON ERROR OFF:PROCQuit
+IF ERR<>ErrChide% ON ERROR OFF:PROCQuit
+ENDPROC
+
+DEF PROCWarn(warning$)
+!b%=0:$(b%+4)=warning$
+SYS "Wimp_ReportError",b%,16,Task$
+ENDPROC
+
+DEF FNNotOK(Query$)
+LOCAL R%
+!mess%=-1:$(mess%+4)=Query$+CHR$0
+SYS "Wimp_ReportError",mess%,&13,Task$ TO,R%
+=R%=2                         :REM Cancel button
+
+REM If data modified open the "modified data" dbox
+REM and suspend the current load, reset or quit.
+REM Remember what to do if the user hits "Discard".
+
+DEF FNMods(F$)
+IF Modified% ToDo$=F$:PROCMouseMenu(ModsWH%)
+=Modified%
+
+DEF PROCD(A$)
+LOCAL B%,J%
+IF A$="" Debug%=0:ENDPROC
+SYS "PDriver_SelectJob",0,0 TO J%
+VDU 4,26:PRINT TAB(0,1)SPC40;TAB(0,1);A$;".":VDU5
+IF J% SYS "PDriver_SelectJob",J%
+Debug%=(Debug%+1) MOD 10
+SYS "Hourglass_Smash":SYS "OS_Confirm"
+REPEAT MOUSE z%,z%,B%:UNTIL B%=0
+REM z=INKEY(100)
+ENDPROC

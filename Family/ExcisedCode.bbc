@@ -1,0 +1,335 @@
+*| Remove from PROCButtons
+REMWHEN EvntWH%:PROCEvent(Event%,IH%,But%)
+REMWHEN BuriWH%:PROCBurial(IH%,But%)
+REMWHEN DeatWH%:PROCDeath(IH%,But%)
+WHEN DateWH%
+  CASE TRUE OF
+    WHEN But%=CR%
+      CASE Event% OF
+        WHEN EvDiv%
+          PROCSetEventParm(EvObj%,DivTg%,DateTg%,$FNIcTxt(DateWH%,DaIcDate%),TRUE)
+      ENDCASE
+      PROCClose(WH%):SYS "Wimp_CreateMenu",,-1:Menu%=0
+  ENDCASE
+*| Remove to here
+
+*| Remove from PROCMouseMenu
+WHEN EvntWH%:X%=-430:Y%=472
+*| Remove to here
+
+*| Remove from PROCMenuClick
+  WHEN 4                      :REM Divorce date
+    IF Choice2%>-1 THEN
+      N%=SpouseM%!(28+24*Choice2%+12) :REM Name in menu
+      S%=FNLook($N%):IF S%=0 ERROR ErrFatal%,FNMT("Sp")
+      PROCDivorce(MenuPerson%,S%)
+    ENDIF
+  WHEN 6:PROCSetEvent(EvBirt%,MenuPerson%)
+  WHEN 7:PROCSetEvent(EvChr%,MenuPerson%)
+  WHEN 8:PROCSetEvent(EvBapm%,MenuPerson%)
+  WHEN 9:PROCSetDeath(MenuPerson%)
+  WHEN 10:PROCSetEvent(EvCrem%,MenuPerson%)
+  WHEN 11:PROCSetBurial(MenuPerson%)
+*| Remove to here
+*| menu items 5, 12, 13 renumbered to 4,5,6
+
+*| Remove from PROCCrMenu
+REMoved from PersM%=FNMenu ,Di:SpouseM%,Bi...,Ch...,Ba...,De...,Cn...,Bu...
+*| Remove to here
+
+DEF PROCEvent(Event%,IH%,But%)
+PRINT"Watchit ! Event"
+CASE TRUE OF
+  WHEN But%=UpArrow%
+    S% = (IH%+EvIcSite%) MOD (EvIcSite%+1)
+    PROCCaret(EvntWH%,S%,TRUE)
+  WHEN But%=DownArrow%
+    S% = (IH% + 1) MOD (EvIcSite%+1)
+    PROCCaret(EvntWH%,S%,TRUE)
+  WHEN IH%=EvIcCan%
+    PROCClose(WH%)
+    SYS "Wimp_CreateMenu",,-1:Menu%=0
+    PROCWakeEdit
+  WHEN IH%=EvIcOK%,But%=CR%
+    CASE Event% OF
+      WHEN EvMarr%: EvTag% = MarrTg%
+      WHEN EvBirt%: EvTag% = BirtTg%
+      WHEN EvChr% : EvTag% = ChrTg%
+      WHEN EvBapm%: EvTag% = BapmTg%
+      WHEN EvDeat%: EvTag% = DeatTg%
+      WHEN EvCrem%: EvTag% = CremTg%
+      WHEN EvBuri%: EvTag% = BuriTg%
+    ENDCASE
+    PROCEventSpaceTime(EvObj%,EvTag%)
+    PROCClose(WH%):SYS "Wimp_CreateMenu",,-1:Menu%=0
+    REM if we were opened from details button of edit dbox:
+    IF EditNumb% THEN
+      $FNIcTxt(EditWH%,EditIcon%)=FN_UserDate(FNDate(MenuPerson%,EvTag%,dummy%))
+      PROCWakeEdit
+    ENDIF
+  ENDCASE
+ENDPROC
+
+DEF PROCBurial(IH%,But%)
+PRINT"Watchit ! Burial"
+CASE TRUE OF
+  WHEN But%=UpArrow%
+    S% = (IH%+BuIcPlot%) MOD (BuIcPlot%+1)
+    PROCCaret(BuriWH%,S%,TRUE)
+  WHEN But%=DownArrow%
+    S% = (IH% + 1) MOD (BuIcPlot%+1)
+    PROCCaret(BuriWH%,S%,TRUE)
+  WHEN IH%=BuIcCan%
+    PROCClose(WH%)
+    SYS "Wimp_CreateMenu",,-1:Menu%=0
+    EditIcon%=EdIcBuri%:PROCWakeEdit
+  WHEN IH%=BuIcOK%,But%=CR%
+    PROCSpaceTime(EvObj%,BuriTg%,BuriWH%)
+    PROCClose(WH%):SYS "Wimp_CreateMenu",,-1:Menu%=0
+    REM if we were opened from details button of edit dbox:
+    IF EditNumb% THEN
+      $FNIcTxt(EditWH%,EdIcBuri%)=FN_UserDate(FNBuri(MenuPerson%,dummy%))
+      EditIcon%=EdIcBuri%:PROCWakeEdit
+    ENDIF
+  ENDCASE
+ENDPROC
+
+DEF PROCDeath(IH%,But%)
+PRINT"Watchit ! Death"
+CASE TRUE OF
+  WHEN But%=UpArrow%
+    S% = (IH%+DeIcCaus%) MOD (DeIcCaus%+1)
+    PROCCaret(DeatWH%,S%,TRUE)
+  WHEN But%=DownArrow%
+    S% = (IH% + 1) MOD (DeIcCaus%+1)
+    PROCCaret(DeatWH%,S%,TRUE)
+  WHEN IH%=DeIcCan%
+    PROCClose(WH%)
+    SYS "Wimp_CreateMenu",,-1:Menu%=0
+    EditIcon% = EdIcDied%:PROCWakeEdit
+  WHEN IH%=DeIcOK%,But%=CR%
+    PROCSetEventParm(EvObj%,DeatTg%,CausTg%,$FNIcTxt(WH%,DeIcCaus%),FALSE)
+    PROCSpaceTime(EvObj%,DeatTg%,DeatWH%)
+    PROCClose(WH%):SYS "Wimp_CreateMenu",,-1:Menu%=0
+    REM if we were opened from details button of edit dbox:
+    IF EditNumb% THEN
+      $FNIcTxt(EditWH%,EdIcDied%)=FN_UserDate(FNDeath(MenuPerson%,dummy%))
+      EditIcon% = EdIcDied%:PROCWakeEdit
+    ENDIF
+  ENDCASE
+ENDPROC
+
+REM Set the space-time parameters of Event Tag% from the Event Window icons
+
+DEF PROCEventSpaceTime(O%,Tag%)
+PRINT"Watchit ! EventSpaceTime"
+PROCSpaceTime(O%,Tag%,EvntWH%)
+ENDPROC
+
+REM Set the space-time parameters of Tag% from the given Window icons
+
+DEF PROCSpaceTime(O%,Tag%,WH%)
+PRINT"Watchit ! SpaceTime"
+*| its important that any window which uses SpaceTime uses the same
+*| icon numbers as the Event Window for these four parameters:
+LOCAL Plot$:Plot$=""
+IF Tag%=BuriTg% Plot$=$FNIcTxt(WH%,BuIcPlot%)
+PROCSetEventTime(O%,Tag%,$FNIcTxt(WH%,EvIcDate%),$FNIcTxt(WH%,EvIcTime%),FALSE)
+PROCSetEventLocn(O%,Tag%,$FNIcTxt(WH%,EvIcPlac%),$FNIcTxt(WH%,EvIcSite%),Plot$,TRUE)
+Modified%=TRUE:Force%=1
+ENDPROC
+
+DEF PROCSetEvent(EvType%,P%)
+PROCEvntDBox(EvType%,P%,EvntWH%)
+ENDPROC
+
+DEF PROCSetBurial(P%)
+$FNIcTxt(BuriWH%,BuIcPlot%)=FNPlot(P%,BuriTg%)
+PROCEvntDBox(EvBuri%,P%,BuriWH%)
+ENDPROC
+
+DEF PROCSetDeath(P%)
+$FNIcTxt(DeatWH%,DeIcCaus%)=FNCaus(P%,DeatTg%)
+PROCEvntDBox(EvDeat%,P%,DeatWH%)
+ENDPROC
+
+DEF PROCEvntDBox(EvType%,P%,WH%)
+*| set up dbox for an event in an individual's life
+LOCAL EvTag%, Name$
+EvObj% = P%:Event% = EvType%
+Name$=FNName(P%)
+!b%=WH%:SYS "Wimp_GetWindowInfo",,b% :REM blk@4
+CASE EvType% OF
+  WHEN EvBirt%: EvTag% = BirtTg%:$b%!76=FNMT("Bh")+Name$
+  WHEN EvChr%:  EvTag% = ChrTg% :$b%!76=FNMT("Cg")+Name$
+  WHEN EvBapm%: EvTag% = BapmTg%:$b%!76=FNMT("Bp")+Name$
+  WHEN EvDeat%: EvTag% = DeatTg%:$b%!76=FNMT("Dh")+Name$
+  WHEN EvCrem%: EvTag% = CremTg%:$b%!76=FNMT("Cr")+Name$
+  WHEN EvBuri%: EvTag% = BuriTg%:$b%!76=FNMT("Br")+Name$
+ENDCASE
+*| its important that the writable icon numbers for the Event
+*| Window are the same as the corresponding ones for Death event
+$FNIcTxt(WH%,EvIcDate%)=FN_UserDate(FNDate(P%,EvTag%,dummy%))
+$FNIcTxt(WH%,EvIcPlac%)=FNPlace(P%,EvTag%)
+$FNIcTxt(WH%,EvIcSite%)=FNSite(P%,EvTag%)
+$FNIcTxt(WH%,EvIcTime%)=FNTime(P%,EvTag%)
+REM PROCMouseMenu(WH%)
+PROCOpen(WH%) :REM non-persistent dboxes are just such a pain....
+PROCCaret(WH%,EvIcDate%,TRUE)
+ENDPROC
+
+DEF PROCWakeEdit
+********************************************************************
+*|
+*| Antidote for Edit window - it feels everything again after this
+*|
+********************************************************************
+IF NOT EditNumb% ENDPROC
+PROCCaret(EditWH%,EditIcon%,TRUE)
+PROCIconDead(EditWH%,EdIcUpd%, FALSE)
+PROCIconDead(EditWH%,EdIcMore%,FALSE)
+PROCIconDead(EditWH%,EdIcBorn%,FALSE)
+PROCIconDead(EditWH%,EdIcDied%,FALSE)
+PROCIconDead(EditWH%,EdIcChr%, FALSE)
+PROCIconDead(EditWH%,EdIcBapm%,FALSE)
+PROCIconDead(EditWH%,EdIcCrem%,FALSE)
+PROCIconDead(EditWH%,EdIcBuri%,FALSE)
+PROCIconDead(EditWH%,EdIcName%,FALSE)
+PROCIconDead(EditWH%,EdIcTitl%,FALSE)
+PROCIconDead(EditWH%,EdIcFather%,FALSE)
+PROCIconDead(EditWH%,EdIcMother%,FALSE)
+PROCIconDead(EditWH%,EdIcMale%,FALSE)
+PROCIconDead(EditWH%,EdIcFemale%,FALSE)
+PROCIconDead(EditWH%,EdIcCan%,FALSE)
+PROCIconDead(EditWH%,EdIcOK%,FALSE)
+PROCIconDead(EditWH%,EdIcLvg%,EditLvg%)
+EditNumb%=FALSE
+ENDPROC
+
+DEF PROCNumbEdit
+********************************************************************
+*|
+*| Anaesthetic for Edit window - it doesn't feel anything after this
+*|
+********************************************************************
+PROCIconDead(EditWH%,EdIcUpd%, TRUE)
+PROCIconDead(EditWH%,EdIcBorn%,TRUE)
+PROCIconDead(EditWH%,EdIcDied%,TRUE)
+PROCIconDead(EditWH%,EdIcChr%, TRUE)
+PROCIconDead(EditWH%,EdIcBapm%,TRUE)
+PROCIconDead(EditWH%,EdIcCrem%,TRUE)
+PROCIconDead(EditWH%,EdIcBuri%,TRUE)
+PROCIconDead(EditWH%,EdIcName%,TRUE)
+PROCIconDead(EditWH%,EdIcTitl%,TRUE)
+PROCIconDead(EditWH%,EdIcFather%,TRUE)
+PROCIconDead(EditWH%,EdIcMother%,TRUE)
+PROCIconDead(EditWH%,EdIcMale%,TRUE)
+PROCIconDead(EditWH%,EdIcFemale%,TRUE)
+PROCIconDead(EditWH%,EdIcCan%,TRUE)
+PROCIconDead(EditWH%,EdIcOK%,TRUE)
+!b%=EditWH%:b%!4=EdIcLvg%
+SYS "Wimp_GetIconState",,b%
+EditLvg%=((b%!24)AND(1<<22))<>0
+PROCIconDead(EditWH%,EdIcLvg%,TRUE)
+EditNumb% = TRUE
+ENDPROC
+
+DEF PROCDivorce(Dad%,Mum%)
+LOCAL F%,O%
+IF Dad%=0 OR Mum%=0 ENDPROC
+PROCMaleFemale(Dad%,Mum%)
+O%=0
+WHILE FNGetSub(Dad%,FamsTg%,O%)
+  F%=FNVal(O%)
+  IF FNGetVal(F%,WifeTg%)=Mum% THEN
+    $FNIcTxt(DateWH%,DaIcDate%)=FN_UserDate(FNDate(F%,DivTg%,dummy%))
+    !b%=DateWH%:SYS "Wimp_GetWindowInfo",,b% :REM blk@4
+    $b%!76=FNName(Dad%)+" X "+FNName(Mum%)+" ("+FNIdNoAt(F%)+")"
+    Event% = EvDiv%
+    EvObj% = F%
+    PROCMouseMenu(DateWH%)
+    ENDPROC
+  ENDIF
+ENDWHILE
+ERROR ErrChide%,FNName(Dad%)+" "+FNMT("NM")+" "+FNName(Mum%)
+ENDPROC
+
+*| Remove from PROCInit
+DateWH%=FNGetTem("Date"):$(b%!76)=FNMT("DaT")
+DaIcDate%=0:PROCIcMT(1,"Dat")
+*| remove to here
+
+*| Remove from FNMHelp
+WHEN EvntWH%
+  CASE Event% OF
+    WHEN EvBirt%
+      CASE IH% OF
+        WHEN EvIcDate%:="H56"
+        WHEN EvIcTime%:="H57"
+        WHEN EvIcPlac%:="H58"
+        WHEN EvIcSite%:="H59"
+        WHEN EvIcCan%:="H60"
+        WHEN EvIcOK%:="H61"
+      ENDCASE
+    WHEN EvChr%
+      CASE IH% OF
+        WHEN EvIcDate%:="H62"
+        WHEN EvIcTime%:="H63"
+        WHEN EvIcPlac%:="H64"
+        WHEN EvIcSite%:="H65"
+        WHEN EvIcCan%:="H66"
+        WHEN EvIcOK%:="H67"
+      ENDCASE
+    WHEN EvBapm%
+      CASE IH% OF
+        WHEN EvIcDate%:="H68"
+        WHEN EvIcTime%:="H69"
+        WHEN EvIcPlac%:="H70"
+        WHEN EvIcSite%:="H71"
+        WHEN EvIcCan%:="H72"
+        WHEN EvIcOK%:="H73"
+      ENDCASE
+    WHEN EvCrem%
+      CASE IH% OF
+        WHEN EvIcDate%:="H110"
+        WHEN EvIcTime%:="H111"
+        WHEN EvIcPlac%:="H112"
+        WHEN EvIcSite%:="H113"
+        WHEN EvIcCan%:="H114"
+        WHEN EvIcOK%:="H115"
+      ENDCASE
+    WHEN EvMarr%
+      CASE IH% OF
+        WHEN EvIcDate%:="H40"
+        WHEN EvIcTime%:="H74"
+        WHEN EvIcPlac%:="H75"
+        WHEN EvIcSite%:="H76"
+        WHEN EvIcCan%:="H77"
+        WHEN EvIcOK%:="H78"
+      ENDCASE
+  ENDCASE
+WHEN BuriWH%
+  CASE IH% OF
+    WHEN EvIcDate%:="H79"
+    WHEN EvIcTime%:="H80"
+    WHEN EvIcPlac%:="H81"
+    WHEN EvIcSite%:="H82"
+    WHEN BuIcPlot%:="H107"
+    WHEN BuIcCan%:="H83"
+    WHEN BuIcOK%:="H84"
+  ENDCASE
+WHEN DeatWH%
+  CASE IH% OF
+    WHEN EvIcDate%:="H49"
+    WHEN EvIcTime%:="H50"
+    WHEN EvIcPlac%:="H51"
+    WHEN EvIcSite%:="H52"
+    WHEN DeIcCan%:="H53"
+    WHEN DeIcOK%:="H54"
+    WHEN DeIcCaus%:="H55"
+  ENDCASE
+WHEN DateWH%
+  CASE Event% OF
+    WHEN EvDiv%:="H85"
+  ENDCASE
+*| Remove to here

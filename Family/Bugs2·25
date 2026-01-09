@@ -1,0 +1,39 @@
+> Bugs2·25
+
+When you do something to add a new person (ie. if Edit dbox is first opened
+with person%=0) and the dbox closed with "OK" or a <return>, we should check
+to see if the person's name now yields a real person already in the tree and
+raise an error. This is not a new problem, but takes ages to fix the results
+of making a wrong connection and we really ought to be able to spot it.
+
+Edit dbox still has random settings of Julian/Gregorian for events not
+ defined in the GEDCOM. In these cases, *both* radio buttons should be off.
+
+Julian dates always seem to be being saved with a blank "3 TIME" subobject
+
+Dates with a calendar escape are yielding "@#DJULIAN@" in the html pages,
+which doesn't look good. We should convert to something like "(Julian calendar)"
+
+Marriage dbox is not persistent in the way the Edit person one is
+
+If you menu->Goto <F1 or F2> and get a completions window open, then realise
+the person you want isn't on it because you loaded the wrong tree, its easy
+to drag a different GEDCOM onto the iconbar icon. The completions window
+doesn't get closed, and one assumes that it is associated with all sorts of
+pointers into a deleted tree structure. Anyway, you never get the chance to
+click on an entry, since you get an abort on data transfer once the new tree
+has loaded and the program is blown away. (Discovered 2001-09-26)
+
+However, trying again with the same completions, but loading a much smaller
+tree, clicking on an entry in the completions window becomes possible, with
+the result that it closes, and a blank Goto window opens. This is not quite
+ideal behaviour (the completions should be closed as soon as you start to
+load a new tree) but it does appear relatively safe.
+
+In fact, this may be nothing to do with the completions window - I get the
+abort of data transfer when loading tree16g over MoreBands - maybe the abort
+on data transfer is caused by a name clash and nothing to do with the
+completions window.
+
+Its not clear if this fault is new in 2.25, but it seems unlikely.
+

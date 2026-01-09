@@ -1,0 +1,231 @@
+REM ===================== GEDCOM access functions ====================
+
+REM Return an object's value after stripping the reference flag
+
+DEF FNVal(O%)=O%!ObVal% AND NOT ObRef%
+
+REM Create a new object with Tag% and Value%
+
+DEF FNObject(Tag%,Value%)
+LOCAL O%
+O%=FNAlloc(ObSize%)
+O%!ObTag%=Tag%:O%!ObVal%=Value%:O%!ObId%=0:O%!ObSubs%=0:O%!ObNext%=0
+=O%
+
+REM Convert null pointer to empty string
+
+DEF FNNull(P%)
+IF P% THEN=$P%
+=""
+
+REM Return a string to print O%'s value - either
+REM its string value or a cross-reference Id.
+
+DEF FNPrintStr(O%)
+LOCAL V%:V%=O%!ObVal%
+IF V% AND ObRef% THEN=FNId(V% AND NOT ObRef%)
+=FNNull(V%)
+
+REM Get the string value of O%'s first sub-object
+REM with Tag% or "" if there is no such value
+
+DEF FNGetStr(O%,Tag%)=FNNull(FNGetVal(O%,Tag%))
+
+REM Return the value of object O%'s first sub-object
+REM with Tag% or 0 if there is no such object
+
+DEF FNGetVal(O%,Tag%)
+LOCAL S%:S%=0
+IF O% IF FNGetSub(O%,Tag%,S%) S%=FNVal(S%)
+=S%
+
+REM If S%=0 return O%'s first sub-object
+REM with Tag% else return the next one
+REM if there is no such subobject, return zero
+
+DEF FNGetSub(O%,Tag%,RETURN S%)
+IF O%=0 ERROR ErrFatal%,"FNGetSub"
+IF S% S%=S%!ObNext% ELSE S%=O%!ObSubs%
+WHILE S%
+  IF S%!ObTag%=Tag% THEN=S%
+  S%=S%!ObNext%
+ENDWHILE
+=S%
+
+REM Ensure that O% has a sub-object with Tag% and Val$ or none
+REM if Val$="". If Single% then overwrite any existing Tag% sub-
+REM object otherwise add a new one. Deallocate any previous value.
+REM NB this call is for an arbitrary string which is not on the heap
+REM (though it may be the same as a string on the heap already used
+REM as the value of this subobject)
+
+DEF PROCSetStr(O%,Tag%,Val$,Single%)
+LOCAL O$,V%,S%
+IF O%=0 ERROR ErrFatal%,"PROCSetStr"
+IF Val$="" PROCDelTag(O%,Tag%):ENDPROC
+S%=0
+WHILE FNGetSub(O%,Tag%,S%)
+  V%=S%!ObVal%:IF (V% AND ObRef%)=0 IF $V%=Val$ ENDPROC
+  IF Single% THEN
+    PROCFree(V%):S%!ObVal%=FNString(Val$)
+    Modified%=TRUE
+    ENDPROC
+  ENDIF
+ENDWHILE
+!FNTail(O%)=FNObject(Tag%,FNString(Val$))
+Modified%=TRUE
+ENDPROC
+
+REM Ensure that O% has a sub-object with Tag% and Val%.
+REM Single% => overwrite any existing Tag% sub-object
+REM else add a new one. Don't deallocate referend of
+REM any previous value (which may not be a pointer).
+REM NB this call is for a string which is already on the heap.
+REM we don't free the existing heap string when we refer to the new one,
+REM so if it is no longer referenced by other objects, this will be a
+REM memory leak. As we keep no reference counts on either strings or
+REM objects, this is probably not readily fixable.
+
+DEF PROCSetSub(O%,Tag%,Val%,Single%)
+LOCAL S%
+IF O%=0 ERROR ErrFatal%,"PROCSetSub"
+S%=0
+WHILE FNGetSub(O%,Tag%,S%)
+  IF S%!ObVal%=Val% ENDPROC
+  IF Single% THEN S%!ObVal%=Val%:Modified%=TRUE:ENDPROC
+ENDWHILE
+!FNTail(O%)=FNObject(Tag%,Val%)
+Modified%=TRUE
+ENDPROC
+
+REM Return the address of the last ObNext% in P%'s sub-object list
+
+DEF FNTail(P%)
+P%=P%+ObSubs%:WHILE !P%:P%=!P%+ObNext%:ENDWHILE
+=P%
+
+REM ======================= Remove, Delete, Kill =====================
+
+REM Remove => unlink the object from some given place but don't free it.
+REM Delete => remove it and free it and its string value.
+REM Kill   => delete it and remove any cross-references to it.
+
+REM Delete object Victim%, its sub-objects and all cross-references to
+REM it from other objects.  Also remove objects which are only referred
+REM to from Victim%.  These may be shared so we have to traverse the
+REM whole database several times to determine what's still live.
+
+DEF PROCKill(Victim%)
+IF Victim%=0 ENDPROC
+PROCMark(Victim%)
+WHILE FNScan(Root%):ENDWHILE
+Modified%=TRUE:Force%=1
+ENDPROC
+
+REM Mark object O% and its sub-objects by setting the
+REM Dead% bit in their tag pointers (not their tag flags)
+
+DEF PROCMark(O%)
+O%!ObTag%=O%!ObTag% OR Dead%
+O%=O%!ObSubs%:WHILE O%:PROCMark(O%):O%=O%!ObNext%:ENDWHILE
+ENDPROC
+
+REM Mark as dead any sub-object of O% which is a cross-reference
+REM to a dead object.  Recurse on its sub-objects.  If any
+REM sub-object is marked as dead, free it and remove it from the
+REM list.  If a FAM object is left with less than 2 sub-objects
+REM then remove it.  Return Dead% if any object died.
+REM not now adequate - needs dead if < 2 {HUSB,WIFE,CHIL}: don't count
+REM MARR or similar subobjects !
+
+DEF FNScan(O%)
+LOCAL D%,P%,S%,V%,C%
+P%=O%+ObTag%:V%=O%!ObVal%
+IF V% AND ObRef% THEN
+  V%=V% AND NOT ObRef%
+  REM Dead x-ref - mark O% dead
+  IF V%!ObTag% AND Dead% !P%=!P% OR Dead%
+ENDIF
+D%=!P% AND Dead%:P%=O%+ObSubs%
+WHILE !P%
+  S%=!P%:D%=D% OR FNScan(S%)
+  IF S%!ObTag% AND Dead% THEN
+    PROCFreeOb(S%)
+    !P%=S%!ObNext%
+  ELSE P%=S%+ObNext%
+  ENDIF
+ENDWHILE
+P%=O%+ObTag%
+IF (!P% AND NOT Dead%)=FamTg% THEN
+  S%=O%!ObSubs%
+  C% = 0
+  WHILE S%<>0
+    CASE S%!ObTag% OF
+      WHEN HusbTg%,WifeTg%,ChilTg%
+        C% += 1
+    ENDCASE
+    S% = S%!ObNext%
+  ENDWHILE
+  IF C%<2 !P%=!P% OR Dead%:D%=Dead%:Fcount%-=1:PROCSetStats
+ENDIF
+=D%
+
+REM Free object O% and its value (if a string) but not its sub-
+REM objects.  If it's a display structure pointer, free the name.
+
+DEF PROCFreeOb(O%)
+LOCAL V%:V%=O%!ObVal%
+IF (O%!ObTag% AND NOT Dead%)=DispTg% PROCFree(V%!DSName%)
+IF (V% AND ObRef%)=0 PROCFree(V%)
+PROCFree(O%)
+ENDPROC
+
+REM Remove O%'s first sub-object with Tag% and Val% but don't free it
+
+DEF PROCRemSub(O%,Tag%,Val%)
+LOCAL P%
+IF O%=0 OR Val%=0 ERROR ErrFatal%,"PROCRemSub"
+P%=O%+ObSubs%
+WHILE !P%
+  O%=!P%
+  IF O%!ObTag%=Tag% THEN
+    IF FNVal(O%)=Val% THEN !P%=O%!ObNext%:Modified%=TRUE:ENDPROC
+  ENDIF
+  P%=O%+ObNext%
+ENDWHILE
+ENDPROC
+
+REM Remove S% from O%'s sub-object list
+
+DEF PROCRemSubObj(O%,S%)
+O%=O%+ObSubs%
+WHILE O%
+  IF !O%=S% THEN !O%=S%!ObNext%:ENDPROC
+  O%=!O%+ObNext%
+ENDWHILE
+ENDPROC
+
+REM Remove all O%'s sub-objects with Tag%
+
+DEF PROCDelTag(O%,Tag%)
+LOCAL P%
+IF O%=0 ERROR ErrFatal%,"PROCDelTag"
+P%=O%+ObSubs%
+WHILE !P%
+  O%=!P%
+  IF O%!ObTag%=Tag% THEN
+    !P%=O%!ObNext%:PROCDelObj(O%)
+  ELSE
+    P%=O%+ObNext%
+  ENDIF
+ENDWHILE
+ENDPROC
+
+REM Remove object O% and its sub-objects
+
+DEF PROCDelObj(O%)
+LOCAL o%
+o%=O%!ObSubs%:WHILE o%:PROCDelObj(o%):o%=o%!ObNext%:ENDWHILE
+PROCFreeOb(O%)
+ENDPROC
+

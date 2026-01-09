@@ -1,0 +1,2 @@
+DEF FN_UserDate(D$):=D$
+DEF FN_GEDCOMdate(D$):=D$

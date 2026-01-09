@@ -1,0 +1,126 @@
+DEF FNExtendHeap
+REM grow heap in 20% chunks
+NewHeapSize% = HeapSize% + (InitHeapSize% / 5)
+NewHeapSize% = (NewHeapSize% + 3) AND (NOT 3) :REM word boundary
+SYS "Wimp_SlotSize",InitSlotSize%+NewHeapSize%,-1 TO NewSlotSize%
+CurSlotSize% = NewSlotSize%
+NewHeapSize% = NewSlotSize%-InitSlotSize%
+IF NewHeapSize%=HeapSize% THEN =FALSE
+Heap%!(HeapSize%-4) = NewHeapSize%-HeapSize%-4
+Heap%!(NewHeapSize%-4) = 0
+HeapFree%+= NewHeapSize%-HeapSize%
+HeapSize% = NewHeapSize%
+=TRUE
+
+REM Free% points after last block allocated or at lowest freed.  Block
+REM starts with 4-byte count of following bytes.  Count is multiple
+REM of 4.  Bit 0 => block in use.  Coalesce as much as possible on
+REM allocation.  Only zero size block is last block.  Musn't leave a
+REM zero size block when allocating part of a block.  HeapFree% is
+REM total free space including count words of free blocks.
+
+DEF PROCResetHeap
+REM we assume caller has already binned all his pointers into the heap
+IF (Debugging%<>0) BPUT#Debugging%,"Old code to reset heap"
+HeapSize%=HeapEnd%-Heap%
+HeapLow%=0.05*HeapSize%       :REM Warn if less free
+!Heap%=HeapSize%-8            :REM 8 bytes = two count words
+Heap%!(HeapSize%-4)=0         :REM End marker: no bytes, free
+Free%=Heap%
+HeapFree%=HeapSize%
+HeapWarn%=HeapLow%            :REM Warn if less than this free
+ENDPROC
+
+DEF FNAlloc(W%)
+*| On entry W% is the number of bytes required
+*| the amount actually allocated will be rounded up to a word boundary
+LOCAL E%,N%,S%,B%
+IF W%=0 THEN=0
+W%=(W%+3) AND NOT 3
+  IF (Debugging%<>0) BPUT#Debugging%,"Old code to allocate heap space"
+B%=Free%
+REPEAT
+  S%=!B% AND NOT 1             :REM Size of cur block
+  IF S%=0 THEN
+    IF FNExtendHeap THEN
+      B% = Heap% :REM ensure we don't miss *any* free blocks
+    ELSE
+      ERROR ErrChide%,FNMT("OM")
+    ENDIF
+  ELSE
+    N%=B%+4+S%                   :REM Next block
+    CASE TRUE OF
+      WHEN (!B% AND 1)>0           :B%=N%:S%=0 :REM not free, try next
+      WHEN (!N% AND 1)=0 AND !N%<>0:!B%+=!N%+4:S%=0 :REM this and next free, amalgamate, then look again
+      WHEN S%<W%                   :B%=N% :REM this free, but too small, try next
+      WHEN S%=W%                   :Free%=N% :REM this free, exact fit, use it
+      WHEN S%>W%                   :E%=S%-W%-4 :REM free, big enough
+        REM if E%=0, then free space is 4 bytes, too small for a block, so
+        REM we don't use this free block. E%>0, use this block, and make
+        REM the spare into a free block, pointed to by Free%
+        REM no ! IF E% Free%=B%+4+W%:!Free%=E% ELSE B%=N%:S%=0
+        REM Pointing Free% at this block renders many free blocks inaccessible
+        IF E%=0 B%=N%:S%=0 ELSE !(B%+W%+4)=E%:IF B%=Free% Free%=B%+4+W%
+    ENDCASE
+  ENDIF
+UNTIL S%>=W%
+!B%=W% OR 1
+HeapFree%-=W%+4
+=B%+4
+
+REM Free block at A%.  Freeing any number of
+REM objects will not disturb their contents.
+
+DEF PROCFree(A%)
+REMLOCAL N%
+IF A%=0 ENDPROC
+IF (Debugging%<>0) BPUT#Debugging%,"Old code to free heap"
+REMN%=A%
+A%-=4
+REMN%+=!A% AND NOT 1
+IF (!A% AND 1)=0 ERROR ErrFatal%,"PROCFree not heap"
+IF (!A% AND NOT 1)=0 ERROR ErrFatal%,"PROCFree size 0"
+!A%-=1
+REMIF (!N% AND 1)=0 !A%+=!N%+4 :REM if subsequent block is free, amalgamate
+REM if preceding block is free, we can't know, so still need amalgamation
+REM test in FNAlloc. This may not be more efficient.
+IF A%<Free% Free%=A%
+HeapFree%+=(!A%)+4
+ENDPROC
+
+REM Make a heap copy of string S$.  An empty string
+REM is not stored, it is replaced by null pointers.
+
+DEF FNString(S$)
+LOCAL A%
+IF S$="" THEN=0
+A%=FNAlloc(LEN(S$)+1)
+$A%=S$
+=A%
+
+DEF PROCCheckFree
+LOCAL K$
+CASE FreeDisplay% OF
+ WHEN ShowHeap%
+  K$=STR$(HeapFree% DIV 1024)
+ WHEN ShowVars%
+  K$=STR$(Heap%-END)
+ENDCASE
+IF $BarIcText%<>K$ THEN
+  IF Debugging% BPUT#Debugging%,K$
+  b%!0=-1:b%!4=BarIc%:b%!8=0:b%!12=0
+  $BarIcText%="    "
+  SYS "Wimp_SetIconState",,b%
+  $BarIcText%=K$
+  SYS "Wimp_SetIconState",,b%
+ENDIF
+IF HeapFree%>HeapWarn% ENDPROC
+IF NOT FNExtendHeap THEN
+  HeapWarn%=-1 :REM Inhibit warning until next PROCResetHeap
+  REM but user could free some memory and we could extend the heap
+  REM then we won't get a warning next time the heap gets low, so we
+  REM really want to be a bit cleverer than that...
+  ERROR ErrChide%,FNMT("MW")
+ENDIF
+ENDPROC
+
