@@ -13,9 +13,9 @@ STYLE="font-family: sans-serif;">
 <!-- include your neat logo here with a link to your website -->
 
 <HR WIDTH="100%" SIZE="2" ALIGN="CENTER" NOSHADE="NOSHADE">
-<A HREF="endpiece.html">Next</A> | <a href="prefUI.html">Prev</a> | <a href="index.html">Table of Contents</a></P>
+<A HREF="endpiece.html">Next</A> | <a href="FAQ.html">Prev</a> | <a href="index.html">Table of Contents</a></P>
 
-<h1><a name="">!Family Appendix B.</a> GEDCOM files</h1>
+<h1><a name="GEDCOM">!Family Appendix B.</a> GEDCOM files</h1>
 
 <p>The following description is adapted from Dennis Howes' original Help
 file for !Family:
@@ -30,7 +30,7 @@ database by !Family.
 "Church of Jesus Christ of Latter-day Saints" in your 'phone book you may
 find a "Family History Centre" listed. There you can search gigabytes of
 genealogical data on CDROM, copy bits to a file in GEDCOM format, bring it
-home on floppy disc, and load it into X!Family. Some of this information
+home on floppy disc, and load it into !Family. Some of this information
 (in particular, the International Genealogical Index) is also available
 online at <a href="http://www.familysearch.org/">www.familysearch.org,</a>
 the main LDS website, and can be downloaded in GEDCOM format.
@@ -69,10 +69,7 @@ GEDCOM, and would not be in a real GEDCOM file:
 1 CHIL @I1@      ;  John, a child
 </pre>
 
-<p>The GEDCOM standard defines many more tags than are used by !Family.
-Objects which are not recognised are not displayed but are preserved when
-the file is saved (unlike some genealogy software, which simply throws
-away information it doesn't understand). For full details of GEDCOM, write to
+<p>For full details of GEDCOM, write to
 
 <pre>
    <a href=mailto:gedcom@gedcom.org>gedcom@gedcom.org</a>
@@ -82,24 +79,29 @@ away information it doesn't understand). For full details of GEDCOM, write to
    50 East North Temple
    Salt Lake City UT 84150
    USA
-</pre>
+</pre></p>
 
 <p>A technical description of the grammar of GEDCOM, along with all the
-tags defined in the current version (5.5 at the time of writing) can be
-found at <a href="http://www.gendex.com/gedcom55/55gctoc.htm">GENDEX</a>.
+tags defined in the current version (5.5 at the time of writing) used to be
+found on the www.gendex.com site, but this domain name now seems to belong
+to an imaging company with nothing to do with genealogy. The latest version
+I have here is in a file called ged551-5.pdf, which claims it can be found
+in the ftp site at ftp://gedcom.org/pub/genealogy/gedcom, but currently
+I'm getting no response at all from that site. If I find the right
+URL for the GEDCOM documents again, I'll put a link back in this page...</p>
 
 <p>Although GEDCOM files can be edited with an ordinary text editor, this
 requires considerable care not to avoid entries which are inconsistent with
 each other, particularly cross-references between families and their members.
 If you frequently find yourself editing a GEDCOM manually, please let the
-X!Family developer know at family-maint/at/nospam.pennine.demon.co.uk, and
+!Family developer know at family-maint/at/pennine.demon.co.uk, and
 the features you need supported will be considered for inclusion in future
-releases.
+releases.</p>
 
 <p>Some PC programs (eg. Legacy and Win-Family) require GEDCOM lines to end
 with carriage return. Following the standard, !Family ends them with line
-feed and accepts any combination of CR and LF. Use a text editor or other
-tool to change LF to CR if you must use broken software.
+feed on output and accepts any combination of CR and LF on input. Use a text
+editor or other tool to change LF to CR if you must use broken software.</p>
  
 <p>!Family understands the basic grammar of GEDCOM files, but only supports
 a subset of the tags. Anything it doesn't understand is preserved (unlike
@@ -112,11 +114,26 @@ programs. For example, Personal Ancestral File 4.03 will import GEDCOM 4.0
 files and GEDCOM 5.5 files, converting everything to 5.5, but doesn't
 understand some tags from the 5.3 version, which it simply moans about at
 length, then discards. Keeping your databases in !Family will guarantee not
-to throw away any data, no matter what GEDCOM revision your base data
-conforms to.
+to throw away any data, no matter what GEDCOM revision (or mix of revisions)
+your base data conform to. To read a little more about how !Family is
+incompatible with GEDCOM 5.5, see <a href="Gversions.html">GEDCOM
+versions</a>.</p>
+
+<p>In version 6 of GEDCOM, which has been published (in 2001) as
+an incomplete draft for discussion, but
+appears not to be in use anywhere, the standard has been completely
+rewritten from the bottom up as an implementation of XML, for which
+huge amounts of re-usable code are already available. The intention
+seems to be to provide a much richer semantic context in which
+genealogy software will potentially be able to understand and interpret
+a lot more of the data within each object. The take-up appears to be
+very slow, and, as a medium of exchange with other genealogy software,
+GEDCOM-XML seems to offer very little at the moment. It will, of
+course, not be remotely compatible with existing GEDCOM, so a
+conversion program will be required to move to the new idiom.</p>
 
 <p>
-<A HREF="endpiece.html">Next</A> | <a href="prefUI.html">Prev</a> | <a href="index.html">Table of Contents</a></P>
+<A HREF="endpiece.html">Next</A> | <a href="FAQ.html">Prev</a> | <a href="index.html">Table of Contents</a></p>
 
 <HR WIDTH="100%" SIZE="2" ALIGN="CENTER" NOSHADE="NOSHADE">
 </body>

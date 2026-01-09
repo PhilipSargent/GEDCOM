@@ -15,44 +15,51 @@ STYLE="font-family: sans-serif;">
 <HR WIDTH="100%" SIZE="2" ALIGN="CENTER" NOSHADE="NOSHADE">
 <A HREF="famUI.html">Next</A> | <a href="mainUI.html">Prev</a> | <a href="index.html">Table of Contents</a></P>
 
-<h1><a name="">!Family Chapter 3.</a> Edit Person dbox</h1>
+<h1><a name="indiUI">!Family Chapter 3.</a> Edit Person dbox</h1>
 
-<p>Clicking menu on a person in the main window brings up a menu:
+<p>Clicking menu on a person in the main window brings up a menu:</p>
 
 <p><img alt="Person pop-up menu" width=540 height=250 align=center hspace=10
-vspace=10 src="pmenu.png">
+vspace=10 src="pmenu.png"></p>
 
 <p>Choosing "Edit" or "Child" from this menu <!-- (or "Child" from the
 marriage pop-up menu)  -->will open a tabbed dbox in which details of a
-person's main life events can be entered.
+person's main life events can be entered.</p>
 
 <p>From the point of view of a genealogist, often doing research in civil
 vital records or church records, the main events in a life are birth,
 marriage and death. Of these, marriage affects two people and is not an
-event of a single life. Birth and death are associated (and may only be
-recorded as) christenings, baptisms, cremations and burials, and these
+event of a single life. Birth and death are associated with (and may only
+be recorded as) christenings, baptisms, cremations and burials, and these
 are the six events currently handled by this dbox. GEDCOM has established
 tags for a whole host of other life events, and a generic "event" tag for
 anything else occurring to a person's life on a specific date or within a
 range of dates. !Family preserves this information in your GEDCOM, but
-doesn't currently support displaying or editing it.
+doesn't currently support displaying or editing it. One goal of the
+2.3.x development branch is to change this dbox to support the adding
+of arbitrary events, and not to clutter the display with events which
+don't apply to the person currently being edited.</p>
 
 <p>The first two text fields are Name and Title, which identify this
 person. Title is optional, and is typically an indication of civil or
-military rank, usually the final rank achieved during life.
+military rank, usually the final rank achieved during life. (In GEDCOM
+5.5, the TITL tag is only supposed to be used for nobility titles. To
+read a bit more about the GEDCOM version that !Family currently implements,
+see <a href="Gversions.html">GEDCOM versions</a>.)</p>
 
 <p><img alt="Person dialogue: birth tab" width=576 height=456 align=center
-hspace=10 vspace=10 src="birthtab.png">
+hspace=10 vspace=10 src="birthtab.png"></p>
 
 <p>A single check box "Living" can be set to show that a person is
 believed to be alive on the date the database is being edited. Strictly
 speaking the tag used to record this is not a part of the GEDCOM standard,
 but seems to be widely used by a number of genealogy packages. If a proper
 way of indicating this status is defined in some future version of GEDCOM,
-this part of the user-interface may change to reflect this.
+this part of the user-interface may change to reflect this. Again, to
+read a bit more about this issue, see <a href="Gversions.html">GEDCOM versions</a>.)</p>
 
 <p>A line of three radio buttons defines the gender of this person as
-male, female or unknown.
+male, female or unknown.</p>
 
 <p>Two text fields give the names of the parents. Filling in these fields
 enables the person to be placed correctly in the structure of the family
@@ -71,7 +78,10 @@ are multiple matches, a window will open with a list, showing birth/death
 dates to aid identification of the person you want. The name you typed may
 also be partially completed as far as can be deduced from the list. Click
 on one name in the list to fill in the field, or type some more in the
-original writable icon and hit "F1" or "F2" again.
+original writable icon and hit "F1" or "F2" again. Remeber that, at
+present, !Family requires every person in the database to have a unique
+name. It will be a while before the major rewrite taking place in the
+2.3.x development branch overcomes this limitation.</p>
 
 <!-- This mechanism will also, eventually, enable you
 to distinguish two people in the database with identical names, which can
@@ -92,29 +102,34 @@ to choose the calendar in which the date is defined. The default is
 is appropriate for dates in the English-speaking world prior to 1752.
 GEDCOM also defines "French R", "Hebrew", "Roman" and "Unknown", and these
 will be added to !Family's repertoire at some stage. Currently these present
-a problem if the option to present dates in ISO-8601 format has been chosen.
+a problem if the option to present dates in ISO-8601 format has been chosen.</p>
 
 <p>The "Death" and "Burial" tabs each have one additional field. Death can
 have a "Cause", typically that recorded on a death certificate for modern
 deaths. "Burial" can be specified down to the level of "Plot". Again, in
 versions 5.4 and 5.5 of GEDCOM, this detail has been subsumed into the
 "Place" tag, but !Family will continue to be able to read the "SITE",
-"CEME" and "PLOT" tags as specified in GEDCOM 5.3.
+"CEME" and "PLOT" tags as specified in GEDCOM 5.3.</p>
 
 <p>A last field within the tab is labelled "Sources" and currently shows
 the cross-reference id used in any SOUR tag for the event. This is the
 first stage of adding the ability to handle source citations to !Family.
+The structure of source records has been simplified in GEDCOM 5.5, and
+it is hoped that some of the more esoteric interpretations of GEDCOM
+5.3 whcih I have encountered (and which occasionally crash !Family
+when importing GEDCOM files from elsewhere) will soon disappear and
+!Family cna be developed to support source records much more fully.</p>
 
 <p><img alt="Person dialogue: death tab" width=576 height=456 align=center
-hspace=10 vspace=10 src="deathtab.png">
+hspace=10 vspace=10 src="deathtab.png"></p>
 
 <p>Finally there are three buttons "Help" (which should bring you to this
 help page), "Cancel" and "OK". "Cancel" throws away any changes you have
-made and closes the dbox (clicking on its "close" icon will do likewise).
-If the dbox was opened from "Child" or "New..." menu items to create a new
-person in the database, then that person is not created. If the dbox was
-opened from "Edit", then the person continues to exist unchanged in the
-database.
+made and closes the dbox.
+If the dbox was opened from "Child" or "Person=>Edit" menu items to create
+a new person in the database, then that person is not created. If the dbox
+was opened from "[a name]=>Edit", then the person continues to exist unchanged
+in the database.</p>
 
 <p>Clicking "OK" saves the changes, creating a new person in the database
 if necessary. Note that if you have changed the names of one or both
@@ -129,11 +144,11 @@ is created. Changing the Father's name for one child of a family in this
 dbox, for example, will create a new father, a new marriage and move this
 child into a new family, leaving the others with the same parents as before.
 Probably not what you intended. Changing someone's name needs to be done in
-the Edit Person dbox for <b>that</b> person.
+the Edit Person dbox for <b>that</b> person.</p>
 
 <p>
 
-<A HREF="famUI.html">Next</A> | <a href="mainUI.html">Prev</a> | <a href="index.html">Table of Contents</a></P>
+<A HREF="famUI.html">Next</A> | <a href="mainUI.html">Prev</a> | <a href="index.html">Table of Contents</a></p>
 
 <HR WIDTH="100%" SIZE="2" ALIGN="CENTER" NOSHADE="NOSHADE">
 </body>

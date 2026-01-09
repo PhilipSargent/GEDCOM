@@ -13,3 +13,4 @@ DrawWidth:4
 BadXrefAction:3
 ReportDate:ISO
 DateLib:ISODateLib
+MaxComp:150

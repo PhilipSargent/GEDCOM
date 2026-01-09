@@ -13,7 +13,7 @@ Set Alias$@PrintType_D78 Run <Family$Dir> -print %%*0
 
 | Edit the WimpSlot command to change the amount of memory available:
 
-seteval Family$StaticSpace 640
+seteval Family$StaticSpace 720
 seteval Family$InitialHeapSpace 750
 seteval Family$TotalSpace <Family$StaticSpace>+<Family$InitialHeapSpace>
 set Family$Slot "<Family$TotalSpace>k"

@@ -1,0 +1,70 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html lang="en">
+<head>
+<title>The !Family Screenbook</title>
+<LINK rel="next" title="" href="endpiece.html">
+<LINK rel="previous" title="" href="prefUI.html">
+<LINK rel="toc" title="Table of Contents" href="index.html">
+<META name="keywords" content="Family !Family GEDCOM Genealogy editor">
+<META HTTP-EQUIV="Content-Language" CONTENT="en">
+</head>
+<body BGCOLOR="#FFFFFF" TEXT="#000000"
+STYLE="font-family: sans-serif;">
+<!-- include your neat logo here with a link to your website -->
+
+<HR WIDTH="100%" SIZE="2" ALIGN="CENTER" NOSHADE="NOSHADE">
+<A HREF="GEDCOM.html">Next</A> | <a href="prefUI.html">Prev</a> | <a href="index.html">Table of Contents</a></P>
+
+<h1><a name="migration">!Family Appendix A.</a> Migration and FAQ list</h1>
+
+<h2>Migration from versions (2.20 - 2.24) to newer version 2.25, 2.26, 2.2.7 and later</h2>
+
+<p>From version 2.20 of !Family, we supported the setting of a time on events like
+births, deaths, marriages and burials. Unfortunately, the GEDCOM specification was
+sufficiently ambiguous and devoid of actual examples that I placed the TIME tag at
+the same level in the GEDCOM grammar as the DATE tag. This was incorrect, and from
+version 2.25 onwards, this error was corrected. However, to fix a GEDCOM file from
+any of versions 2.20 to 2.24 to be used with versions from 2.25 and later (including
+the present stable release 2.2.7), this error needs to be fixed. In almost all cases,
+simply using a text editor to change "2 TIME" to "3 TIME" would do the job, but
+since GEDCOM makes no guarantees about the order of tags at the same level, it is
+quite possible that your GEDCOM has something like:</p>
+
+<p><pre>
+1 BIRT
+2 DATE 19 Sep 1957
+2 PLAC Preston, Lancashire
+2 TIME 05:15
+</pre></p>
+
+<p>A simple edit here would end up making the TIME tag subordinate to the PLAC
+object, which would confuse the hell out of most genealogy software, so there is
+a small utility program which will reliably make TIME at the same level as DATE
+into a TIME as a subobject of DATE, with the tags in the right order. This is
+in the Utils subdirectory of !Family, and is called Time2to3. To enable you to
+be quite sure that the new GEDCOM is correct before over-writing your original
+tree, Time2to3 always writes its output into RAM:NewTree. From the CLI, with
+Time2to3 in your path or current directory, type <b>Time2to3 -i &lt;infile&gt;</b>
+where &lt;infile&gt; is the name of your existing GEDCOM. Now open RAM:NewTree
+in your favourite text editor and check that it is complete and looks kosher.
+Opening that file in !Family 2.2.7 is also a good test. All being well, the
+file should be a corrected version of your tree with all data preserved, and
+is now suitable to copy back on disc and use with version 2.2.7 and later of
+!Family.</p>
+
+<hr>
+
+<h2><a name="FAQ">Frequently asked questions</h2>
+
+<p>I find I am asked very few questions about !Family, and I hope that a lot
+of potential questions will already be answered by this ScreenBook. But this
+section is here for when you users out there do choose to ask questions of
+me at family-maint/at/pennine.demon.co.uk and I come up with answers that
+don't exist anywhere else in the manual.</p>
+
+<p>
+<A HREF="GEDCOM.html">Next</A> | <a href="prefUI.html">Prev</a> | <a href="index.html">Table of Contents</a></p>
+
+<HR WIDTH="100%" SIZE="2" ALIGN="CENTER" NOSHADE="NOSHADE">
+</body>
+</html>

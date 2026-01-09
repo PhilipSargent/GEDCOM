@@ -5,6 +5,10 @@
 
 dv:
 #dv: ATTENTION ! VERSION ALPHA !
+# for the info box, we add a bit more detail for experimental, testing and production versions
+Iex:ALPHA
+Ite:BETA
+Ipr:Stable
 
 lang:Français
 
@@ -38,6 +42,7 @@ Dr:Tracer
 DO:Individu vivant - détails personnel omis
 DT:Transfert des data manqué
 Ed:Modifier
+En:Engagement
 FN:Nom de famille
 Fa:Famille
 Fe:femelle
@@ -46,6 +51,7 @@ Fo:šil des caractères
 FS:Grandeur d'›il
 GE:GEDCOM..
 Go:Allez à
+He:Aide
 Hl:fr
 Ho:Rétourner aux index
 Hu:Mari
@@ -68,6 +74,7 @@ NF:Pas un fichier
 NH:Pas de fichier specifié pour comprendre apres <body>
 NM:pas marié à
 NN:Pas de Nom
+No:Notes
 NP:Pas de courant personne
 NR:Pas de memoire pour monceau: augmenter WimpSlot
 NT:Pas de fichier specifié pour comprendre avant </body>
@@ -109,20 +116,28 @@ YO:Année seulement
 Can:Annuler
 Cur:Courant
 Dis:Défausser
+Help:Aidez moi
 Sav:Sauver
 OK:OK
 Res:Restituer
 Pla:Lieu
-Plt:Plot
 Sit:Site
+Plt:Plot
 Dat:Date
 Tim:Temps
 Cau:Cause
+Cal:Calendrier
+Grg:Grégorien
+Jul:Julien
+Frn:Français
+Rom:Romain
+Heb:Hébreu
 Nam:Nom
 CoT:Complètements
 GoT:Allez à
 Mo3:Les data etait modifié
 SaT:Sauver Arbre comme
+Src:Sources
 ReT:Sauver Rapport comme
 InT:À propos de cet programme
 In1:Editeur pour Arbre de Famille
@@ -153,146 +168,31 @@ Ht5:Comprendre ce fichier au but de <body>
 Ht6:Comprendre ce fichier au fin de <body>
 Ht7:Omettre détails des personnes marqué comme vivant
 EdT:Modifier
-E10:Mâle
-E11:Femelle
-E12:Vivant
-E15:Père
-E16:Mouri
-E17:Né(e)
-E18:Nommé
-E19:Incineré
-E20:Baptisé
-E21:Enterré
-E23:Titre
-E24:Mère
-E25:détails...
-E26:Mettre
+# names of tabs:
+E10:Né(e)
+E11:Nommé
+E12:Baptisé
+E13:Mouri
+E14:Crémation
+E15:Enterré
+E17:Mâle
+E18:Femelle
+E19:Inconnu
+E20:Vivant
+E24:Nom
+E25:Titre
+E26:Sexe
+E27:Père
+E28:Mère
+E29:Date
+E30:Temps
+E31:Location
+E32:Situation
 ObT:Modifier GEDCOM
 St4:Personnes:
 St5:Maximum INDI Id:
 St6:Familles:
 St7:Maximum FAM Id:
 StT:!Family Statistiques:
-
-#Interactive help.
-
-H01:C'est le programme informatique "Famille". Pressez 'select' pour ouvrir les fenêtres principale et des notes de la personne courante
-H02:C'est la principale fenêtre de "Famille". Pressez 'select' sur une personne pour faire la personne être courante. Pressez 'adjust' sur une personne pour éditer ses détails
-H03:C'est la fenêtre "Notes". Pressez 'select' pour éditer les notes de la personne courante
-H04:C'est la fenêtre "Remplissage des noms". Pressez 'select' pour copier un des noms à la boîte du dialogue où F1 ou F2 a été pressé
-H05:C'est la fenêtre "Info". Incluez le nombre de la version dans les rapports de la faute, s'il vous plaît.
-H06:Entrez le nouveau nom de la personne. Pressez F1 pour remplissage des noms à droite, F2 à gauche.
-H07:Entrez la nouvelle date de naissance de la personne. Utilisez la fenêtre "Naissance" pour ajouter la localisation et le temps
-H08:Entrez la nouvelle date du mort de la personne. Utilisez la fenêtre "Mort" pour ajouter la localisation, le temps et la cause
-H09:Entrez le nom du nouveau père de la personne. Pressez F1 pour remplissage des noms à droite, F2 à gauche.
-H10:Entrez le nom de la nouvelle mère de la personne. Pressez F1 pour remplissage des noms à droite, F2 à gauche.
-H11:Allumez si la personne est virile
-H12:Allumez si la personne est féminine
-H13:Pressez 'select' pour fermer la fenêtre "Édit" sans changer les détails de la personne
-H14:Pressez 'select' pour mettre les détails de la personne à jour
-H15:Entrez un nom d'une personne pour le faire la personne courante nouvelle. Entrez un nouveau nom pour créer une nouvelle personne. Pressez F1 pour remplissage des noms à droite, F2 à gauche.
-H16:Pressez 'select' pour fermer la fenêtre "Allez" sans changer la personne courante.
-H17:Pressez 'select' pour faire la personne nommée être courante
-H18:Entrez le nom de la nouveau/lle époux/se. Pressez F1 pour remplissage des noms à droite, F2 à gauche.
-H19:Pressez 'select' pour fermer la fenêtre "Marier" sans créer un nouveau mariage
-H20:Pressez 'select' pour ajouter le nouvel époux nommé
-H21:Le nom du fichier dans qui sauver la banque courante de données
-H22:Traînez l'icône à une fenêtre du répertoire pour sauver les données courantes à un fichier avec le nom montrée
-H23:Pressez 'select' pour pour sauver au nom plein montrée
-H24:Pressez 'select' pour fermer la fenêtre "Sauver" sans sauver
-H25:Pressez 'select' pour entrer le nom de la personne courante
-H26:Traînez l'icône à une fenêtre du répertoire pour écrire le rapport là dans un fichier avec le nom montrée
-H27:Pressez 'select' pour écrire le rapport au nom plein montrée
-H28:Le nom du fichier dans qui écrire le rapport
-H29:Pressez 'select' pour vider la banque de données et continuer. Vous perdrez tous les changements faits depuis que le fichier a été sauvé dernièrement
-H30:Pressez 'select' pour avorter l'operation courante
-H31:Pressez 'select' pour sauver les changements que vous avez fait
-H32:Le nom du fichier dans qui écrire le "Drawfile"
-H33:Traînez l'icône à une fenêtre du répertoire pour écrire le Drawfile là dans un fichier avec le nom montrée
-H34:Pressez 'select' pour écrire le DrawFile au nom plein montrée
-H35:Entrez le Titre ou le rang militaire de la personne.
-H36:Entrez la nouvelle date du nommant chrétien de la personne. Utilisez la fenêtre "Nommant chrétien" pour ajouter la localisation et le temps
-H37:Entrez la nouvelle date du baptême de la personne. Utilisez la fenêtre "Baptême" pour ajouter la localisation et le temps
-H38:Entrez la nouvelle date d'enterrement de la personne. Utilisez la fenêtre "Enterrement" pour ajouter la localisation et le temps
-H39:Allumez si la personne est crue pour être vivant - C'est vous permettre de supprimer les détails personnelles quand vous créez des pages pour le WWW
-H40:Entrez la date de mariage
-H41:Entrez la localité (village/paroisse/ville, département, etc.) de mariage
-H42:Entrez la situation (name of church, register office, etc.) de mariage
-H43:Le nom du fichier dans qui écrire l'arbre des ancêtres
-H44:Traînez l'icône à une fenêtre du répertoire pour écrire l'arbre des ancêtres de la personne courante dans un fichier avec le nom montrée
-H45:Pressez 'select' pour écrire l'arbre des ancêtres au nom plein montrée
-H46:Le nom du fichier dans qui écrire le rapport des Groupes de la famille
-H47:Traînez l'icône à une fenêtre du répertoire pour écrire le rapport des Groupes de la famille dans un fichier avec le nom montrée
-H48:Pressez 'select' pour écrire le rapport des Groupes de la famille au nom plein montrée
-H49:Entrez la date du mort de la personne.
-H50:Entrez le temps du mort de la personne.
-H51:Entrez la localité (village/paroisse/ville, département, etc.) où la personne était morte
-H52:Entrez la situation (nom de l'hôpital, maison, site d'un accident, etc.) où la personne était morte
-H53:Pressez 'select' pour fermer la fenêtre "Mort" sans sauver les changements
-H54:Pressez 'select' pour fermer la fenêtre "Mort" et sauver les nouveaux données
-H55:Entrez la cause du mort de la personne (comme sur acte de décès)
-H56:Entrez la date de naissance de la personne.
-H57:Entrez le temps de naissance de la personne.
-H58:Entrez la localité (village/paroisse/ville, département, etc.) où la personne est née
-H59:Entrez la situation (nom de l'hôpital, maison, etc.) où la personne est née
-H60:Pressez 'select' pour fermer la fenêtre "Naissance" sans sauver les changements
-H61:Pressez 'select' pour fermer la fenêtre "Naissance" et sauver les nouveaux données
-H62:Entrez la date du nommant chrétien de la personne
-H63:Entrez le temps du nommant chrétien de la personne
-H64:Entrez la localité (village/paroisse/ville, département, etc.) où la personne été nommée
-H65:Entrez la situation (nom de l'église, chapelle, etc.) où la personne été nommée
-H66:Pressez 'select' pour fermer la fenêtre "Nommant chrétien" sans sauver les changements
-H67:Pressez 'select' pour fermer la fenêtre "Nommant chrétien" et sauver les nouveaux données
-H68:Entrez la date quand la personne a été baptisée
-H69:Entrez le temps quand la personne a été baptisée
-H70:Entrez la localité (village/paroisse/ville, département, etc.) où la personne a été baptisée
-H71:Entrez la situation (nom de l'église, chapelle, etc.) où la personne a été baptisée
-H72:Pressez 'select' pour fermer la fenêtre "Baptême" sans sauver les changements
-H73:Pressez 'select' pour fermer la fenêtre "Baptême" et sauver les nouveaux données
-H74:Entrez le temps (de commencement) de la cérémonie de mariage
-H75:Entrez la localité (village/paroisse/ville, département, etc.) où le couple s'est marié
-H76:Entrez la situation (nom de l'église, chapelle, etc.) où le couple s'est marié
-H77:Pressez 'select' pour fermer la fenêtre "Mariage" sans sauver les changements
-H78:Pressez 'select' pour fermer la fenêtre "Mariage" et sauver les nouveaux données
-H79:Entrez la date d'enterrement de la personne
-H80:Entrez le temps d'enterrement de la personne
-H81:Entrez la localité (village/paroisse/ville, département, etc.) où la personne a été enterrée
-H82:Entrez la situation (nom de l'église, du cimetière, etc.) où la personne a été enterrée
-H83:Pressez 'select' pour fermer la fenêtre "Enterrement" sans sauver les changements
-H84:Pressez 'select' pour fermer la fenêtre "Enterrement" et sauver les nouveaux données
-H85:Entrez la date du divorce (jugement irrévocable)
-H86:Choisissez un comportement quand une référence ne peut pas être résolue dans le fichier qui est chargé. À moins que vous compreniez complètement ceci, choisissez "Abandonnez chargant"
-H87:Cette option abandonnera chargement du fichier si une mauvaise référence est trouvée (plus sûr)
-H88:Cette option donnera des avertissements pour chaque mauvaise référence, mais encore charge le fichier à moins que la référence soit vitale (ie. aux objets FAM ou INDI)
-H89:Cette option chargera le fichier, en ignorant de  mauvaises références silencieusement à moins que la référence soit vitale (ie. aux objets FAM ou INDI)
-H90:Choisissez un format pour utiliser pour le tampon dateur qui parait à la tête d'un rapport
-H91:Cette option utilise le standardisé internationalement (et plus logique) ISO-8601 "Format pour les dates et les temps dans échange de l'information"
-H92:Cette option utilise le même format qui est utilisé intérueurment dans les fichiers GEDCOM
-H93:Cette option vous permet de spécifier une ficelle pour utiliser avec OS_ConvertDateAndTime
-# ficelle is almost certainly not a good translation of (character-)string
-H94:Entrez une ficelle avec qui formater votre date et temps
-H95:Pressez 'select' pour fermer la fenêtre "Options diverses" sans sauver les changements
-H96:Restaurez les options à ceux en force quand la fenêtre a été ouverte
-H97:Pressez 'select' pour fermer la fenêtre "Options diverses" et sauver les nouveaux données (souvenez-vous de choisir Choix=>Sauver dans le menu de barre d'icônes pour sauver ces changements en permanence
-H98:Le nom du fichier dans qui écrire l'index à tous les gens dans l'arbre généalogique. Si le nom du fichier a une extension (/htm ou /html, par exemple) alors cela sera utilisé pour les pages du tous les individus aussi
-H99:Traînez l'icône à une fenêtre du répertoire pour créer l'index avec le nom montrée, et les pages des individus au même repertoire. Il peut y avoir plus des fichiers que peut être mis dans un répertoire sous FileCore - un système à fichiers tel que x-files, DOSFS, ou un zip peut aider.
-H100:Pressez 'select' pouri écrire l'index au nom plein montrée
-H101:Choisissez cette option pour inclure un fichier au début de chacun des pages que vous créez. Typiquement, ce serait un fragment de l'html qui contient une barre de la navigation ou quelque chose de semblable
-H102:Choisissez cette option pour inclure un fichier à la fin de chacun des pages que vous créez. Typiquement, ce serait un fragment de l'html qui contient liens, reconnaissances ou une mention de réserve des droits d'auteur
-H103:Choisissez cette option pour supprimer des dates ou des notes pour les gens a signalé comme vivre dans la fenêtre "Edit"". Une bonne idée si votre pays a quelque forme de législation telle que l'Acte "Data Protection" du Royaume Uni, et vous projetez de publier vos pages sur le WWW.
-H103a:Que soit prévenu que la date de mariage peut être obtenue de la page d'un époux mort...
-H104:Entrez le nom plein d'un fichier pour inclure, ou traînez ici l'icône d'un fichier d'une fenêtre du répertoire.
-H105:N'oubliez pas que les systèmes à fichiers de FileCore (ADFS, SCSI, RAMFS, etc.) autorisent seulement 77 fichiers par répertoire, et vous créerez un fichier pour chacun personne dans votre arbre généalogique, plus un index.
-H106:Statistiques pour l'arbre dans mémoire. Les Ids maximaux INDI et FAM peuvent être utilisés pour assurer tout arbre vous fusionnez n'aura pas de références incompatibles
-H107:Entrez l'emplacement du tombe dans le cimetière
-H108:Entrez la nouvelle date de crémation de la personne. Utilisez la fenêtre "Crémation" pour ajouter la localisation et le temps
-H109:Pressez 'select' pour ouvrir une boîte de dialogue pour mettre plus de détails de l'événement dont la date est mise par l'icône qui a le caret
-H110:Entrez la date de crémation de la personne.
-H111:Entrez le temps de crémation de la personne.
-H112:Entrez la localité (village/paroisse/ville, département, etc.) où la personne a été incinéré.
-H113:Entrez le crématorium où la personne a été incinéré.
-H114:Pressez 'select' pour fermer la fenêtre "Crémation" sans sauver les changements
-H115:Pressez 'select' pour fermer la fenêtre "Crémation" et sauver les nouveaux données
-H116:Sauver les nouveaux données sans fermer la fenêtre
 
 #Without something here MessageTrans can't find the last message!

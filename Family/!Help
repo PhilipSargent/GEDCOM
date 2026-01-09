@@ -1,0 +1,22 @@
+This is version 2.2.7 of !Family.
+
+!Family now has two release branches, 2.2.x for stable code suitable for a
+ production environment, and 2.3.x, development code which may vary from
+ working code with some risks from unknown bugs, to completely broken
+ code which won't run at all.
+
+2.2.7 is a slightly revised and tidied release of code which has been in
+testing as versions 2.25.and 2.26 for some years. It is believed that all
+the code that has been exercised over that period is stable and safe, but
+it should be noted that one large subsystem was discovered in the preparation
+of this release that had been completely broken for several years without
+anyone reporting it. For this release, interactive help has been entirely
+removed from the program as it is believed that no-one uses it. It is
+hoped that the !Family ScrrenBook documentation (see below) will prove
+to be more valubale and far more maintainable that the interactive help system.
+
+The main documentation for the program lives inside the !Family application
+in the fdoc subdirectory. It is most readily accessible by clicking on the
+"help" button in various dboxes within the program, or by choosing "Help"
+from within the main menu.
+
