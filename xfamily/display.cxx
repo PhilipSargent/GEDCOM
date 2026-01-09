@@ -28,7 +28,8 @@
 // tree. Sometime we need to implement the canvas we present to X as being
 // a window into an arbitralily large bitmap we store internally - but this
 // will probably lose us access to the FLTK drawing and font code :-( But,
-// in fact, from fltk 1.3, this issue seems to have gone away.
+// in fact, from fltk 1.3, this issue seems to have gone away. We're still
+// using ints for the size, so we must be limited to 64kx64k ?
 
 treedisplay::treedisplay( int x, int y, int w, int h ) :
   Fl_Button( x,y, w,h ),
@@ -48,7 +49,11 @@ void treedisplay::setscroller( Fl_Scroll* thescroller ) {
   scroller = thescroller;
 }
 
+#ifdef fix0011
+GEDCOM_object *treedisplay::whoisat( int x, int y, indidisplay*& indid, famdisplay*& famd ) {
+#else
 GEDCOM_object *treedisplay::whoisat( int x, int y ) {
+#endif
 
 int            xoffset;
 int            yoffset;
@@ -58,8 +63,51 @@ int            yoffset;
 
   x += xoffset;
   y += yoffset;
+#ifdef fix0011
+  // both reference pointers should be NULL:
+  printf("treedisplay::whoisat gets %ld, %ld\n",(long)indid,(long)famd);
+  return view->whattodraw()->whoisat(x,y,indid,famd);
+#else
   return view->whattodraw()->whoisat(x,y);
+#endif
 }
+
+#ifdef fix0010
+void treedisplay::drawoffscreen() {
+
+displaytree   *display;
+indidisplay   *person;
+int            xoffset;
+int            yoffset;
+
+  fl_push_no_clip();
+  fl_color(FL_WHITE);
+  fl_rectf( 0, 0, w(), h());
+  xoffset = 0;
+  yoffset = 0;
+  fl_font( fontface, fontsize );
+  display = view->whattodraw();
+  // that's the display structure - the tree we are showing with all its coordinates etc.
+  // and doesn't constrain where we draw it - that should be set by the caller having
+  // specified fl_begin_offscreen(saver) before we're run
+  if (display == NULL) { fl_pop_clip(); return; }
+  person = display->gettop();
+  if (person == NULL ) { fl_pop_clip(); return; }
+
+  display->setfont();
+  // in offscreen code, xoffset, yoffset are zero
+  person->displayindi( display->getvint(), xoffset, yoffset );
+  switch ( person->getgender() ) {
+// swap gender colours over so what we draw in here is visibly different (for debugging)
+// but I think none of these colours get used, why did we think we need this code ?
+// the colours for each name drawn are set in displayindi...
+    case SEX_MALE:   fl_color(COLOUR_FEMALE); break;
+    case SEX_FEMALE: fl_color(COLOUR_MALE); break;
+    case SEX_UNKNOWN:fl_color(COLOUR_UNKNOWN); break;
+  }
+  fl_pop_clip();
+}
+#endif
 
 void treedisplay::draw() {
 
@@ -73,6 +121,9 @@ int            yoffset;
   // get the current size and position from Fl_Button's methods - we may
   // have been resized in response to the tree being recalculated:
   fl_push_clip(x(), y(), w(), h());
+#ifdef debugging
+//    printf("treedisplay::draw pushed clip %d, %d: %d, %d\n",x(), y(), w(), h());
+#endif
   // whatever else we may cock up, we should now draw only where we are
   // supposed to ! Lets clear our background to white so we can see:
   fl_color(FL_WHITE);
@@ -95,7 +146,7 @@ int            yoffset;
   // this shouldn't happen, but we had better check:
   if (view==NULL) {
 #ifdef debugging
-    printf("treedisplay::draw got a null view/n");
+    printf("treedisplay::draw got a null view\n");
 #endif
     fl_pop_clip(); return; }
 
@@ -128,6 +179,9 @@ int            yoffset;
 indidisplay::indidisplay( GEDCOM_object *person ) :
   indi (person),
   fams (NULL),
+#ifdef fix0011
+  famc (NULL),
+#endif
   next (NULL),
   centrex (INFINITY),
   bottomy (INFINITY)
@@ -211,41 +265,20 @@ indidisplay::~indidisplay() {
   if (next != NULL) delete next;
 }
 
-GEDCOM_object* indidisplay::getperson() const { return indi; }
+#ifdef fix0011
+void           indidisplay::setfamc( famdisplay* famd ) {
+  famc = famd;
+}
 
-#ifdef fix0002
-// this code now obsoleted by fix0003 - see fixes.h (we hope)
-indidisplay *indidisplay::findindi( GEDCOM_object* person ) {
-
-indidisplay *indicheck;
-indidisplay *obj;
-famdisplay  *famcheck;
-
-  if (this==NULL) return NULL;
-#ifdef debugging
-  printf("indidisplay::findindi Starting to check with %s\n", this->name());
-#endif
-  if (this->indi == person) return this;
-  indicheck = this->sibling();
-  if (indicheck != NULL) {
-#ifdef debugging
-    printf("Checking %s\n", indicheck->name());
-#endif
-    if ((obj = indicheck->findindi( person )) != NULL) {
-#ifdef debugging
-      printf("obj = indicheck->findindi( person ) is %s\n",obj->name());
-#endif
-      return obj;
-    }
-  }
-  famcheck = this->family();
-  while (famcheck != NULL ) {
-    if ((indicheck = famcheck->findindi( person )) != NULL) return indicheck;
-    famcheck = famcheck->nextfam();
-  }
-  return NULL;
+bool	       indidisplay::younger_valid( ) {
+  if (famc==NULL) return false;
+  if (next==NULL) return false;
+  return true;
 }
 #endif
+
+
+GEDCOM_object* indidisplay::getperson() const { return indi; }
 
 indidisplay*   indidisplay::sibling() const { return next; }
 indidisplay*   indidisplay::last() const {
@@ -302,6 +335,9 @@ int x, y;
 
   x = centrex - xoffset;
   y = V_OFFSET + bottomy - h - yoffset;
+#ifdef debugging
+//  printf("displayindi drawing line at %d, %d\n",x,y);
+#endif
   fl_color( FL_BLACK );
   fl_line( x, y, x, y - (h>>1));
 
@@ -324,40 +360,62 @@ int x, y;
 
   x = centrex - (widthn >> 1 ) - xoffset;
   y = bottomy - yoffset;
+#ifdef debugging
+//  printf("displayindi drawing name %s at %d, %d\n",showname->string(), x,y);
+#endif
   fl_draw( showname->string(), x, y );
 
   /* if we are showing dates : */
   x = centrex - (widthd >> 1 ) - xoffset;
   y += h;
   fl_color( FL_BLACK );
+#ifdef debugging
+//  printf("displayindi drawing dates %s at %d, %d\n",dates->string(),x,y);
+#endif
   fl_draw( dates->string(), x, y);
   /* end of if */
 }
 
+#ifdef fix0011
+GEDCOM_object *indidisplay::whoisat( int h, int x, int y, indidisplay*& indid, famdisplay*& famd ) const {
+#else
 GEDCOM_object *indidisplay::whoisat( int h, int x, int y ) const {
+#endif
 
 GEDCOM_object *obj;
 indidisplay *indicheck;
 famdisplay  *famcheck;
 
-  if (this == NULL) return NULL;
+  if (this == NULL) {
+    printf("indidisplay::whoisat() called on NULL\n");
+    return NULL;
+  }
   // if this indidisplay encloses the point, return the pointer to the INDI
-  if (this->testat(h,x,y)) return this->getperson();
-  indicheck = this->sibling();
-#ifndef test0002
-  while (indicheck != NULL) {
+  printf("indidisplay::whoisat() testing on %s\n",this->name());
+#ifdef fix0011
+  if (this->testat(h,x,y)) {
+    printf("indidisplay::whoisat() setting indid to %ld, %s\n",(long)this,this->name());
+    indid = (indidisplay*) this;
+    return this->getperson();
+  }
 #else
-  if (indicheck != NULL) {
+  if (this->testat(h,x,y)) return this->getperson();
 #endif
+  indicheck = this->sibling();
+  if (indicheck != NULL) {
+#ifdef fix0011
+    if ((obj = (indicheck->whoisat( h, x, y, indid, famd ))) != NULL ) return obj;
+#else
     if ((obj = (indicheck->whoisat( h, x, y ))) != NULL ) return obj;
-#ifndef test0002
-    // think this is gratuitously testing everything extra times
-    indicheck = indicheck->sibling();
 #endif
   }
   famcheck = this->family();
   while (famcheck != NULL) {
-    if ((obj = (famcheck->whoisat( h, x, y ))) != NULL) return obj;
+#ifdef fix0011
+    if ((obj = (famcheck->whoisat( h, x, y, indid, famd ))) != NULL ) return obj;
+#else
+    if ((obj = (famcheck->whoisat( h, x, y ))) != NULL ) return obj;
+#endif
     famcheck = famcheck->nextfam();
   }
   return NULL;
@@ -376,7 +434,12 @@ bool indidisplay::testat( int h, int x, int y ) const {
 
 /////////////////////////////////////////////////////////////////////////
 
+#ifdef fix0011
+famdisplay::famdisplay( GEDCOM_object *individual, GEDCOM_object *family, indidisplay *spousedisplay, int sequence ) :
+  indi (individual),  // the INDI object (not the indidisplay)
+#else
 famdisplay::famdisplay( GEDCOM_object *family, indidisplay *spousedisplay, int sequence ) :
+#endif
   fam (family),       // the FAM object
   spouse (spousedisplay),
   next (NULL),
@@ -424,6 +487,9 @@ famdisplay::~famdisplay() {
   if (next != NULL) delete next;
 }
 
+#ifdef fix0011
+GEDCOM_object* famdisplay::getindi() const { return indi; }
+#endif
 GEDCOM_object* famdisplay::getfamily() const { return fam; }
 indidisplay*   famdisplay::getspouse() const { return spouse; }
 famdisplay*    famdisplay::nextfam() const { return next; }
@@ -436,22 +502,8 @@ int            famdisplay::marrwidth() const { return width; }
 char*          famdisplay::marrlabel() const { return label->string(); }
 indidisplay*   famdisplay::getissue() const { return issue; }
 void           famdisplay::setissue( indidisplay* child ) { issue = child; }
-
-#ifdef fix0002
-indidisplay *famdisplay::findindi( GEDCOM_object *person ) {
-
-indidisplay *indicheck;
-indidisplay *obj;
-
-  if (this == NULL) return NULL;
-  if ((indicheck = this->getspouse()) != NULL) {
-    if (indicheck->getperson() == person ) return indicheck;
-  }
-  if ((indicheck = this->getissue()) != NULL) {
-    if ((obj = indicheck->findindi( person )) != NULL ) return obj;
-  }
-  return NULL;
-}
+#ifdef fix0011
+bool           famdisplay::later_valid() { return (next!=NULL); }
 #endif
 
 void famdisplay::displayfam( int h, int xoffset, int yoffset ) const {
@@ -480,6 +532,9 @@ int x, y;
   fl_color( FL_BLACK );
   x = centrex - (width >> 1) - xoffset;
   y = bottomy - yoffset;
+#ifdef debugging
+//  printf("displayfam drawing date %s at %d, %d\n",label->string(),x,y);
+#endif
   fl_draw( label->string(), x, y);
   if (issue==NULL) return;
   y += h + V_OFFSET;
@@ -487,10 +542,17 @@ int x, y;
   y += h;
   /* end of if */
   x = centrex - xoffset;
+#ifdef debugging
+//  printf("displayfam drawing line at %d, %d\n",x,y);
+#endif
   fl_line( x, y, x, y + (h>>1));
 }
 
+#ifdef fix0011
+GEDCOM_object *famdisplay::whoisat( int h, int x, int y, indidisplay*& indid, famdisplay*& famd ) const {
+#else
 GEDCOM_object *famdisplay::whoisat( int h, int x, int y ) const {
+#endif
 
 GEDCOM_object *obj;
 // not sure what these were going to be for
@@ -498,9 +560,19 @@ GEDCOM_object *obj;
 //famdisplay  *famcheck;
 
   if (this == NULL) return NULL;
+#ifdef fix0011
+  if (this->testat(h,x,y)) {
+    printf("famdisplay::whoisat() returning %ld, %s\n",(long)this,this->marrlabel());
+    famd = (famdisplay*) this;
+    return this->getfamily();
+  }
+  if ((obj = (this->getspouse()->whoisat( h, x, y, indid, famd ))) != NULL) return obj;
+  if ((obj = (this->getissue()->whoisat( h, x, y, indid, famd ))) != NULL) return obj;
+#else
   if (this->testat(h,x,y)) return this->getfamily();
   if ((obj = (this->getspouse()->whoisat( h, x, y ))) != NULL) return obj;
   if ((obj = (this->getissue()->whoisat( h, x, y ))) != NULL) return obj;
+#endif
   return NULL;
 }
 
@@ -517,15 +589,6 @@ bool famdisplay::testat( int h, int x, int y ) const {
 /////////////////////////////////////////////////////////////////////////
 
 indidisplay* displaytree::gettop() const { return treetop; }
-
-#ifdef fix0002
-indidisplay *displaytree::findindi( GEDCOM_object* person ) {
-#ifdef debugging
-  printf("displaytree::gettop() looking for %s\n",person->subobject(NAME_tag)->value());
-#endif
-  return treetop->findindi( person );
-}
-#endif
 
 #ifdef fix0003
 indidisplay* displaytree::getcurrent() const { return indicurrent; }
@@ -613,7 +676,11 @@ int famnumber = 0;      // zero if we don't need to sequence-number marriages, e
       if (spousedisplay==NULL) printf("displaytree::addmarriages out of heap ?\n");
     } else spousedisplay = NULL;
     oldfam = newfam;
+#ifdef fix0011
+    newfam = new famdisplay( person, family, spousedisplay, famnumber );
+#else
     newfam = new famdisplay( family, spousedisplay, famnumber );
+#endif
     if (newfam==NULL) printf("displaytree::addmarriages out of heap ?\n");
     if (oldfam == NULL) newdisplay->setfamily( newfam );
      else oldfam->setnext( newfam );
@@ -658,6 +725,9 @@ indidisplay   *oldersib;
     if (oldersib == NULL)
       newdisplay->setissue( childdisplay );
     else oldersib->setsibling( childdisplay );
+#ifdef fix0011
+    childdisplay->setfamc( newdisplay );
+#endif
     this->addmarriages( childdisplay );
     chil = chil->next_object( CHIL_tag );
   }
@@ -831,8 +901,25 @@ int displaytree::getvint() const { return lineheight; }
 int displaytree::xsize() const { return xmax; }
 int displaytree::ysize() const { return ymax; }
 
+#ifdef fix0012
+void displaytree::setevent( void* event ) {
+  eventobj = event;
+}
+
+void* displaytree::getevent() {
+  return eventobj;
+}
+#endif
+
+#ifdef fix0011
+GEDCOM_object *displaytree::whoisat( int x, int y, indidisplay*& indid, famdisplay*& famd ) const {
+  // we're expecting to start with the reference pointers null:
+  printf("displaytree::whoisat passed %ld, %ld\n",(long)indid,(long)famd);
+  return treetop->whoisat( lineheight, x, y, indid, famd );
+#else
 GEDCOM_object *displaytree::whoisat( int x, int y ) const {
   return treetop->whoisat( lineheight, x, y );
+#endif
 }
 
 

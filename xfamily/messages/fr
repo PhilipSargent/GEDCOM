@@ -46,20 +46,21 @@ Info
 Modifiez
 Rémarques
 Mariez
-Plus ancien
-Antérieure
+Plus jeune
+Plus tard
 Enfant
 Effacez
 Effacez mariage
 Rapports
 Ancétres
+Sauvez graphique
 Nom
 Autor
 Version
 But
 X!Famille
 © A.E.R.Waddington, 2013
-v 0.17 alpha 2013-01-14 fr
+v 0.18 alpha 2013-01-24 fr
 Editeur pour Arbre Généalogique
 Calendrier
 Gr�gorien
@@ -138,4 +139,4 @@ GEDCOM
 ISO-8601
 Localité
 Autre:
-Le progiciel généalogique "X!Famille" version 0.17. Propriété © 2013 par Andy Waddington.\nBasé vaguement sur !Family pour RISC OS, écrit par Denis Howe.\n\nCe programme est libre, vous pouvez le redistribuer et/ou le modifier selon les termes\nde la Licence Publique Générale GNU (GNU-GPL) publiée par la Free Software Foundation\n(version 3 ou bien toute autre version ultérieure choisie par vous).\n\nCe programme est distribué car potentiellement utile, mais SANS AUCUNE GARANTIE, ni\nexplicite ni implicite, y compris les garanties de commercialisation ou d'adaptation dans\nun but spécifique. Reportez-vous à la Licence Publique Générale GNU pour plus de détails.\n\nVous devez avoir reçu une copie de la GNU-GPL en même temps que ce\nprogramme; si ce n'est pas le cas, écrivez à la Free Software Foundation,\nInc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, États-Unis.\nDenoncez fautes à family-maint@pennine.ddns.me.uk 
+Le progiciel généalogique "X!Famille" version 0.18. Propriété © 2013 par Andy Waddington.\nBasé vaguement sur !Family pour RISC OS, écrit par Denis Howe.\n\nCe programme est libre, vous pouvez le redistribuer et/ou le modifier selon les termes\nde la Licence Publique Générale GNU (GNU-GPL) publiée par la Free Software Foundation\n(version 3 ou bien toute autre version ultérieure choisie par vous).\n\nCe programme est distribué car potentiellement utile, mais SANS AUCUNE GARANTIE, ni\nexplicite ni implicite, y compris les garanties de commercialisation ou d'adaptation dans\nun but spécifique. Reportez-vous à la Licence Publique Générale GNU pour plus de détails.\n\nVous devez avoir reçu une copie de la GNU-GPL en même temps que ce\nprogramme; si ce n'est pas le cas, écrivez à la Free Software Foundation,\nInc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, États-Unis.\nDenoncez fautes à family-maint@pennine.ddns.me.uk 

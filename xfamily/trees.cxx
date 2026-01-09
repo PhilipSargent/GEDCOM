@@ -106,6 +106,7 @@ char xref[32];
 char value[MAX_GEDCOM_line];
 GEDCOM_object* object;
 
+  GEDCOMcount++;
   if (fgets( tmpline, MAX_GEDCOM_line-1, in ) == NULL) {
     // already checked eof, so could mean an error,
     // or simply a non-terminated last line ?
@@ -171,6 +172,9 @@ GEDCOM_object* object;
   tok = strtok(NULL, "\n");
   if (tok == NULL) {
     // no cross-reference and no text value
+    if ((*tag==HUSB_tag)||(*tag==WIFE_tag)||(*tag==CHIL_tag)||(*tag==FAMC_tag)||(*tag==FAMS_tag)) {
+      printf("Expected a cross reference at line %d\n",GEDCOMcount);
+    }
     xref[0] = '\0';
     value[0] = '\0';
   } else {
@@ -700,16 +704,16 @@ char* searchref;
     trythis = trythis->next_object( NOTE_tag );
   }
   while (trythis != NULL) {
-    if ( strncmp( searchref=(trythis->value()), "View ", 5)==0 ) {
-      return trythis;
-    }
-    trythis = trythis->next_object( NOTE_tag );
 #ifdef debugging
     if (trythis!=NULL) {
       printf("Found another 0 NOTE\n");
       trythis->print( 0 );
     }
 #endif
+    if ( strncmp( searchref=(trythis->value()), "View ", 5)==0 ) {
+      return trythis;
+    }
+    trythis = trythis->next_object( NOTE_tag );
   }
   return trythis;
 }

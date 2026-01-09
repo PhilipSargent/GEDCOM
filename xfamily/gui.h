@@ -47,6 +47,10 @@ public:
   Fl_Menu_Item popup_data[10];
 
   indipopupmenu( mainUI* );
+#ifdef fix0011
+  void grey( int );
+  void black( int );
+#endif
 };
 
 class fampopupmenu {
@@ -54,7 +58,20 @@ public:
   Fl_Menu_Item popup_data[6];
 
   fampopupmenu( mainUI* );
+#ifdef fix0011
+  void grey( int );
+  void black( int );
+#endif
 };
+
+#ifdef fix0010
+class genpopupmenu {
+public:
+  Fl_Menu_Item popup_data[2];
+
+  genpopupmenu( mainUI* );
+};
+#endif
 
 class notesmenu {
   Fl_Menu_Item menu_data[6];
@@ -94,12 +111,19 @@ public: // this lot should become private v. soon !
   // so for now we won't bother declaring them
   indipopupmenu  *indimenu;
   fampopupmenu   *fammenu;
+#ifdef fix0010
+  genpopupmenu   *genmenu;
+#endif
 
   mainUI( treeinstance* ); // our constructor
   void settitle();
   void show();
   void hide();
   void canvassize( int, int );
+#ifdef fix0010
+  int canvas_w();
+  int canvas_h();
+#endif
   mainUI *getnext() const;
   void setnext( mainUI* );
   treeinstance* whichtree() const;
@@ -107,6 +131,7 @@ public: // this lot should become private v. soon !
   GEDCOM_object* getcurrent() const;
   void setcurrent( GEDCOM_object* );
   void newdisplay();
+  void centre_current();
   void settop(); // probably should be private
   GEDCOM_object* gettop() const;
 

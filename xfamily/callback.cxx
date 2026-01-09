@@ -11,11 +11,16 @@
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Multiline_Input.H>
 
+#include "fixes.h"
+
+#ifdef fix0010
+#include <FL/Fl_Image.H>
+#endif
+
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
 
-#include "fixes.h"
 
 #include "classes.h"
 #include "family.h"
@@ -28,6 +33,9 @@
 #include "callback.h"
 #include "strings.h"
 #include "tags.h"
+#ifdef fix0010
+#include "write_png.h"
+#endif
 
 static Fl_Help_Dialog *help_dialog = 0;
 
@@ -149,13 +157,27 @@ void popup_cb(Fl_Button *, void *userdata) {
 int x,y,button;
 GEDCOM_object *clicked;
 mainUI *view = (mainUI*)userdata;
+#ifdef fix0011
+indidisplay *indid = NULL;
+famdisplay  *famd = NULL;
+#endif
 
 Fl_Menu_Item *picked;
   x = Fl::event_x();
   y = Fl::event_y();
   button = Fl::event_button();
   //printf("button clicked was %d.\n", button);
+  // view->main is the treedisplay, so whoisat is implemented in display.cxx
+#ifdef fix0011
+  printf("popup_cb using new code\n");
+  clicked = view->main->whoisat(x,y,indid,famd);
+  printf("popup_cb getting clicked pointer %ld\n",(long)clicked);
+#else
+  printf("popup_cb using old code\n");
   clicked = view->main->whoisat(x,y);
+#endif
+  // what we get back there is the actual INDI or FAM object, not the indidisplay
+  // or famdisplay
 
   if (button == 1) {
     if (clicked == NULL) return; // as opposed to a segmentation fault, for example...
@@ -163,17 +185,28 @@ Fl_Menu_Item *picked;
       view->setcurrent( clicked );
       //return;
     }
-    return; // select-click on marriage does nothing yet
+    return;
   }
   // so now have a right (3) or middle (2) click - currently treat both the same, but eventually decide
   // on the basis of a look-and-feel selector (RISCOS vs Windows/Linux) which will do menu
 
   // given a menu-requesting-click, we need to decide, on the basis of where we were clicked,
-  // which menu to open, view->indimenu or view->fammenu
+  // which menu to open, view->indimenu or view->fammenu or view->genmenu
 
-  if (clicked == NULL) { /*printf("popup_cb - no object\n");*/ return;} // eventually a generic popup to allow things like newperson, goto ...
-/*  if (clicked->objtype() == FAM_tag) { printf("popup_cb - FAM object\n"); return; } // not yet implemented
-  if (clicked->objtype() != INDI_tag) { printf("popup_cb bad object type clicked\n"); return; } */
+  if (clicked == NULL) {
+  // a generic popup to allow things like newperson, goto ... save screen
+#ifdef fix0010
+    view->whichtree()->setevent( clicked );
+    // suspect we don't actually need that, and we might want something more meaningful for this:
+    sprintf(person_buffer,"Menu");
+    picked=(Fl_Menu_Item*)((Fl_Menu_Item*)view->genmenu)->popup(x-40,y-10,person_buffer,(Fl_Menu_Item*)NULL,(Fl_Menu_*)NULL);
+    if (picked==NULL) return;
+    if (picked->callback_==NULL) return;
+    // for this one we need to know which view, specifically
+    picked->do_callback((Fl_Widget*)picked,view);
+#endif
+    return;
+  }
 
   if (clicked->objtype() == INDI_tag) {
     // printf("popup_cb - an INDI at %ld\n", (long)clicked);
@@ -181,22 +214,69 @@ Fl_Menu_Item *picked;
     sprintf(person_buffer,"%s",clicked->subobject( NAME_tag )->value());
 
     view->whichtree()->setevent( clicked );
+#ifdef fix0012
+    view->whattodraw()->setevent( (void*)indid);
+#endif
+
+    // need to (a) find some things out about the particular INDIdisplay
+    // so we can diagnose whether to grey out some menu options (eg. 'younger')
+    // then need some vague idea of how to grey them out !
+    // fix0011 means we have indid as a pointer to the indidisplay ... maybe
+
+#ifdef fix0011
+    printf("popup_cb believes we clicked on an INDI, and the indidisplay is %ld, %s\n",(long)indid,indid->name());
+    if (indid->younger_valid()) {
+      printf("younger is OK\n");
+      view->indimenu->black(3);
+    } else {
+      printf("younger greyed\n");
+      view->indimenu->grey(3);
+    }
+#endif
+    
 
     // need cast to discard const-ness 
     picked=(Fl_Menu_Item*)((Fl_Menu_Item*)view->indimenu)->popup(x-40,y-10,person_buffer,(Fl_Menu_Item*)NULL,(Fl_Menu_*)NULL);
     if (picked==NULL) return;
     if (picked->callback_==NULL) return;
+#ifdef fix0012
+    picked->do_callback((Fl_Widget*)picked,view);
+#else
     picked->do_callback((Fl_Widget*)picked,view->whichtree());
+#endif
     return;
   }
   if (clicked->objtype() == FAM_tag) {
     sprintf(person_buffer,"%s",clicked->getidname());
     view->whichtree()->setevent( clicked );
+
+    // need to (a) find some things out about the particular FAMdisplay
+    // so we can diagnose whether to grey out some menu options (eg. 'later')
+    // then need some vague idea of how to grey them out !
+#ifdef fix0011
+    printf("popup_cb believes we clicked on a FAM, and the famdisplay is %ld, %s\n",(long)famd,famd->marrlabel());
+    if (famd->later_valid()) {
+      printf("later is OK\n");
+      view->fammenu->black(2);
+    } else {
+      printf("later greyed\n");
+      view->fammenu->grey(2);
+    }
+#ifdef fix0012
+    view->whattodraw()->setevent( (void*)famd);
+#endif
+#endif
+
     // need cast to discard const-ness 
     picked=(Fl_Menu_Item*)((Fl_Menu_Item*)view->fammenu)->popup(x-40,y-10,person_buffer,(Fl_Menu_Item*)NULL,(Fl_Menu_*)NULL);
     if (picked==NULL) return;
     if (picked->callback_==NULL) return;
+#ifdef fix0012
+    printf("popup_cb calling callback for fampopupmenu with userdata %ld\n",(long)view);
+    picked->do_callback((Fl_Widget*)picked,view);
+#else
     picked->do_callback((Fl_Widget*)picked,view->whichtree());
+#endif
     return;
   }
   // we already covered clicked==NULL, so there should be no way to get here
@@ -262,8 +342,16 @@ void edit_cb(Fl_Menu_ *menu, void *userdata) {
   // called on, so we can find out whom to edit !! (this should have been
   //mostly done by popup_cb, who found out where the mouse was clicked
   // and should have put a title on the menu to say who we would edit)
+#ifdef fix0012
+  mainUI* view = (mainUI*)userdata;
+  treeinstance* tree = view->whichtree();
+  displaytree* clickedtree = view->whattodraw();
+  indidisplay* eventindi = (indidisplay*)clickedtree->getevent();
+  neweditbox = editUIs->open(tree, eventindi->getperson());
+#else
   treeinstance* tree = (treeinstance*)userdata;
   neweditbox = editUIs->open(tree, tree->geteventobject());
+#endif
 }
 
 void okedit_cb(Fl_Return_Button *, void *userdata) {
@@ -384,14 +472,21 @@ void famed_cb(Fl_Menu_ *menu, void *userdata) {
   // called on, so we can find out whom to edit !! (this should have been
   //mostly done by popup_cb, who found out where the mouse was clicked
   // and should have put a title on the menu to say who we would edit
+#ifdef fix0012
+  mainUI* view = (mainUI*)userdata;
+  treeinstance* tree = view->whichtree();
+  displaytree* clickedtree = view->whattodraw();
+  famdisplay* eventfam = (famdisplay*)clickedtree->getevent();
+  newfambox = famUIs->open(tree, eventfam->getfamily());
+#else
   treeinstance* tree = (treeinstance*)userdata;
   // we need to get a pointer to our particular view, and then use
   // the x and y position to see who the menu click was over ...
   // then fill in all the details of the person. indi_ui probably needs a
   // member of type GEDCOM_object* (or indeed, Indi*) to say who we are
   // editing (NULL for a new person yet to be created).
-
   newfambox = famUIs->open(tree, tree->geteventobject());
+#endif
 }
 
 void okfam_cb(Fl_Return_Button *, void *userdata) {
@@ -448,12 +543,66 @@ void helpfam_cb(Fl_Button *, void *userdata) {
   show_help( userdata );
 }
 
+#ifdef fix0010
+////////////////////////////////////////////////////////////////////////////////
+//
+// callback routines for genpopupmenu
+
+extern uchar* flocal_read_image( uchar*, int, int, int, int, int );
+
+void savescr_cb(Fl_Menu_ *menu, void *userdata) {
+  uchar *data_p = NULL;
+  mainUI* view = (mainUI*)userdata;
+  // we apparently need to force the window to be current in order to be
+  // able to create an Fl_Offscreen which X understands
+  view->main->window()->make_current();
+  int os_w = view->canvas_w();
+  int os_h = view->canvas_h();
+  data_p = (uchar*)malloc(4*((os_w+3)&0xfffffffc)*((os_h+3)&0xfffffffc));
+#ifdef debugging
+  printf("Expecting to save an area %d x %d, into %ld bytes malloc'ed at %ld\n",os_w,os_h,4*((os_w+3)&0xfffffffc)*((os_h+3)&0xfffffffc),(long)data_p);
+#endif
+  if (data_p==NULL) {
+    printf("Can't allocate memory to save window as graphic\n");
+    return;
+  }
+
+// We can't just save from our window/canvas as it's not double-buffered and
+// the bit map we'd want simply doesn't exist. We have to create an offscreen
+// buffer of the canvas size, make it the target of drawing, call the code that
+// draws our tree, with the clip rectangle set to the full size, and only then
+// call fl_read_image. Then untarget drawing to the offscreen and delete it.
+
+  Fl_Offscreen saver=fl_create_offscreen(os_w,os_h);
+  printf("Created offscreen buffer %ld\n",(long)saver);
+  fl_begin_offscreen(saver);
+  view->main->drawoffscreen();
+
+  fl_read_image(data_p, 0, 0, os_w, os_h, 0);
+//  uchar* data_p_returned;
+//  data_p_returned = flocal_read_image(data_p, 50, 50, 50, 50, 0);
+#ifdef debugging
+//  printf("Got an image at %ld\n",(long)data_p_returned);
+#endif
+  write_png("Test1.png", data_p, os_w, os_h, 3);
+  fl_end_offscreen();
+  fl_delete_offscreen( saver );
+
+#ifdef debugging
+  printf("Wrote the image as a .png\n");
+#endif
+  free(data_p);
+}
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 // callback routines for statsUI
 
 void stats_cb(Fl_Menu_ *, void *userdata) {
-  treeinstance* instanciation = (treeinstance*)userdata;
+  mainUI*  view = (mainUI*)userdata;
+  treeinstance* instanciation = view->whichtree();
+//  treeinstance* instanciation = (treeinstance*)userdata;
   statsUI* statsbox = instanciation->statsui();
   if (statsbox->shown()) statsbox->hide();
   statsbox->setvalues();
@@ -609,9 +758,21 @@ void helpchoices_cb(Fl_Button *, void *userdata) {
 void menuopennotes_cb(Fl_Menu_ *menu, void *userdata) {
 // opens a notesUI window for an object which gets a popup menu, ie. INDI or FAM
 notesUI* newui;
+#ifdef fix0012
+  mainUI* view = (mainUI*)userdata;
+  treeinstance* tree = view->whichtree();
+#else
   treeinstance* tree = (treeinstance*)userdata;
+#endif
   // the code which popped up the menu should have called setevent for
   // the relevant object, so all we will need to do is look at the value
+
+// in order to eliminate geteventobject() on the treeinstance, we want to
+// use event=view->whattodraw()->getevent() and then one of event->getfamily()
+// or event->getperson(). However we can't tell what sort of pointer we get
+// back from getevent(), as our classes aren't properly polymorphic (we just
+// cast to void* and back...) FIXME
+
   newui = noteUIs->open(tree, tree->geteventobject(), NOTE_tag);
 // noteUI->open() should do this:  newui->window->show();
 }
@@ -721,6 +882,133 @@ void menu_newmarriage_cb(Fl_Menu_ *menu, void* userdata) {
   // yet, there should not be a relevant FAMS (well, there might be, but the
   // purpose of this code is to create a new one)
 }
+
+#ifdef fix0011
+void menu_younger_cb(Fl_Menu_ *menu, void* userdata) {
+
+  // the idiom is such that we shouldn't really allow this operation unless
+  // the whole FAM is in the displaytree - this has already been checked
+  // and the menu item 'younger' greyed out if it's not a valid operation
+
+#ifdef fix0012
+  mainUI*  view = (mainUI*)userdata;
+  displaytree* clickedtree = view->whattodraw();
+  treeinstance* tree = view->whichtree();
+#else
+  treeinstance* tree = (treeinstance*)userdata;
+#endif
+  GEDCOM_object *sibling = tree->geteventobject();
+  sibling->print( 0 );
+  // find a FAMC subobject of sibling - there can only ever be one
+  //  if there isn't one, then we can't be made older - whinge/exit
+  GEDCOM_object *thefamc = sibling->subobject( FAMC_tag );
+  // should not be possible - menu item is greyed out for this case:
+  if (thefamc == NULL ) {
+    printf("Can't find a FAMC for that INDI\n");
+    return; // whinge we are not a child in any family
+  }
+  thefamc->print( 0 );
+  GEDCOM_object *thefam = thefamc->followxref();
+  if (thefam == NULL) {
+    printf("Can't follow FAMC ref to a FAM\n");
+    return; // we are very broken if this happens
+  }
+  thefam->print( 0 );
+  // indirect to the relevant FAM object. find the first CHIL subobject.
+  GEDCOM_object *chil1 = thefam->subobject( CHIL_tag );
+  GEDCOM_object *chil2;
+  while ((chil1->followxref())!=sibling) {
+    chil1 = chil1->next_object (CHIL_tag);
+    if (chil1==NULL) {
+      printf("None of CHIL tags in FAM points back to starting INDI\n");
+      return;
+    }
+  }
+  chil2 = chil1->next_object( CHIL_tag );
+  // this should not be possible - the menu item is greyed out if we are
+  // already youngest but bombproof error-checking does not real harm ;-)
+  if (chil2 == NULL) {
+    printf("That's already the youngest child\n");
+    return; // whinge that we are already the youngest
+  }
+  if (!thefam->swap_subobject( chil1, chil2 )) {
+    printf("swap_subobject returned false - something broke !\n");
+  }
+  printf("Should now be swapped\n");
+  thefam->print( 0 );
+
+  // at this point we need to rebuild the displaytree and redraw.
+#ifndef fix0012
+  mainUI *view = tree->mainui();
+#endif
+  view->newdisplay();
+  view->window->redraw();
+  while ( (view=(view->getnext()))!=NULL ) {
+    view->newdisplay();
+    view->window->redraw();
+  }
+  // that recalculates display, and forces a redraw. Often, that is enough, but
+  // sometimes the redrawn tree will be such that the person we just made younger
+  // is no longer visible. We ought to check for that (if they are visible in the
+  // window at all, we shouldn't scroll, but if they are now entirely out of the
+  // window, we should centre them).
+  
+}
+
+void menu_later_cb(Fl_Menu_ *menu, void* userdata) {
+
+  mainUI*  view = (mainUI*)userdata;
+#ifdef fix0012
+  displaytree* clickedtree = view->whattodraw();
+#endif
+  treeinstance* tree = view->whichtree();
+#ifndef fix0012
+  // we do need family (to identify the first of the FAMS objects),
+  // but could get it with eventindi->family()->getfamily();
+  GEDCOM_object *family = tree->geteventobject();
+  family->print( 0 );
+#endif
+  // so we need to get back to the INDI that has this family, and swap two
+  // FAMS objects. Of course, there are two INDIs, and we want the one that
+  // is uppermost in the displayed tree
+#ifdef fix0012
+  famdisplay* eventfam = (famdisplay*)clickedtree->getevent();
+  GEDCOM_object* family = eventfam->getfamily();
+  printf("eventfam->getfamily() returns %ld\n",(long)family);
+  GEDCOM_object* person = eventfam->getindi();
+  printf("Trying to swap FAMS objects for \n");
+  person->print(0);
+  GEDCOM_object *fams1=person->subobject( FAMS_tag );
+  GEDCOM_object *fams2;
+  while ((fams1->followxref())!=family) {
+    fams1 = fams1->next_object (FAMS_tag);
+    if (fams1==NULL) {
+      printf("None of FAMS tags in INDI points back to starting FAM\n");
+      return;
+    }
+  }
+  fams2 = fams1->next_object( FAMS_tag );
+  // this should not be possible - the menu item is greyed out if we are
+  // already latest but bombproof error-checking does not real harm ;-)
+  if (fams2 == NULL) {
+    printf("That's already the latest marriage\n");
+    return; // whinge that we are already the latest
+  }
+  if (!person->swap_subobject( fams1, fams2 )) {
+    printf("swap_subobject returned false - something broke !\n");
+  }
+  printf("Should now be swapped\n");
+  person->print( 0 );
+  view->newdisplay();
+  view->window->redraw();
+  while ( (view=(view->getnext()))!=NULL ) {
+    view->newdisplay();
+    view->window->redraw();
+  }
+#endif
+}
+#endif
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //

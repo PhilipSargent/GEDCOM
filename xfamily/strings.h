@@ -102,10 +102,10 @@ extern char msg_menu_notes[];
 #define MAX_menu_notes 11
 extern char msg_menu_marry[];
 #define MAX_menu_marry 7
-extern char msg_menu_older[];
-#define MAX_menu_older 12
-extern char msg_menu_earlier[];
-#define MAX_menu_earlier 12
+extern char msg_menu_younger[];
+#define MAX_menu_younger 11
+extern char msg_menu_later[];
+#define MAX_menu_later 10
 extern char msg_menu_child[];
 #define MAX_menu_child 7
 extern char msg_menu_remove[];
@@ -116,6 +116,8 @@ extern char msg_menu_indreps[];
 #define MAX_menu_indreps 9
 extern char msg_menu_ancs[];
 #define MAX_menu_ancs 10
+extern char msg_menu_savescr[];
+#define MAX_menu_savescr 23
 extern char msg_info_name[];
 #define MAX_info_name 5
 extern char msg_info_author[];

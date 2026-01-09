@@ -27,6 +27,9 @@ class treeinstance {
   GEDCOM_object *lastevent;// the object on which a mouse event was last
   // raised - this can be fairly transient, only needed by the callback
   // which deals with the event, so each event can overwrite it
+  // hmm, but with multiple views, events can be raised on different
+  // views of the smae tree simultaneously - think this belongs in
+  // the display code, not here.
   char* filename;
 // each instance also needs its own list of @id@s
   GEDCOM_id *first_id;

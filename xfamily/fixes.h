@@ -9,14 +9,16 @@
 #define debugging
 
 // code to log all destructor calls so we see if we really are releasing memory
-#define destructorlogs
+//#define destructorlogs
 
 #define fix0001
 // assume fltk does not scroll an Fl-Scroll to prevent window displaying
 // beyond the canvas area (used in gui.cxx) [AERW 2007-09-18 I don't think
 // this fix works, if it is fixing what it sounds as if it was meant to fix]
+// remove this code in v018 unless we continue to see the problem (in which
+// case, do more experiments...)
 
-//#define fix0002 DO NOT USE
+//#define fix0002 ALL CODE REMOVED IN v018 - fix0002 conditional code deleted
 // fix0002 compiled three methods:
 // displaytree::findindi(obj); indidisplay::findindi(obj) and famdisplay::findind(obj)
 // which returns the indidisplay for a given GEDCOM INDI object, starting from the
@@ -29,9 +31,9 @@
 #define fix0003
 // In this fix (applied in display.h, display.cxx and gui.cxx) we keep a pointer to
 // the current person's indisplay in the treedisplay, so as to fix the problem which
-// inspired hte ill-considered fix0002
+// inspired the ill-considered fix0002
 
-#define test0002
+//#define test0002 ALL OLD CODE REMOVED IN v018 test0002 conditional code now included
 // indidisplay::whoisat() reduce code inefficiency - we think we were testing
 // the same thing repeatedly and this fix should stop that
 
@@ -57,6 +59,9 @@
 // implement GEDCOM_object::insert_after() and insert_before() as alternatives
 // to chain_object() and precede_object() as this may make the logic clearer
 // now tested and the old code should be removed soon
+// v018: old code now conditionally compiled out, so assuming this doesn't
+// break anything (so check documentation to ensure you won't write any new
+// calls to the purged code), we can make this new code unconditional
 
 #define fix0007
 // try to make notesUI have scrollbars. Initially by using Fl_Text_Display
@@ -73,7 +78,7 @@
 // event s specifically, we would like to have *something* to display even if it
 // is not exactly what we'd like (though we'd then need to colour-flag it in some
 // way, I suppose).
-// The idea would be to look up birth data, and return it if we have it, otherwise
+// The idea would be to look up birth date, and return it if we have it, otherwise
 // return the earliest of CHR or BAPM, which we'd display in an alternate colour
 // as BEF <date>. Similarly, ask for a date of death and if we haven't one, return
 // date from CREM or BURI.
@@ -90,7 +95,25 @@
 // start (and since we only ever have one prefUI), we should implement a method
 // on the preferences to return this - how does prefUI get these ? Does prefUI
 // access a preferences structure or is there a whole lot of underlying structure
-// missing ?
+// missing ? Yes, missing. We should load initial values from a file, allow user
+// to update values (and recalculate tree display if needed), and be able to save
+// preferences back to a file. This assumes global preferences which I think is
+// OK - it would get a lot harder trying to have per-view or per-tree prefs.
 
+#define fix0010
+// ad hoc code to add the ability to save the whole current displayed tree via
+// a context menu raised on any blank part of the canvas, using fl_read_image()
+// you get some sort of X bit map, which will do for a start...
+
+#define fix0011
+// extend the four whoisat() methods to return (by reference) one of an indidisplay
+// or famdisplay (either or both may be returned NULL). This enables us to test
+// whether certain popup menu items are meaningful (younger and later). Added
+// convenience methods indidisplay::younger_valid() and famdisplay::later_valid()
+
+#define fix0012
+// rather than storing the GEDCOM_object* represented by the display item most
+// recently clicked on a tree, store a void* pointer cast from either the
+// indidisplay* or famdisplay*.
 
 #endif

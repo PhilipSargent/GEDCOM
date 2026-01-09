@@ -65,7 +65,7 @@ barmenu::barmenu(mainUI* view) {
   menu_data[4] = (Fl_Menu_Item){msg_menu_print,    0, 0, 0, 128, 0, 0, 14, 0 };
   menu_data[5] = (Fl_Menu_Item){msg_menu_newview,  0, (Fl_Callback*)newview_cb, (void*)(view),   0, 0, 0, 14, 0 };
   menu_data[6] = (Fl_Menu_Item){msg_menu_discard,  0, 0, 0,   0, 0, 0, 14, 0 };
-  menu_data[7] = (Fl_Menu_Item){msg_menu_stats,    0, (Fl_Callback*)stats_cb, (void*)(view->whichtree()),   0, 0, 0, 14, 0 };
+  menu_data[7] = (Fl_Menu_Item){msg_menu_stats,    0, (Fl_Callback*)stats_cb, (void*)(view),   0, 0, 0, 14, 0 };
   menu_data[8] = (Fl_Menu_Item){msg_menu_quit,     0, (Fl_Callback*)quit_cb, 0,   0, 0, 0, 14, 0 };
   menu_data[9] = (Fl_Menu_Item){ 0 };
   menu_data[10] = (Fl_Menu_Item){msg_menu_folk,     0, 0, 0,  64, 0, 0, 14, 0 };
@@ -104,11 +104,14 @@ barmenu::barmenu(mainUI* view) {
 // for instanciations of the main window click-on-INDI popup menu
 // cast with (Fl_Menu_Item*) to use with ->menu(thing)
 
+// I think it's redundant putting (void*)(view) as the userdata, as the userdata
+// gets set by the popup callback before it calls the callbacks in the menu
+
 indipopupmenu::indipopupmenu(mainUI* view) {
   popup_data[0] = (Fl_Menu_Item){msg_menu_edit,      0, (Fl_Callback*)edit_cb,             (void*)(view),              0,0,0,14,0 };
-  popup_data[1] = (Fl_Menu_Item){msg_menu_notes,     0, (Fl_Callback*)menuopennotes_cb,    (void*)(view->whichtree()), 0,0,0,14,0 };
-  popup_data[2] = (Fl_Menu_Item){msg_menu_marry,     0, (Fl_Callback*)menu_newmarriage_cb, (void*)(view->whichtree()), 0,0,0,14,0 };
-  popup_data[3] = (Fl_Menu_Item){msg_menu_older,     0, 0, 0,   0, 0, 0, 14, 0 };
+  popup_data[1] = (Fl_Menu_Item){msg_menu_notes,     0, (Fl_Callback*)menuopennotes_cb,    (void*)(view), 0,0,0,14,0 };
+  popup_data[2] = (Fl_Menu_Item){msg_menu_marry,     0, (Fl_Callback*)menu_newmarriage_cb, (void*)(view), 0,0,0,14,0 };
+  popup_data[3] = (Fl_Menu_Item){msg_menu_younger,   0, (Fl_Callback*)menu_younger_cb, (void*)(view),   0, 0, 0, 14, 0 };
   popup_data[4] = (Fl_Menu_Item){msg_menu_child,     0, 0, 0,   0, 0, 0, 14, 0 };
   popup_data[5] = (Fl_Menu_Item){msg_menu_remove,    0, 0, 0, 128, 0, 0, 14, 0 };
   popup_data[6] = (Fl_Menu_Item){msg_menu_indreps,   0, 0, 0,  64, 0, 0, 14, 0 };
@@ -117,24 +120,58 @@ indipopupmenu::indipopupmenu(mainUI* view) {
   popup_data[9] = (Fl_Menu_Item){ 0 };
 }
 
+#ifdef fix0011
+void indipopupmenu::grey( int n ) {
+  popup_data[n].deactivate();
+}
+
+void indipopupmenu::black( int n ) {
+  popup_data[n].activate();
+}
+#endif
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // class fampopupmenu:
 // for instanciations of the main window click-on-FAM popup menu
 // cast with (Fl_Menu_Item*) to use with ->menu(thing)
 
-// FIXME: check whether you really think the same Callback routines will
-// work ... (hint, the edit one definitely wouldn't and is now famed_cb)
+// I think it's redundant putting (void*)(view) as the userdata, as the userdata
+// gets set by the popup callback before it calls the callbacks in the menu
 
 fampopupmenu::fampopupmenu(mainUI* view) {
-  popup_data[0] = (Fl_Menu_Item){msg_menu_edit,      0, (Fl_Callback*)famed_cb, (void*)(view),   0, 0, 0, 14, 0 };
-  popup_data[1] = (Fl_Menu_Item){msg_menu_notes,     0, (Fl_Callback*)menuopennotes_cb, (void*)(view), 0,0,0,14, 0 };
-  popup_data[2] = (Fl_Menu_Item){msg_menu_earlier,   0, 0, 0,   0, 0, 0, 14, 0 };
+  popup_data[0] = (Fl_Menu_Item){msg_menu_edit,      0, (Fl_Callback*)famed_cb, (void*)(view),         0,0,0,14,0 };
+  popup_data[1] = (Fl_Menu_Item){msg_menu_notes,     0, (Fl_Callback*)menuopennotes_cb, (void*)(view), 0,0,0,14,0 };
+  popup_data[2] = (Fl_Menu_Item){msg_menu_later,     0, (Fl_Callback*)menu_later_cb, (void*)(view),    0,0,0,14,0 };
   popup_data[3] = (Fl_Menu_Item){msg_menu_child,     0, 0, 0,   0, 0, 0, 14, 0 };
   popup_data[4] = (Fl_Menu_Item){msg_menu_unmarry,   0, 0, 0, 128, 0, 0, 14, 0 };
   // unmarry is to remove the FAM object entirely. Divorce is a tab in the
   // FAM edit box, and no longer a menu item as it was in !Family
   popup_data[5] = (Fl_Menu_Item){ 0 };
 }
+
+#ifdef fix0011
+void fampopupmenu::grey( int n ) {
+  popup_data[n].deactivate();
+}
+
+void fampopupmenu::black( int n ) {
+  popup_data[n].activate();
+}
+#endif
+
+#ifdef fix0010
+///////////////////////////////////////////////////////////////////////////////
+// class genpopupmenu:
+// for instanciations of the main window click-on-blank popup menu
+// cast with (Fl_Menu_Item*) to use with ->menu(thing)
+
+genpopupmenu::genpopupmenu(mainUI* view) {
+  popup_data[0] = (Fl_Menu_Item){msg_menu_savescr,  0, (Fl_Callback*)savescr_cb, (void*)(view),   0, 0, 0, 14, 0 };
+  popup_data[1] = (Fl_Menu_Item){ 0 };
+}
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 // class notesmenu:
@@ -197,6 +234,9 @@ mainUI::mainUI( treeinstance* which ):
 #endif
   indimenu = new indipopupmenu( this );
   fammenu  = new  fampopupmenu( this );
+#ifdef fix0010
+  genmenu  = new  genpopupmenu( this );
+#endif
 
   w->end();
   w->resizable(scroll);
@@ -279,7 +319,8 @@ void mainUI::canvassize( int xsize, int ysize ) {
   // d) if at all possible, if we've just resized the window in response to a new current person
   //    we should scroll such that the current person is visible. We *don't* want to do any
   //    scrolling off our own bat in response to the *user* resizing the window, except to the
-  //    minimum extent needed to ensure that we meet the criteria a-c above.
+  //    minimum extent needed to ensure that we meet the criteria a-c above. In code associated
+  //    with fix0003, we appear to be doing this successfully.
   int offX = scroll->xposition();
   int offY = scroll->yposition();
   if (offX + nowX > xsize + 17) offX = xsize + 17 - nowX;
@@ -298,6 +339,11 @@ void mainUI::canvassize( int xsize, int ysize ) {
 #endif
   window->size_range(400,100,maxX,maxY);
 }
+
+#ifdef fix0010
+int mainUI::canvas_w() { return this->main->w(); }
+int mainUI::canvas_h() { return this->main->h(); }
+#endif
 
 mainUI*        mainUI::getnext() const { return next; }
 void           mainUI::setnext( mainUI* chained ) { next = chained; }
@@ -320,12 +366,16 @@ bool redraw;
 // INDI object.
 #ifdef debugging
   printf("attempting to set current to this object:\n");
-  newperson->outline( stdout, 1 );
+  newperson->outline( stdout, 0 );
   newperson->subobject( NAME_tag )->print( 1 ); // diagnose
 #endif
 
   person = newperson;
-  if (redraw=(window->shown())) this->hide();
+// I'm sure this is bad news. "hide"ing a window seems to allow the
+// window manager free rein to move it about when we show it again,
+// which it ***** well shouldn't.
+//  if (redraw=(window->shown())) this->hide();
+  redraw=(window->shown()); // so don't hide, even if shown
   this->settitle();
 #ifdef debugging
   printf("mainUI::setcurrent set new window title OK\n");
@@ -335,12 +385,13 @@ bool redraw;
   printf("mainUI::setcurrent set new current person OK\n");
 #endif
   this->newdisplay();
+  this->centre_current();
 #ifdef debugging
   printf("mainUI::setcurrent created new display structure OK\n");
 #endif
   // FIXME we ought to centre the new person on the display, and adjust the canvas size
   // so that you don't get a blank grey window with all the data scrolled off somewhere
-  // newdisplay is supposed to be doing that - but is currently failing
+  // newdisplay is supposed to be doing that
   if (redraw) this->show();
 }
 
@@ -368,20 +419,17 @@ void mainUI::newdisplay() {
 #ifdef debugging
   printf("mainUI::newdisplay calculated where to put everything\n");
 #endif
-  // to put the top person of the tree at top centre of the window we need:
-#ifndef fix0002
- #ifndef fix0003
-    // but this doesn't seem to be doing it...
-  #ifdef fltk13
-    scroll->scroll_to( display->gettop()->x() - (this->window->w()/2), 0 );
-  #else
-    scroll->position( display->gettop()->x() - (this->window->w()/2), 0 );
-  #endif
- #endif
+  this->canvassize(display->xsize(),display->ysize());
+#ifdef debugging
+  printf("mainUI::newdisplay finally set the canvassize %d x %d\n",display->xsize(),display->ysize());
 #endif
-  // but often this puts the newly selected current person off-screen, which is
-  // not ideal, so we probably want to do that vertically, but centre our new
-  // current person left-right like this:
+  // OK, canvassize will scroll to ensure that the canvas fills the window
+  // is this true ? isn't that one of the bugs ?
+  // so we don't want to scroll it afterwards FIXME I'm not (yet) convinced this
+  // is right - but we'll accumulate some experience with fix0003 before doing anything
+}
+
+void mainUI::centre_current() {
 #ifdef fix0003
   indidisplay *newcurrent;
   newcurrent = display->getcurrent();
@@ -391,27 +439,6 @@ void mainUI::newdisplay() {
    scroll->position( newcurrent->x() - (this->window->w()/2), 0 );
  #endif
 #endif
-#ifdef fix0002
-  // the current person is at indi object this->person, but that's not the
-  // display object, for which we need to write displaytree::getindi ...
-  indidisplay *newcurrent;
-  newcurrent = display->findindi( this->person );
- #ifdef debugging
-   printf("Found %s at %ld, offset into canvas is %d\n",newcurrent->name(),(long)newcurrent,newcurrent->x());
- #endif
-
- #ifdef fltk13
-   scroll->scroll_to( newcurrent->x() - (this->window->w()/2), 0 );
- #else
-   scroll->position( newcurrent->x() - (this->window->w()/2), 0 );
- #endif
-#endif
-  this->canvassize(display->xsize(),display->ysize());
-#ifdef debugging
-  printf("mainUI::newdisplay finally set the canvassize %d x %d\n",display->xsize(),display->ysize());
-#endif
-  // OK, canvassize will scroll to ensure that the canvas fills the window
-  // so we don't want to scroll it afterwards
 }
 
 void mainUI::settop() {

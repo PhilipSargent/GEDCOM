@@ -25,14 +25,15 @@ CPPFILES = \
 	objects.cxx \
 	gui.cxx \
 	xlate.cxx \
-	display.cxx
+	display.cxx \
+        write_png.cxx
 
 OBJECTS = $(CPPFILES:.cxx=.o)
 
 # we want to find the leafname dynamically PWLEAF = ${PWD##*/}
 # but have had no success as yet
 PWLEAF=${PWD##*/}
-#PWLEAF = v017
+#PWLEAF = v018
 
 include makeinclude
 

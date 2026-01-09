@@ -101,4 +101,5 @@ extern GEDCOM_tag   *first_tag;
 extern GEDCOM_tag   *last_tag;
 
 extern int xMax[];
+extern int GEDCOMcount;
 #endif

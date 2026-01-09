@@ -1,0 +1,229 @@
+For 0.17, we are on gcc 4.6.3, and fltk 1.3 (or later)
+
+to compile on kent under precise, we use fltk 1.3 which has important API
+changes. Set fltk13 in fixes.h to compile the new code. This should be
+folded in for 0.17 - we should never need to use an old fltk.
+
+-------------
+
+xlate.cxx: update version number in the path to load messages. Should not
+ need to do this - its a bug. Done for 0.17, too, 2011-09-19. Also need to
+ change PWLEAF in Makefile
+
+-------------
+
+we get
+
+/usr/bin/ld: cannot find -lpng
+/usr/bin/ld: cannot find -ljpeg
+/usr/bin/ld: cannot find -lz
+
+all defined in IMAGELIBS in makeinclude, so we either need to fix the locations
+in that file, or (more likely) install -dev versions of the libraries so we get
+the headers... yes, this is already documented in v016/Bugs_v0_16
+
+apt-get install libpng12-dev libjpeg62-dev zlib1g-dev
+
+so a ./configure script would be checking for these libraries and headers,
+as well as reporting the fltk version and checking for those libraries and
+headers, of course).
+
+-------------
+
+Stub for callback routine for Person menu -> Marry so we can think about dbox design.
+It will probably be similar to a famUI (indeed, we can probably use the same class,
+possibly with some switches to turn extra buttons on/off (for completions on spouse
+name if opened from the Marry menu item)).
+
+-------------
+
+fix0002 obsoleted. It was an ill-considered general solution to a rather limited
+and specific problem, and didn't even solve that properly since we had failed to
+realise that a given INDI may give rise to more than one indidisplay in a treedisplay.
+
+fix0003 implements a much more sensible way of getting the one bit of information
+that is needed to ensure that we scroll the window to show a new current person
+within the window.
+
+-------------
+
+fix0004:
+
+Each treeinstance now has a new linked list of GEDCOM_objects, for ephemeral
+objects which we will most likely destroy, or may convert to permanent parts
+of the tree.
+
+When a new indiUI is opened, if one or both parents are not yet defined, we create
+new GEDCOM structures for each, and add these to the ephem_tag list, using id numbers
+in an E<number> sequence. In theory we should be able to open an indiUI for a completely
+new person, or a child of an existing person, so we need to be able to create an
+ephemeral GEDCOM structure for the indi as well as the parents, so that's probably
+the next thing to implement.
+
+The next step is to destroy those objects and clean up if the user hits "cancel"
+or simply closes the indiUI. Ideally, it would be nice to reset the treeinstance
+private variable ephemnext to 0 if there are no epehemeral objects outstanding,
+as this is just an int and in theory if you ran the program long enough, it would
+overflow. Currently it's a signed int, so you only get 32767...
+
+For parents, all the indiUI can do is create new INDI objects with a NAME subobject.
+If these were new people, we'd convert the ephemeral GEDCOM person to a permanent one
+and link it at the appropriate place in the indilist.
+
+However, it can add a name that causes each parent to be identified with an existing
+individual - in that case we would destroy the ephemeral structure and link to the
+permanent one. There are a variety of scenarios, one of which is that two previously
+unmarried INDIs are indentified as parents of the main subject INDI, which effectively
+creates a new FAM object (ie. converts our ephemeral one with an E<num> is into a real
+one with an F<num> id).
+
+For our existing test (and the code we've implemented so far), a Cancel will require
+us to free:
+
+a 1 FAMC subobject on thisindi
+
+a 0 FAM object in the ephemeral list which has
+  1 WIFE
+  1 HUSB
+  1 CHIL subobjects
+
+two 0 INDI objects, each with a
+    1 FAMS subobject
+
+the latter three are easily identified as being on the ephem_list (we won't want to
+free up objects which were already part of the structure...), and the 1 FAMC is only
+to be deleted if it points to a FAM on the ephem_list. Those tests should be easy
+enough...
+
+From within the indiUI class, we have pointers
+
+thisindi
+mum
+dad
+
+but we have used fam, which is not a part of the class, so we'd have to create it
+again in the tidy-up routine. Logically, we ought to have this as a private variable
+of the indiUI class, so it persists wilst the indiUI is open.
+
+-------------
+
+fix0005:
+Now saving all current persons on all views when we save the tree.
+
+Now attempting to use the 0 NOTE View @I<number>@ fields to set the current
+person on each of potentially multiple views. Fallback is to use 0 NOTE Person,
+and the existing fallback code for that setsthe first person in the tree as
+current.
+That seems to work.
+
+We should make fix0005 permanent after a suitable delay, and remove old code
+which is no longer compiled. However, we did introduce an extra parameter in
+the GEDCOM_object::output() call, and this proved unnecessary, so we reverted
+that and there should already be no trace remaining...
+
+-------------
+
+fix0006:
+GEDCOM_object::chain_object() and precede_object() are coded with the object
+to insert as parameter and an existing subobject as this, which seems counter-
+conceptual in terms of useful naming. fix0006 introduces insert_after() and
+insert_before() which should be used in preference to the old code, and we
+should be aiming to remove the older versions (likely that precede_object()
+is not used anywhere alreday - chain_object() should be easy to replace -
+it's used in one plce only, in trees.cxx). OK, now testing... and appears OK,
+so again, remove code which is now no longer compiled.
+
+-------------
+
+fix0007: notesUI reimplemented using an Fl_text_editor instead of Fl_Multiline_Input
+This gives us scrollbars on the editor window, and seems to have fixed the cursor-
+wraps-around-top/bottom bug.
+
+-------------
+
+Unconditionally compiled: we implemented "younger" for siblings (replacing the
+stub for "older" - younger is more efficient and doesn't involve the user in
+any more work). This was a relatively simple change. However, we need to test
+whether "younger" is appropriate for the person we menu'd on, and this depends
+not just on whether the person has a youger sibling, but also on whether that
+sibling is displayed on the treedisplay we clicked. To find that out turns out
+to be a lot harder than you'd hope with the existing code, so fix0011 will aim
+to do this:
+
+-------------
+
+fix0011: reimplement the treedisplay, displaytree, indidisplay and famdisplay
+whoisat() methods to have an indidisplay and a famdisplay pointer passed by
+reference so that they may return the display object actually clicked on, as
+well as the GEDCOM_object for the INDI or FAM. This enables us to test
+whether certain popup menu items are meaningful - initially "younger", by
+passing the indidisplay to a new method "younger_valid" which returns true
+iff the indi has parent and younger sibling shown in the displaytree. We
+can (and do) then grey out younger in the menu when it would not be useful.
+Now do same process for swapping FAMS objects in an INDI, but this also
+needed
+
+fix0012: when we click on the tree, we now store a void* pointer which could
+be either famdisplay* or indidisplay* in the displaytree (as well as saving
+the relevant GEDCOM_object* in the treeinstance). Currently we are only using
+this pointer in the marriage->later process, and we're still using the event
+stored in the treeinstance for the other callbacks. Since we can potentially
+have several events active at once (actually, menus close when you click
+elsewhere so this may not be true) it would be better to keep an event record
+per view and not per tree, so perhaps we should eliminate the lastevent
+member of the treeinstance class ?
+
+
+-----------
+
+NOT YET CHANGED (analogous to fix0004)
+
+the famUI code is similar - we can't open a famUI unless a marriage exists (at the
+moment) since the person -> marry menu item is not yet implemented (ie. does
+nothing). However, that is one mechanism (and the most common) to create a
+FAM object, so we will eventually find ourselves opening a famUI for which
+only one INDI exists, and no FAM, so we will be creating ephemeral GEDCOM just
+as we are now building for indiUI.
+
+SO two steps: 1) add ephemeral objects to an opening famUI (even with present
+code we may have a FAM with only one of the parents (eg. F140 James /Lane/ (1761)
+has issue, but no wife - there's your test case)).
+
+2) add code to the "marry" menu item to open a suitable famUI.
+
+Note that if we have a case with one parent and some issue, and we choose "Marry"
+from the menu, it is NOT clear that we are choosing a spouse for the marriage
+giving rise to those issue - this is the only way we could create a subsequent
+marriage. So the initial assumption is that you will add a spouse to an
+existing marriage by choosing "Edit" over the family, and you will add a
+different marriage by choosing "marry" from the person menu. However, this will
+seem opaque to some users, so it would be best at some stage to ask if this is
+a new marriage, or an edit of the existing FAM. Ideally, you'd do this *before*
+opening the famUI dbox.
+
+For transparency, it might be helpful to add a non-mutable field to the famUI
+dbox, showing how many issue (CHIL) are currently associated with the FAM.
+There's space in the layout at bottom right. It really would be mutable if the
+user was also opening indiUIs to add people to the family, which raises the
+question - if we make changes to an individual involved in a family, can we
+easily check if a famUI is open ? We'd have to scan through every FAMS and a
+FAMC for each such INDI. This would also cover things like a change to the name
+of a parent in a famUI.
+
+The converse is more complex - in !Family if we change the name of one parent
+in an indiUI open on a child, this causes the new name to be treated as a new
+person (though maybe one existing elsewhere in the tree) and the child to be
+moved to a new family. The old family then gets checked to see if it is
+"empty" ie. only one HUSB, WIFE or CHIL, in which case it is garbage-collected.
+
+The situation in xfamily is such that we can open an indiUI and change the name
+of a parent, and need to reflect the change in any other indiUIs or any famUI
+that may be open in which that name appears. There's a corner case here where
+the user has also changed the name in one of those other UIs, but not yet
+committed it. It might be sloppy working by the user (making the same change
+in two different places, which we can spot) or he may really intend to resolve
+an ambiguity by changing the name of one parent and changing the parent in an
+indiUI to show that person is really in a different family. It can get quite
+complex, and must be resolved any time a commit is made in either type of UI.
+
+

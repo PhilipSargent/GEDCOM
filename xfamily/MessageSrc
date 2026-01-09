@@ -185,13 +185,13 @@ menu_marry
 en::Marry
 fr::Mariez
 
-menu_older
-en::Older
-fr::Plus ancien
+menu_younger
+en::Younger
+fr::Plus jeune
 
-menu_earlier
-en::Earlier
-fr::Antérieure
+menu_later
+en::Later
+fr::Plus tard
 
 menu_child
 en::Child
@@ -212,6 +212,10 @@ fr::Rapports
 menu_ancs
 en::Ancestors
 fr::Ancétres
+
+menu_savescr
+en::Save window as graphic
+fr::Sauvez graphique
 
 info_name
 en::Name
@@ -236,8 +240,8 @@ author
 en,fr::© A.E.R.Waddington, 2013
 
 version
-en::v 0.17 alpha 2013-01-14 en-gb
-fr::v 0.17 alpha 2013-01-14 fr
+en::v 0.18 alpha 2013-01-24 en-gb
+fr::v 0.18 alpha 2013-01-24 fr
 
 purpose
 en::Family Tree Editor
@@ -538,7 +542,7 @@ en::Other:
 fr::Autre:
 
 gpl_box
-en::The X!Family Genealogical Package version 0.17 Copyright © 2013 by Andy Waddington.\n
+en::The X!Family Genealogical Package version 0.18 Copyright © 2013 by Andy Waddington.\n
 Based loosely on !Family for RISC OS originally developed by Denis Howe.\n
 \n
 This package is free software: you can redistribute it and/or modify it under the terms of\n
@@ -553,7 +557,7 @@ You should have received a copy of the GNU General Public License\n
 along with this software: if not, write to the Free Software Foundation, Inc.,\n
 59 Temple Place, Suite 330, Boston. MA 02111-1307 USA\n
 Please report faults to family-maint@pennine.ddns.me.uk
-fr::Le progiciel généalogique "X!Famille" version 0.17. Propriété © 2013 par Andy Waddington.\n
+fr::Le progiciel généalogique "X!Famille" version 0.18. Propriété © 2013 par Andy Waddington.\n
 Basé vaguement sur !Family pour RISC OS, écrit par Denis Howe.\n
 \n
 Ce programme est libre, vous pouvez le redistribuer et/ou le modifier selon les termes\n

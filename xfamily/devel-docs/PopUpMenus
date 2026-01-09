@@ -1,0 +1,64 @@
+OK, so our starting point when generating a pop-up menu on the mainUI is
+
+mainUI *view = (mainUI*)userdata;
+  x = Fl::event_x();
+  y = Fl::event_y();
+
+and we currently use
+
+  clicked = view->main->whoisat(x,y);
+
+where main is a *treedisplay
+
+this immediately calls view->whattodraw()->whoisat()
+
+where whattodraw() is a displaytree
+
+which simplay calls treetop->whoisat( h, x, y )
+
+where treetop is an indidisplay
+
+to get the GEDCOM_object which the item clicked on represents.
+Unfortunately, we need, for some menu items, to know the exact
+display item that was clicked (so we can determine if 'younger'
+or 'later' is appropriate, for example). But indidisplay and
+famdisplay are different sorts of object... (whereas the INDI
+and FAM objects are both GEDCOM_object).
+
+so one way would be to reimplement whoisat(x,y) as whoisat(x,y,fam,indi)
+where fam and indi are passed as pointers so that whoisat can return *one*
+of them (or neither) as the relevant indidisplay or famdisplay. We know
+which one is going to be valid when we test clicked->objtype().
+
+the popup_cb in callback.cxx calls whoisat on the treedisplay, which,
+in turn, calls whoisat on view->whattodraw() which is the indidisplay
+of the tree's top. As we recurse, we are calling whoisat() on both
+indidisplays and famdisplays. Each of those is calling testat() on
+an indidisplay or famdisplay, which returns a boolean.
+
+OK, so we reimplement all four whoisat() methods with two extra
+parameters, passed as pointers to pointers ?
+
+whoisat( [int h,] int x, int y, indidisplay* &indid, famdisplay* &famd )
+
+(wouldn't this be easier in python where we could just return a list:)
+
+So our implementation would replace
+
+    if ((obj = (famcheck->whoisat( h, x, y ))) != NULL) return obj;
+
+with
+
+    if ((obj = (famcheck->whoisat( h, x, y, indid, famd ))) != NULL) {
+      famd = famcheck;
+      return obj;
+    }
+
+and so on. Go look at the code - that fix was in the wrong place - need
+to document it correctly you dumbass !
+
+This has so much scope for doing frightening things - we'd better use
+a conditional compilation fix !
+
+
+

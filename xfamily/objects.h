@@ -132,9 +132,12 @@ public:
   GEDCOM_object(GEDCOM_id*, GEDCOM_tag* ); // for level @id@ tag
   GEDCOM_object(GEDCOM_tag*, GEDCOM_id* ); // for level tag @xref@
   void add_subobject( GEDCOM_object* );
+  bool swap_subobject( GEDCOM_object*, GEDCOM_object* );
   bool delete_subobject( GEDCOM_object* );
+#ifndef fix0006
   void chain_object( GEDCOM_object* );
   void precede_object( GEDCOM_object* );
+#endif
 #ifdef fix0006
   void insert_before( GEDCOM_object* );
   void insert_after( GEDCOM_object* );

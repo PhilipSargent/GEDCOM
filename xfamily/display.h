@@ -21,7 +21,10 @@
 #define COLOUR_FEMALE  FL_RED
 
 #define V_OFFSET 2
-#define XF_FONT_SIZE 12
+// font 20 is a bad idea in that it limits the number of generations you can display
+// before hitting the limiting X bitmap size of 32k pixels, but we're chossing this
+// for a binary specifivally to run on washburn as otherwise it is too small to read
+#define XF_FONT_SIZE 20
 
 class treedisplay : public Fl_Button {
   mainUI* view;
@@ -32,17 +35,28 @@ class treedisplay : public Fl_Button {
   int fontface;
   int fontsize;
   void draw();
+
 public:
                treedisplay( int, int, int, int );
 void           setview( mainUI* );
 void           setscroller( Fl_Scroll* );
+#ifdef fix0011
+GEDCOM_object *whoisat( int, int, indidisplay*& indid, famdisplay*& famd );
+#else
 GEDCOM_object *whoisat( int, int );
+#endif
+#ifdef fix0010
+  void drawoffscreen();
+#endif
 };
 
 class indidisplay {
 
   GEDCOM_object  *indi;
   famdisplay     *fams;
+#ifdef fix0011
+  famdisplay     *famc;
+#endif
   indidisplay    *next;
   int             centrex;
   int             bottomy;
@@ -57,10 +71,11 @@ class indidisplay {
 public:
                  indidisplay( GEDCOM_object* );
                  ~indidisplay();
-GEDCOM_object   *getperson() const;
-#ifdef fix0002
-indidisplay     *findindi( GEDCOM_object* );
+#ifdef fix0011
+void             setfamc( famdisplay* );
+bool             younger_valid();
 #endif
+GEDCOM_object   *getperson() const;
 indidisplay     *sibling() const;
 indidisplay     *last() const;
 void             setsibling( indidisplay* );
@@ -81,7 +96,11 @@ int              getgender() const;
 bool             findfam( famdisplay*, GEDCOM_object* ) const;
 void             displayindi( int, int, int ) const;
 void             centre( int, int, int ) const;
+#ifdef fix0011
+GEDCOM_object   *whoisat( int, int, int, indidisplay*& indid, famdisplay*& famd ) const;
+#else
 GEDCOM_object   *whoisat(int,int,int) const;
+#endif
 bool             testat(int,int,int) const;
 
 };
@@ -90,6 +109,9 @@ bool             testat(int,int,int) const;
 
 class famdisplay {
 
+#ifdef fix0011
+  GEDCOM_object  *indi;
+#endif
   GEDCOM_object  *fam;
   indidisplay    *spouse;
   famdisplay     *next;
@@ -100,14 +122,18 @@ class famdisplay {
   indidisplay    *issue;
 
 public:
+#ifdef fix0011
+               famdisplay( GEDCOM_object*, GEDCOM_object*, indidisplay*, int );
+#else
                famdisplay( GEDCOM_object*, indidisplay*, int );
+#endif
                ~famdisplay();
+#ifdef fix0011
+GEDCOM_object *getindi() const;
+#endif
 GEDCOM_object *getfamily() const;
 indidisplay   *getspouse() const;
 famdisplay    *nextfam() const;
-#ifdef fix0002
-indidisplay   *findindi( GEDCOM_object* );
-#endif
 void           setnext( famdisplay* );
 int            x() const;
 void           setx( int );
@@ -117,9 +143,16 @@ int            marrwidth() const;
 char          *marrlabel() const;
 indidisplay   *getissue() const;
 void           setissue( indidisplay* );
+#ifdef fix0011
+bool           later_valid();
+#endif
 void           displayfam( int, int, int ) const;
 void           centre( int, int, int ) const;
+#ifdef fix0011
+GEDCOM_object *whoisat( int, int, int, indidisplay*& indid, famdisplay*& famd ) const;
+#else
 GEDCOM_object *whoisat(int,int,int) const;
+#endif
 bool           testat(int,int,int) const;
 
 };
@@ -141,6 +174,9 @@ class displaytree {
   int            fontsize;
   int            lineheight;
   int            gap;
+#ifdef fix0012
+  void*          eventobj;
+#endif
 
 public:
 #ifdef fix0003
@@ -150,9 +186,6 @@ public:
 #endif
                ~displaytree();
 indidisplay   *gettop() const;
-#ifdef fix0002
-indidisplay   *findindi( GEDCOM_object* );
-#endif
 #ifdef fix0003
 indidisplay   *getcurrent() const;
 #endif
@@ -166,7 +199,15 @@ void           setfont() const;
 int            getvint() const;
 int            xsize() const;
 int            ysize() const;
+#ifdef fix0012
+void           setevent( void* );
+void*          getevent();
+#endif
+#ifdef fix0011
+GEDCOM_object *whoisat( int, int, indidisplay*& indid, famdisplay*& famd ) const;
+#else
 GEDCOM_object *whoisat( int, int ) const;
+#endif
 
 };
 

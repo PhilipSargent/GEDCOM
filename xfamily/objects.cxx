@@ -338,6 +338,75 @@ void GEDCOM_object::add_subobject( GEDCOM_object *newobj ) {
   newobj->setparent(this);
 }
 
+bool GEDCOM_object::swap_subobject( GEDCOM_object *first, GEDCOM_object *second ) {
+// given two subobjects of this, swap their positions in the chain
+// how much should we assume ? is it safe to assume that we are given
+// the objects in the right order ? We are expecting this to be used
+// on subobjects of the same type (CHILs in a FAM or FAMS in an INDI),
+// should we enforce that ?
+// OK, we return false if first doesn't precede second or if either isn't a
+// subobjecty of this. but we are being wholly general and they could be
+// any type of subobject.
+
+  GEDCOM_object *a1; // will be the object whose next->first
+  GEDCOM_object *a2; // will be first->next
+  GEDCOM_object *a3; // will be object whose next->second (may be same as a2)
+  GEDCOM_object *a4; // will be second->next (may be NULL)
+
+  if (first != this->sub ) {
+    a1 = this->sub;
+    while (first != a1->next) {
+      a1 = a1->next;
+      if (a1 == NULL) return false;
+    }
+    // a1 is the object whose next is first
+  printf("a1 is the object whose next is first:\n");
+  a1->print(1);
+  }
+  a2 = first->next;
+  if (a2==NULL) return false;
+  printf("a2 is first->next\n");
+  a2->print(1);
+  if (a2==second) {
+    a3=first;
+    printf("a3 is first\n");
+  } else {
+    a3 = a2;
+    printf("Looking for a3\n");
+    a3->print(1);
+    printf("testing equal to second\n");
+    second->print(1);
+    while (second!=a3->next) {
+      a3 = a3->next;
+      printf("Looking for a3\n");
+      if (a3==NULL) return false;
+      a3->print(1);
+    }
+    printf("a3 is object whose next->second\n");
+    a3->print(1);
+  }
+  a4 = second->next; // this one's allowed to be NULL
+  printf("a4 is second->next %ld\n",(long)a4);
+  if (a4!=NULL) a4->print(1);
+
+  if (first == this->sub ) {
+    this->sub = second;
+  } else {
+    a1->next = second;
+  }
+  // need to dry run this for cases when first->next is and is not second
+  // so if first->next is second. Yep, think that's OK... no, it wasn't
+  // we think it's OK now, but leave debug code in 
+  if (a2==second) {
+    second->next = first;
+  } else {
+    second->next = a2;
+    a3 -> next = first;
+  }
+  first->next = a4;
+  return true;
+}
+
 bool GEDCOM_object::delete_subobject( GEDCOM_object *oldobj ) {
 // find the object and remove it from the chain of subobjects of this. Then
 // destroy it utterly, including all subobjects
@@ -354,6 +423,11 @@ bool GEDCOM_object::delete_subobject( GEDCOM_object *oldobj ) {
 // here - we assume that the caller is aware of this and has already flagged those
 // other objects to be deleted, too - that *must* occur at a higher level because of
 // the potential ramifications...)
+
+// sometimes we want to reorder things, so we'll want to remove a subobject,
+// but not destroy it as we wish to reinsert it in the chain. That suggests
+// we need a remove_subobject method, and if we have that, we should probably
+// implement delete_subobject to use it
 
   GEDCOM_object *subchain=sub;
   GEDCOM_object *sublast=NULL;
@@ -400,6 +474,7 @@ bool GEDCOM_object::delete_subobject( GEDCOM_object *oldobj ) {
 }
 
 
+#ifndef fix0006
 void GEDCOM_object::chain_object( GEDCOM_object *newobj ) {
 // FIXME, we are using an illogical mix of methods and direct access to variables
 
@@ -444,6 +519,7 @@ GEDCOM_object *oldobj;
   newobj->next = oldobj;
   newobj->setparent( myparent );
 }
+#endif
 
 #ifdef fix0006
 // I'm finding chain_object() and precede_object() a little opaque, so here we
