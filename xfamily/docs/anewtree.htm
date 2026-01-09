@@ -1,0 +1,79 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html lang="en">
+<head>
+<title>!Family for RISC OS Help</title>
+</head>
+<body>
+<h2>!Family: creating a family tree</h2>
+
+<p>If you have an existing GEDCOM file from elsewhere, you may want to
+skip this page and get on with <a href="aedit.htm">editing a tree.</a>
+
+<p>If !Family is started by double-clicking its icon, you will get an
+empty main window titled "!Family &lt;untitled&gt;". Creating a tree is
+simply a matter of adding a person to start from, and then adding relatives
+to build up your tree. It is usually easiest in family research to work
+backwards from the current generation, and this is also a very
+straightforward way of adding people to your GEDCOM file in !Family.
+
+<p>Click MENU in the window, and a menu pops up. The first item in the
+menu is "Person &gt;":- opening the submenu from this reveals a long list
+of options, all of which are greyed out except the first one, "Edit".
+Choose this to open a dialogue box into which you can type details of
+the person to be added to the tree. When the details are correct, click
+"OK" (or hit return in any of the input fields) to close the dbox and create
+the person.
+
+<p>If you place the caret in one of the fields which expect a date (Born,
+Died, Christened, Baptised, Cremated or Buried), you can edit details of the
+time and location of this event by clicking on the "Details..." button. Note
+that this can only be done once a person has been created and appears on the
+the tree, so for a new person, you must click on "Update" which puts the
+changes so far into the tree, and ungreys the "Details..." button. 
+
+<p>Speaking of dates, these must be in a specific format, in order for
+the resulting GEDCOM file to be portable to other people and other software.
+By default this format must be the format defined in the GEDCOM standard
+itself, but by changing an option in the !Family.Choices files, you can
+arrange to load code at start-up which supports other date formats. So
+far the only alternative is the international standard ISO-8601 format
+(which everyone is encouraged to use anyway !) which is far more logical
+than any other numeric-only format, and eliminates possible transatlantic
+confusion.
+
+<p>Once you have at least one person in your tree, there are several ways
+to add more.
+
+<ul>
+<li>You can create new, unconnected people by doing exactly the same as
+above. There is no particular restriction on how many unconnected trees
+you can have in a GEDCOM file
+<li>By filling in names in the "Father" and "Mother" fields of a person
+in the Edit dbox, you can create parents, or connect new people to existing
+parents
+<li>By clicking menu on a person and choosing "Marry" you get a dbox in
+which you can fill in the name of a spouse. If this is a name in the tree,
+the two people become married. If it is a new name, a new person is created.
+<li>By clicking menu on a person and choosing "Child" from the menu, you
+get an Edit dbox for the new child, with some details filled in.
+</ul>
+
+<h3>CAUTION!</h3>
+
+<p>For historical reasons to do with the way !Family does internal searches
+for existing persons, <b>every person in the database must have a unique
+name</b>. It is intended to remove this restriction in a future release,
+but this involves substantial changes to the program. There is
+<a href="unique.htm">a fuller discussion on unique names</a> for those who
+feel the need to know.
+
+<p>If you have several people in your tree with the same name (for example, I
+have four successive generations of "Henry Walmesley /Welch/") you need to
+add some extra bit of text to distinguish them. I find the easiest way to
+do this is to add a birth year in brackets after the name (such as "Henry
+Walmesley /Welch/ (1839)").
+
+<hr>
+
+</body>
+</html>
