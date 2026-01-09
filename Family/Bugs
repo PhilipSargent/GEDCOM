@@ -1,0 +1,12 @@
+> OldBugs
+
+Start with an empty tree. Create two people of indeterminate gender
+by doing "Goto <name1>" and "Goto <name2>".
+
+Then try to marry them to each other. Bombsville.
+
+OK, so it's an unreasonable abuse of the program, but that's what QA
+people do.... and it does show a lack of adequate checking.
+
+It seems to create the FAM OK, and then blow up trying to calculate
+what to display.
