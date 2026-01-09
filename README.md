@@ -15,7 +15,7 @@ preferred distribution was Kubuntu.
 In accordance with Andy's expressed wishes [cplusplus.htm in the xfamily source code], 
 this software is published with the GNU General Public License.
 
-##Warning
+## Warning
 
 These collections of code: BBC Basic and C++, and a couple of python utilities, are posted here as-is,
 without checking that anything parses, compiles or runs. You are on your own with this, there is no 
