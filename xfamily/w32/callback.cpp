@@ -306,8 +306,8 @@ void show_help( void* urlleaf ) {
 //  help_dialog->show();
   fl_alert("The help subsystem is not available in the Windows port, but the documentation can be read just as easily in a browser");
 }
-  char file[] = "test.ged";
-  tree->setfilename(file);
+/*  char file[] = "test.ged";
+  tree->setfilename(file); */
 
 
 ////////////////////////////////////////////////////////////////////////////////

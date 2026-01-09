@@ -248,19 +248,19 @@ mainUI::~mainUI() {
 
 void mainUI::settitle() {
 GEDCOM_string* oldtitle;
-std::string newtitle("");
-
+std::string newtitle("X!Family");
+  newtitle+=" ";
+  newtitle+=tree->getfilename();
   GEDCOM_object *thing = this->getcurrent();
   if (thing != NULL) {
     thing = thing->subobject( NAME_tag );
     if (thing != NULL) {
+      newtitle+=" : ";
       newtitle+=thing->value();
-      newtitle+=" - X!Family ";
     } else {
-      newtitle+="<unnamed> - X!Family ";
+      newtitle+=" : <unnamed>";
     }
   }
-  newtitle+=tree->getfilename();
   oldtitle = title;
   title = new GEDCOM_string( (char *)newtitle.c_str() );
   if (window!=NULL) window->label( title->string() );
@@ -1496,7 +1496,11 @@ void indiUI::settitle() {
 // ensure caller has called insert_details first for a real indi, or you
 // will get an "edit <new person>" title.
 
-  std::string title("");
+  std::string title("X!Family edit");
+
+  title += " : ";
+  title += which->getfilename();
+  title += " : ";
 
   if (who==NULL) {
     // edit window for new person - no object yet
@@ -1516,9 +1520,6 @@ void indiUI::settitle() {
       else title += namestring;
       } */
   }
-
-  title += ": X!Family edit ";
-  title += which->getfilename();
   // now put the title somewhere it won't evaporate as title goes out of scope:
   printf("indiUI::settitle %s\n",title.c_str());
   strncpy_s(buf_indi_title, 256, title.c_str(), MAX_indititle);
@@ -2201,7 +2202,13 @@ void famUI::settitle() {
 
   printf("Starting settitle on new famUI %ld\n",(long)fam);
 
-  std::string title("");
+  std::string title("X!Family family events");
+
+  printf("basic title for new famUI %ld as %s\n", (long)fam,title.c_str());
+  title += " : ";
+  title += which->getfilename();
+  title += " : ";
+  printf("Added filename to title for new famUI %ld as %s\n", (long)fam,title.c_str());
 
   if (fam==NULL) {
     // edit window for new family (shouldn't happen) - no object yet
@@ -2210,12 +2217,6 @@ void famUI::settitle() {
     title += fam->getidname();
     printf("Setting title for new famUI %ld to %s\n", (long)fam,title.c_str());
   }
-
-  printf("basic title for new famUI %ld as %s\n", (long)fam,title.c_str());
-  title += " : X!Family family events - ";
-  title += which->getfilename();
-  printf("Added filename to title for new famUI %ld as %s\n", (long)fam,title.c_str());
-
   // now put the title somewhere it won't evaporate as title goes out of scope:
   strncpy_s(buf_fam_title, 256, title.c_str(), MAX_famtitle);
   fam_dbox->label(buf_fam_title);
@@ -2648,7 +2649,7 @@ indicompletion_item::indicompletion_item( GEDCOM_object* found_indi ):
     fl_alert("Bombing out with null pointer passed to indicompletion_item()\n");
     exit(0);
   }
-//  printf("Trying to set up new completion_item for %s\n", indiptr->subobject( NAME_tag )->value());
+  printf("Trying to set up new completion_item for %s\n", indiptr->subobject( NAME_tag )->value());
   if ((subitem = indiptr->subobject( TITL_tag ))!=NULL) {
     displayline += "@C0@r@.";
     val = subitem->value();
@@ -2671,7 +2672,7 @@ indicompletion_item::indicompletion_item( GEDCOM_object* found_indi ):
   width[1] = 5 + (int) fl_width( val );
   displayline += val;
   displayline += "\t";
-//  printf("Start with rawdate as '%s' and check for birth, christening or baptism dates\n",rawdate);
+  printf("Start with rawdate as '%s' and check for birth, christening or baptism dates\n",rawdate);
   thing = (GEDCOM_object*)NULL;
   if ((subitem = indiptr->subobject( BIRT_tag )) != NULL )
     thing = subitem->subobject( DATE_tag );
@@ -2698,16 +2699,16 @@ indicompletion_item::indicompletion_item( GEDCOM_object* found_indi ):
       }
     }
   }
-//  printf("Check for rawdate having an escape ('@') and just discard the Julian or Gregorian guff\n");
+  printf("Check for rawdate having an escape ('@') and just discard the Julian or Gregorian guff\n");
   if ((*rawdate)=='@') {
     i=1;
     while((*(rawdate+i))!='@') i++;
     rawdate += i+2;
   }
-//  printf("Finished with rawdate as '%s'\n",rawdate);
+  printf("Finished with rawdate as '%s'\n",rawdate);
   width[2] = 5 + (int) fl_width( rawdate );
   displayline += rawdate;
-//  printf("Added rawdate to displayline: '%s'\n",displayline);
+  printf("Added rawdate to displayline: '%s'\n",displayline);
   displayline += "\t@C0 -\t";
   rawdate=rd; thing = (GEDCOM_object*)NULL;
   if ((subitem = indiptr->subobject( DEAT_tag )) != NULL )
