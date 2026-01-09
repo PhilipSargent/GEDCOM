@@ -1,0 +1,692 @@
+<!DOCTYPE BOOK PUBLIC "-//OASIS//DTD DocBook V4.0//EN" [
+]>
+<book lang="en-gb">
+<bookinfo>
+<title>The !Family Screenbook</title>
+<releaseinfo>Version 2.25</releaseinfo>
+Last Updated <date>2000-12-19</date>
+<authorgroup>
+<author>
+<firstname>Andy</firstname>
+<surname>Waddington</surname>
+</author>
+<affiliation>
+<address><email>family-maint/at/nospam.pennine.demon.co.uk</email></address>
+</affiliation>
+</authorgroup>
+<copyright><year>2000</year> <holder>Andy Waddington</holder></copyright>
+
+<abstract>
+<para>
+A tutorial guide to !Family - a Genealogy database (GEDCOM) editor and
+browser for the RISC OS desktop
+</para>
+</abstract>
+</bookinfo>
+
+Principal Developers: Denis Howe, Andy Waddington
+
+<para>
+This screenbook describes !Family version 2.25, though the screen shots
+are a mixture of !Family 2.24 and X!Family 0.11. Some features are mentioned
+which are not yet implemented, and the !Family user interface is evolving
+towards that of X!Family (hence the mix of screenshots). This will all get
+less confusing as the interfaces stabilise over the next few months.
+</para>
+
+Table of Contents
+1. Introduction
+
+2. The main display window
+
+3. The Person editing dbox
+
+4. The Family Event editing dbox
+
+5. The Preferences dbox
+
+6. Searching for a person: Name completion dbox
+
+7. Miscellaneous dboxes
+
+Appendix A. F.A.Q. list
+
+Appendix B. GEDCOM files
+
+Appendix C. Obtaining, Installing, Compiling, Porting !Family
+
+<chapter id="intro">
+<title>!Family Chapter 1. Introduction</title>
+
+<para>!Family is an editor for Genealogy (Family Tree) Databases working
+directly with the internationally standardised GEDCOM file format. It
+has an intuitive visual interface using which details of families, people
+and events can be browsed and edited directly on a graphical view of the
+family tree. It has evolved from Dennis Howes' !Family, a BASIC program
+for RISC OS computers which is great to use, but getting very slow on old
+machines with a big database.</para>
+
+<para>!Family will be rewritten in C++ shortly (a version for Linux using the
+FLTK toolkit is already running with limited editing capability). Using a
+compiled language will make it much faster than an interpreted one. !Family
+is released under the GNU General Public License. See Appendix C for details
+on obtaining the latest versions of !Family (or X!Family and FLTK),
+compiling, porting and installing.</para>
+
+Alpha Release Software
+
+<para>At present, !Family is fairly mature, but is still undergoing
+development. At any time you should be able to obtain a well-tested and
+stable "release" version, and an up-to-the-minute, but potentially unstable
+development version. Shortly, you should expect to see two more versions for
+RISCOS - a stable compiled C++ program (faster than the BASIC one, but
+initially with rather limited functionality) and the alpha testing version of
+the development C++ code. The BASIC versions are not crunched, so effectively
+come with source. The C++ versions will have separate source and binary
+releases.</para>
+
+<para>Currently (2000-12-19) the alpha development version of the BASIC
+!Family is being used to develop the Templates for use with the C++ program,
+so the user interface is changing somewhat. Expect the C++ version to appear
+very similar to the alpha BASIC version, but run faster and use somewhat less
+memory.</para>
+
+</chapter>
+
+<chapter id="mainui">
+<title>!Family Chapter 2. The Main display window</title>
+
+<sect1 id="0200">
+<para>When started, !Family opens two windows, showing the currently loaded
+tree (if any) and a smaller window with notes associated with the "Current
+Person". If no tree was loaded, the main window will be blank and no notes
+window will be opened.</para>
+
+<para>The tree displayed is based on the concept of "the current person", and
+the current person is recorded whenever a file is saved from the program. The
+tree will ideally show the current person, his parents, siblings, and all
+descendants. If he exists in the database, the person at the "top" of the
+tree will be the current person's father. Failing that, it will be his
+mother, and if neither of these exist in the database, it will be the current
+person him- or herself. The title bar of the window shows the name of the
+GEDCOM file .</para>
+
+<para>If you left-click on a person, then that person will become the new
+current person, and the tree is redisplayed based on that person. So that
+as long as the current person has one or both parents in the database,
+you can keep on clicking on the top person to go back a generation. This
+soon makes the tree too big for the screen, and the window becomes scrollable
+to see all the people on display.</para>
+
+<para>The display shows males in blue, females in red, and those whose gender
+is unknown in green. With the default options set, under each person will
+be a pair of dates representing birth and death. If a birth date is unknown,
+it is marked "?", but if a death date is unknown, it is simply left blank.
+The person may be still alive !</para>
+
+<para>Husband and wife are shown one above the other, with at least an equals
+sign between them. If a marriage date is known (and the option to display
+these dates is set) then that date will be shown next to the equals sign. For
+multiple marriages by one person, each marriage is marked by either a date,
+or, if this is not known, or not being shown, then a sequence number.</para>
+
+<para>If a person's spouse is unknown, but they have descendants, the equals
+sign is still shown, but there is a gap where the spouse would be. Below
+each married couple, their descendants are shown, linked by lines in the
+conventional manner. If the descendants are married, the process is
+repeated down to the most recent known issue.</para>
+</sect1>
+
+<sect1 id="0201">
+<title>2.1 "Person" menu</title>
+
+<sect2 id="0201intro">
+<para>If you click menu on a person shown on the tree, a small menu will pop
+up with the person's name as the title. The top item, "Edit" opens a tabbed
+dbox which enables you to edit the person's event details (Birth,
+Christening, Baptism, Death, Cremation, Burial) - see Edit Person Dbox for
+full details.</para>
+
+<para>The next group of items "Marry", "Unmarry", "Child", "Older" and
+"Remove" are for manipulating the structure of the tree.</para>
+
+</sect2>
+
+<sect2 id="0201marry">
+<title>Marry</title>
+
+<para>Will prompt for a name of a person to marry. That name may be one
+already in the database, in which case the two people will be connected, or
+it may be a name not in the database, in which case the individual will be
+created. This gives lots of scope for creating new people when you didn't
+mean to by misspelling the name slightly, or for marrying to someone with the
+same name as the spouse you wanted to create. The "name matching" feature is
+used to overcome these potential problems, but the implementation details
+have not yet been sorted, so the manual doesn't describe these
+details.</para>
+
+</sect2>
+
+<sect2 id="0201unmarry">
+<title>UnMarry</title>
+<para>Is used to remove a marriage, when a mistake has been made. The submenu
+lists possible spouses of the person in the main menu - select one and click
+to remove that marriage. If the marriage had issue, the children will remain
+as issue of one spouse, and you will need to use the Edit person dbox on
+those children to change the names of Mother and/or Father to place them as
+offspring of another pair of parents.</para>
+</sect2>
+
+<sect2 id="0201child">
+<title>Child</title>
+<para>This will pop up an Edit person dbox with the relevant parent filled
+in. For example, if you clicked on a male, and chose "Child", the Edit
+Person dbox would show a new person, with the "Father" field filled in
+with the name of the person you first clicked on. The mother field would
+be blank. If you fill this name in with one of the father's spouses in
+the database, then the child is added to that marriage. If you leave the
+field blank, a new family (with an unknown mother) will be created.</para>
+</sect2>
+
+<sect2 id="0201older">
+<title>Older</title>
+<para>Will only be available when a person has older siblings. Clicking this
+will make this person older than the sibling immediately to the left.
+[Technical note: Siblings are displayed in the order in which they are
+defined in the FAM object of the GEDCOM file, which is independant of the
+actual dates of birth which may be recorded. Clicking "older" swaps the
+order of the CHIL tags, it doesn't change any dates of birth.]</para>
+</sect2>
+
+<sect2 id="0201remove">
+<title>Remove</title>
+<para>The person clicked on will be removed from the database, along with
+all his or her details. All references to the person will also be removed,
+which means that it can be quite a lot of work to add a person deleted in
+error back into the tree !</para>
+</sect2>
+
+<para>One more menu item currently appears in this menu, "Marriage". This
+leads to a submenu listing possible spouses, and clicking on one will
+open a dbox dealing with events affecting the family, rather than the
+individual, such as engagement, marriage and divorce. It is intended that
+this menu item will move to a different pop-up menu shortly. See
+Family Events Dbox for full details.</para>
+
+<para>The final item on the pop-up menu is "Reports" which opens a submenu
+listing possible reports you can generate based on the person you clicked
+on. Currently the only item on this submenu is "Ancestors". It is intended
+that clicking this will generate a condensed ahnentafel showing all known
+direct ancestors of this person, and then prompt for a place to save the
+file. Currently, however, the code to do this is not yet implemented.</para>
+
+</sect1>
+
+<sect1 id="0202">
+<title>2.2 Family menu</title>
+
+<para>If you right-click on the equals sign, date or sequence number of a
+marriage, a small menu will pop up showing the id-number of the FAM object as
+title. [Aside: if you don't know the internals of GEDCOM files, think of this
+number as just a unique identifier for a particular family. To know more
+about the GEDCOM, see Appendix B.]</para>
+
+<para>The first two items on this menu, "Edit" and "Notes" fulfill similar
+fucntions to the items of the same name on the Person menu. "Edit" opens a
+tabbed dbox which enables you to edit the event details associated with the
+family (currently Engagement, Marriage and Divorce) - see Family Events Dbox
+for full details. "Notes" open a small text-editor window containing
+free-text notes about the family which can be edited, or cut-and-pasted to
+other applications.</para>
+
+<para>The second group of menu items "Earlier", "Unmarry" and "Child" are
+again for manipulating the structure of the tree.</para>
+
+<sect2 id="0202earlier">
+<title>Earlier</title>
+<para>Will only be available when a person is shown with more than one family
+on the current tree view, and marriage clicked on is not the earliest, as
+shown on the view. Clicking this item will swap the order of this family
+and the one immediately to its left. [Technical note: Families are displayed
+in the order in which they are defined in the INDI object of the GEDCOM file,
+which is independant of the actual dates of marriage which may be recorded.
+Clicking "earlier" swaps the order of the FAMS tags, it doesn't change any
+recorded dates.]</para>
+</sect2>
+
+<sect2 id="0202unmarry">
+<title>Unmarry</title>
+<para>This is to remove the FAM object defining a marriage. If there are no
+descendants, this is straightforward. If descendants are listed for a
+family, the program will currently assume that they should remain
+connected to the father, which means that the mother is detached from
+the marriage, but the FAM object still exists. Children can be detached
+from a parent using the Edit Person dbox. It
+is recognised that this mechanism is a little cumbersome, but it should
+only be needed to correct major mistakes, and thus pretty rarely.</para>
+</sect2>
+
+<sect2 id="0202child">
+<title>Child</title>
+<para>This will pop up an Edit person dbox with both parents filled in, so
+that the new child whose details you enter will be added to the relevant
+family. A new child is always added to the right of existing siblings, as if
+the youngest. Normally this is OK, as you would add children in that order
+when putting data into the database. If you discover another child later, or
+discover that one originally added as the youngest needs to be moved up, you
+can use the "Older" item on the person menu as noted in section 2.1
+above.</para>
+</sect2>
+</sect1>
+
+<sect1 id="0203">
+<title>2.3 Iconbar menu</title>
+
+<para>The iconbar menu has some standard entries, such as Info=&gt; and Quit,
+which are pretty much familiar and self-explanatory. It will shortly get a
+"Help" menu item, which will lead into this manual. Most of the other items
+are concerned with generating various forms of report:</para>
+
+<sect2 id="0203print">
+<title>Print</title>
+<para>This will attempt to print the currently displayed tree via the
+installed printer driver. Multiple pages will be used, as needed. The method
+used tries to minimise the number of sheets of paper used, but once that has
+been determined, it tries to maximise the overlap between pages, to make
+joining them up easier.</para>
+</sect2>
+
+<sect2 id="0203choices">
+<title>Choices</title>
+<para>This opens a dbox to configure the detailed behaviour of the program.
+See The Preferences dbox. Actually, in !Family,
+most of these choices are set in submenus of the iconbar menu, and only
+the choice "misc..." opens a dbox, but this is intended to change to a
+somewhat friendlier interface.</para>
+</sect2>
+
+<sect2 id="0203reset">
+<title>Reset</title>
+<para>Clicking this will discard the tree currently displayed. You will be
+warned if the data are unsaved and offered a chance to save the file.</para>
+</sect2>
+
+<sect2 id="0203report">
+<title>Report</title>
+<para>Opens a saveas dbox. Dragging the icon somewhere will produce a text
+file listing everything known about every individual in the tree.</para>
+</sect2>
+
+<sect2 id="0203ancestors">
+<title>Ancestors</title>
+<para>Opens a saveas dbox. Dragging the icon somewhere will produce a text
+file listing all known ancestors in a direct line back from the current
+person. Note that the current person is almost at the top of the tree on the
+display, but will be at the bottom of the tree in this file.</para>
+</sect2>
+
+<sect2 id="0203families">
+<title>Families</title>
+<para>Opens a saveas dbox. Dragging the icon somewhere will produce a text
+file listing all the family groups defined in the tree, with details of
+family events, parents and issue.</para>
+</sect2>
+
+<sect2 id="0203draw">
+<title>Draw</title>
+<para>Opens a saveas dbox. Dragging the icon somewhere will produce a !Draw
+file of the current display, using the font and scale settings defined in
+the Choices submenu. Drawing a tree is a complicated business, and you may
+find that you can get a more compact and neater output by saving to a draw
+file and manipulating the drawing yourself, rather than just using "Print"
+directly. The developer finds that with really big trees (back twenty or
+so generations) this can save a lot of paper ! It can also be useful if
+you want to merge two ancestral lines onto one diagram.</para>
+</sect2>
+
+<sect2 id="0203webpages">
+<title>Web pages</title>
+<para>Opens a dbox with a saveas icon. This is intended to generate an html
+(browsable) structure to put up on a website so that others can browse your
+tree without needing genealogical software. You can drag html files to the
+two load targets at the top of the dbox, for adding things like logos, or
+navigation to other pages on your site. Ticking the box "omit details of
+persons flagged as living" will do just that - all dates and places relating
+to people for whom the "Living" option is ticked in the Edit person dbox will
+be suppressed. Note that this is implemented through the "LVG" tag, which
+though used by several genealogical products, is not part of the GEDCOM
+Specification. I'm not sure that !Family's implementation is the same as
+other programs', but the net effect is fine in this context.</para>
+
+<para>If you have RISC OS 4, or fewer than 75 people in your tree, you can
+ignore the warning about image filing systems. Otherwise, you need to be
+aware that !Family will generate a file for each person in your tree, as
+well as an index page, and something like x-files, rafs or !SparkFS will
+be needed which supports more than 77 files per directory.</para>
+</sect2>
+
+<sect2 id="0203save">
+<title>Save</title>
+<para>The final item simply allows you to drag the GEDCOM icon to save your
+whole tree in the standard GEDCOM file format.</para>
+</sect2>
+
+</sect1>
+</chapter>
+
+<chapter id="editperson">
+<title>!Family Chapter 3. Edit Person dbox</title>
+
+<para>Clicking menu on a person in the main window brings up a menu:
+</para>
+
+
+<para>Choosing "Edit" or "Child" from this menu will open a tabbed dbox in
+which details of a person's main life events can be entered.</para>
+
+<para>From the point of view of a genealogist, often doing research in civil
+vital records or church records, the main events in a life are birth,
+marriage and death, simply because these are the only ones recorded in
+documents readily obtained today. Of these, marriage affects two people and
+is not an event of a single life. Birth and death are associated (and may
+only be recorded as) christenings, baptisms, cremations and burials, and
+these are the six events currently handled by this dbox. GEDCOM has
+established tags for a whole host of other life events, and a generic "event"
+tag for anything else occurring to a person's life on a specific date or
+within a range of dates. !Family preserves this information in your GEDCOM,
+but doesn't currently support displaying or editing it.</para>
+
+<para>The first two text fields are Name and Title, which identify this
+person. Title is optional, and is typically an indication of civil or
+military rank, usually the final rank achieved during life.</para>
+
+
+
+<para>A single check box "Living" can be set to show that a person is
+believed to be alive on the date the database is being edited. Strictly
+speaking the tag used to record this is not a part of the GEDCOM standard,
+but seems to be widely used by a number of genealogy packages. If a proper
+way of indicating this status is defined in some future version of GEDCOM,
+this part of the user-interface may change to reflect this.</para>
+
+<para>A line of three radio buttons defines the gender of this person as
+male, female or unknown.</para>
+
+<para>Two text fields give the names of the parents. Filling in these fields
+enables the person to be placed correctly in the structure of the family
+tree. If the parents are already in the database, they must be spelt exactly
+as they already appear in order to connect the new person correctly. If the
+dbox was opened as a result of choosing "Child" in a person or family pop-up
+menu, then they should already be filled in correctly. Getting the spelling
+wrong here would result in the creation of new people in the database, and
+it might possibly be some time before the error became apparent. To avoid
+this when the dbox is opened without these names filled in, name completion
+or matching is available to enable you to choose from a list of people
+already in the database. Type the start of the relevant person's name and hit
+"F1", or the end of the name and hit "F2". If only one person matches, that
+name will be filled in. If no-one matches, you will hear a beep. If there
+are multiple matches, a window will open with a list, showing birth/death
+dates to aid identification of the person you want. The name you typed may
+also be partially completed as far as can be deduced from the list. Click
+on one name in the list to fill in the field, or type some more in the
+original writable icon and hit "F1" or "F2" again.</para>
+
+
+
+<para>Below these fields are the six tabs for events. Clicking on a tab
+brings it to the front, so that the fields may be filled in. In all cases,
+these fields include a date and time, a place (down to the level of town or
+village) and a site (down to the level of street, building or burial ground,
+for example). The division between "place" and "site" is somewhat arbitrary,
+and in the most recent version of GEDCOM, seems to have been abolished
+entirely in favour of a more structured form of the "place" specifier. It is
+intended to change the way in which !Family saves these fields to fit in with
+the newer usage, whilst still retaining the ability to read the old forms.
+Below the "Date" field is a choice of radio buttons to choose the calendar in
+which the date is defined. The default is "Gregorian", and at present the
+only other form allowed is "Julian", which is appropriate for dates in the
+English-speaking world prior to 1752. GEDCOM also defines "French R",
+"Hebrew", "Roman" and "Unknown", and these will be added to !Family's
+repertoire at some stage. Currently these present a problem if the option to
+present dates in ISO-8601 format has been chosen.</para>
+
+<para>The "Death" and "Burial" tabs each have one additional field. Death can
+have a "Cause", typically that recorded on a death certificate for modern
+deaths. "Burial" can be specified down to the level of "Plot". Again, in
+versions 5.4 and 5.5 of GEDCOM, this detail has been subsumed into the
+"Place" tag, but !Family will continue to be able to read the "SITE",
+"CEME" and "PLOT" tags as specified in GEDCOM 5.3.</para>
+
+<para>A last field within the tab is labelled "Sources" and currently shows
+the cross-reference id used in any SOUR tag for the event. This is the first
+stage of adding the ability to handle source citations to !Family.</para>
+
+
+
+<para>Finally there are three buttons "Help" (which should bring you to this
+help page), "Cancel" and "OK". "Cancel" throws away any changes you have
+made and closes the dbox (clicking on its "close" icon will do likewise).
+If the dbox was opened from "Child" or "New..." menu items to create a new
+person in the database, then that person is not created. If the dbox was
+opened from "Edit", then the person continues to exist unchanged in the
+database.</para>
+
+<para>Clicking "OK" saves the changes, creating a new person in the database
+if necessary. Note that if you have changed the names of one or both
+parents, the person may also be moved about the structure, and potentially,
+new database entries may be created for those parents. This feature is
+useful when entering a database following research further back into the
+past. Editing a person to add parents' names creates those parents, who
+in turn may be edited to add their parents, and so on, as far back as your
+research goes. On the other hand, don't try to change the name of a
+parent this way - if a parent's name is not in the database, then that person
+is created. Changing the Father's name for one child of a family in this
+dbox, for example, will create a new father, a new marriage and move this
+child into a new family, leaving the others with the same parents as before.
+Probably not what you intended. Changing someone's name needs to be done in
+the Edit Person dbox for that person.</para>
+
+</chapter>
+
+<chapter id="familyui">
+<title>!Family Chapter 4. Family event dbox</title>
+
+<para>Clicking menu over a marriage and choosing Edit from the pop-up menu
+[!Family will work this way shortly, but doesn't yet, the screen shot shows
+the current UI, click menu on a person and choose a spouse from the marriage
+submenu:]:</para>
+
+
+
+<para>Choose "Edit" to get a dialogue which displays date and place of
+marriage.</para>
+
+
+
+<para>You can see, enter, or change the date, time and place of the
+marriage (but not the names of the people involved). Clicking on
+the engagement tab gives a similar dialogue with a date and time
+(the latter perhaps not very meaningful) for the engagement.</para>
+
+<para>For those marriages which ended in a divorce, the final tab lets you
+edit the date and time of this. A place is not meaningful in most cases,
+unless you consider that this is the court which issued the final decree.
+However, that would usually be defined by the supporting documentation.</para>
+
+<para>Clicking "Cancel" closes the dialogue without saving any changes made.
+Typically you would do this if you had opened the dialogue just to read
+the details. Clicking "OK" saves the current details back into the database.
+Clicking "Help" brings up this screenbook page in your current help system.</para>
+
+</chapter>
+
+<chapter id="prefui">!Family Chapter 5. The preferences dbox
+
+<para>At present most of the configuration is done through menus. This will
+change to more resemble the dbox system used under Linux by X!Family. At
+present just one preferences dbox operates in !Family:</para>
+
+
+
+<para>These are X!Family screenshots, whih show the general style towards
+which the !Family UI is moving. Proper ones and some explanation for the RISC
+OS !Family preferences will follow soon, but as the interface is shortly
+going to change, I'm waiting to write a manual page until the interface has
+stabilised.</para>
+
+<para>The first of the X!Family screenshots shows the tabbed version of the
+!Family miscellaneous preferences dbox. The !Family style will be tabbed like
+this, though the icons will be more as the RISC OS style above.</para>
+
+
+
+<para>The Names config tab will control how names are displayed on the main
+window and on printed trees. The X!Family screenshot shows what fields will
+appear, but again the style will be more RISC OS in !Family.</para>
+
+
+
+<para>The dates config tab will control which dates are shown on the tree,
+and in which style.</para>
+
+</chapter>
+
+<appendix>!Family Appendix B. GEDCOM files
+
+<para>The following description is adapted from Dennis Howes' original Help
+file for !Family:</para>
+
+<para>GEDCOM (Genealogical Data Communication) is the de facto international
+standard for genealogical data, specified by Mormon church. Genealogical
+databases for personal computers use the "Lineage-linked form", though
+the basic grammar supports other forms. This is the form used as its native
+database by !Family.</para>
+
+<para>If you look up "Church of Jesus Christ of Latter-day Saints" in your
+'phone book you may find a "Family History Centre" listed. There you can
+search gigabytes of genealogical data on CDROM, copy bits to a file in GEDCOM
+format, bring it home on floppy disc, and load it into X!Family. Some of this
+information (in particular, the International Genealogical Index) is also
+available online at www.familysearch.org, the main LDS website, and can be
+downloaded in GEDCOM format.</para>
+
+<para>GEDCOM files are actually plain ASCII. It is not necessary to
+understand their format but the following explanation is included for the
+curious. Each line describes an object and is of the form</para>
+
+  level [@id@] tag value
+
+<para>where level is a number. Objects at level n are sub-objects of those at
+level n-1. The top-level (0) objects are things like individuals (tag =
+"INDI") and families (tag = "FAM"). Individuals have sub-objects with
+tags like NAME, BIRT, DEAT, FAMS and FAMC. A FAMS object has a value like
+@F12@ which is a cross-reference to a (level 0) FAM object with id = F12.
+This is a family in which the individual is a spouse (or parent). A FAMC
+object also has a cross-reference to a FAM object for a family in which the
+person is a child. FAM objects have HUSB, WIFE and CHIL sub-objects whose
+values are cross-references back to individuals. Here is an example. The
+comments after the semicolons ";" in the following are not part of the
+GEDCOM, and would not be in a real GEDCOM file:</para>
+
+
+0 @I1@ INDI      ; An individual
+1 NAME John      ;  called John
+1 FAMC @F1@      ;  is a child in family F1
+0 @I2@ INDI
+1 NAME David     ; David
+1 FAMS @F1@      ;  is a parent in F1
+0 @I3@ INDI
+1 NAME Mary      ; Mary
+1 FAMS @F1@      ;  is a parent in F1
+0 @F1@ FAM       ; Family F1 includes
+1 HUSB @I2@      ;  David, the father
+1 WIFE @I3@      ;  Mary, the mother
+1 CHIL @I1@      ;  John, a child
+
+
+<para>The GEDCOM standard defines many more tags than are used by !Family.
+Objects which are not recognised are not displayed but are preserved when the
+file is saved (unlike some genealogy software, which simply throws away
+information it doesn't understand). For full details of GEDCOM, write
+to</para>
+
+   gedcom@gedcom.org
+
+   GEDCOM Coordinator
+   Family History Department
+   50 East North Temple
+   Salt Lake City UT 84150
+   USA
+
+
+<para>A technical description of the grammar of GEDCOM, along with all the
+tags defined in the current version (5.5 at the time of writing) can be
+found at GENDEX.</para>
+
+<para>Although GEDCOM files can be edited with an ordinary text editor, this
+requires considerable care to avoid entries which are inconsistent with
+each other, particularly cross-references between families and their members.
+If you frequently find yourself editing a GEDCOM manually, please let the
+X!Family developer know at family-maint/at/nospam.pennine.demon.co.uk, and
+the features you need supported will be considered for inclusion in future
+releases.</para>
+
+<para>Some PC programs (eg. Legacy and Win-Family) require GEDCOM lines to
+end with carriage return. Following the standard, !Family ends them with line
+feed and accepts any combination of CR and LF. Use a text editor or other
+tool to change LF to CR if you must use broken software.</para>
+ 
+<para>!Family understands the basic grammar of GEDCOM files, but only
+supports a subset of the tags. Anything it doesn't understand is preserved
+(unlike some genealogy software which simply discards those bits). If you
+import a GEDCOM file conforming to an old version, and modify it with
+!Family, which is mainly based on the 5.3 revision (but uses some tags first
+defined at 5.4), you may end up with a GEDCOM which contains a mix of
+features from recent versions, and old features no longer supported by some
+Genealogy programs. For example, Personal Ancestral File 4.03 will import
+GEDCOM 4.0 files and GEDCOM 5.5 files, converting everything to 5.5, but
+doesn't understand some tags from the 5.3 version, which it simply moans
+about at length, then discards. Keeping your databases in !Family will
+guarantee not to throw away any data, no matter what GEDCOM revision your
+base data conform to.</para>
+
+</appendix>
+
+<colophon>!Family Screenbook endpiece
+
+<para>That's all there is at the moment. Quite a lot of this manual remains
+to be written for two reasons:</para>
+
+
+<para>Manuals often lag behind the software, because often the design of
+software changes in the light of feedback from users of alpha and beta-test
+versions. Manuals written at the same time as the software specification are
+like battle plans written before first contact with the enemy, and can bear
+little or no relation to reality. In fact, this manual is better than most
+because it describes some of the functionality which has yet to be added to
+the code. Writing the manual is a form of feedback from the design process
+which helps identify some problems before first contact with real users.
+There is, however, always a high likelihood that the user interface of the
+released program will differ from what was originally written here.</para>
+
+
+<para>Some quite large areas of intended functionality have not yet been
+designed at all. Currently, those aspects of the code which emulate or
+replace the functionality of the RISC OS !Family program have mostly been
+designed, but parts of the interface which are intended to address various
+perceived inadequacies of !Family are subject to periodic radical rethink,
+and will require prolonged productive use of the software to see what needs
+to be done.</para>
+
+
+<para>It is hoped to continue the process of co-evolving the manual with the
+software so that all the functionality in the product is documented, before
+or very soon after it is implemented. Don't worry - unlike many programmers,
+I enjoy writing documentation !</para>
+
+
+</colophon>
+
+Andy Waddington, December 2000
+
+</book>
