@@ -1,0 +1,312 @@
+#Messages file for !Family
+
+# if you are making changes to the code, set message dv to something distinctive.
+# this appears in title bar of main window to remind you not to do anything with
+# a critical dataset :-) set the message to null for normal use.
+dv: DEVELOPMENT VERSION
+#dv:
+
+lang:English
+
+al: at line 
+AT:Ancestors
+Ba:Baptism
+BC:Bad cross-reference
+Bd:Baptised
+BF:Bad file
+Bh:Birth of 
+Bi:Birth
+BL:Bad level
+Bp:Baptism of 
+Br:Burial of 
+Bu:Burial
+Cd:Christened
+CC:Can't create file
+CR:Can't read
+CN:Can't rename to
+Ch:Christening
+Cg:Christening of 
+Ci:Child
+Cn:Cremation
+Co:Choices
+Cr:Cremation of 
+Da:Dates
+De:Death
+Dh:Death of 
+Di:Divorce
+Dr:Draw
+DO:Living Individual - personal details omitted
+DT:Data transfer failed
+Ed:Edit
+En:Engagement
+FN:Family name
+Fa:Family
+Fe:female
+FM:Families
+Fo:Font
+FS:Font size
+GE:GEDCOM..
+Go:Go to
+Hl:en-gb
+Ho:Back to index
+Hu:Husband
+In:Info
+IN:is not
+LI:(living individual)
+LW:Line width
+Ma:Marriage
+Mc:Misc.
+Md:Married
+Ml:male
+Mr:Marry
+MT:Marry to
+MW:Memory low
+ML:Missing level
+MG:Missing tag
+Na:Name
+NE:is already the oldest
+NF:Not a file
+NH:No file specified to include after <body>
+NM:not married to
+NN:No name given
+NP:No current person
+NR:No room for heap: increase WimpSlot
+NT:No file specified to include before </body>
+NW:Include file not type html
+Oc:Occupation
+Ol:Older
+OM:Out of memory
+OS:Use on screen
+Pe:Person
+Pr:Print
+PR:Print Rotated
+Qu:Quit
+Rm:Remove
+Rp:Report
+Rs:Reset
+Sa:Save
+Sc:Scale
+SD:Spouses' dates
+SF:Save failed
+Sh:Show
+Si:Size
+Sp:Spouses
+St:Statistics
+Td:Tree curtailed at maximum generation depth
+Ti:Title
+TS:To save, drag the icon to a directory display
+UC:Unsaved changes, really quit?
+UF:Unrecognised file type, load anyway?
+UM:Unmarry
+UT:Untitled
+WD:Wedding dates
+WP:Web Pages
+Wi:Wife
+XN:Cross-reference not in loaded file:
+YO:Year only
+
+#Strings in Templates
+
+Can:Cancel
+Cur:Current
+Dis:Discard
+Help:Help
+Sav:Save
+OK:OK
+Res:Restore
+Pla:Place
+Sit:Site
+Plt:Plot
+Dat:Date
+Tim:Time
+Cau:Cause
+Cal:Calendar
+Grg:Gregorian
+Jul:Julian
+Frn:French
+Rom:Roman
+Heb:Hebrew
+Nam:Name
+CoT:Completions
+GoT:Go to
+Mo3:The data have been modified
+SaT:Save Tree as
+Src:Sources
+ReT:Save Report as
+InT:About this program
+In1:Family Tree Editor
+In4:Name
+In5:Purpose
+In6:Author
+In7:Version
+DrT:Save Draw as
+EvT:Event
+MaF:Family Events
+Ma7:Marry
+Ma8:on
+DaT:Set Date
+AnT:Save Ancestors as
+FaT:Save Families as
+MiT:Misc Options
+Mi2:Xref errors:
+Mi3:report Datestamp Format:
+Mi4:Abandon load
+Mi5:Warnings
+Mi6:Ignore Silently
+Mi7:ISO-8601
+Mi8:GEDCOM
+Mi9:Other
+HtT:Generate html with index as:
+Ht4:Beware: if there are more than 75 individuals, save index to a directory in an image filing system which supports >77 files !
+Ht5:Include this file at start of <body>
+Ht6:Include this file at end of <body>
+Ht7:Omit details of any person flagged as living
+EdT:Edit Individual
+# names of tabs:
+E10:Birth
+E11:Christening
+E12:Baptism
+E13:Death
+E14:Cremation
+E15:Burial
+E17:Male
+E18:Female
+E19:Unknown
+E20:Living
+E24:Name
+E25:Title
+E26:Gender
+E27:Father
+E28:Mother
+E29:Date
+E30:Time
+E31:Place
+E32:Site
+ObT:GEDCOM Edit
+St4:Individuals:
+St5:Maximum INDI Id:
+St6:Families:
+St7:Maximum FAM Id:
+StT:!Family Statistics:
+
+#Interactive help.
+
+H01:\TFamily application.  \Sopen the main \w and the current person's notes \w.
+H02:This is Family's main \w.  Click \s over a person to make them the current person.  Click \a over a person to edit their details.
+H03:\Tnotes \w.  \Sedit the current person's notes.
+H04:\Tcompletions \w.  \Scopy one of the names to the icon where F1 or F2 was pressed.
+H05:\TInfo \w.  Please include the version number in bug reports.
+H06:Enter the person's new name.  Press F1 for name completion to right, F2 to left.
+H07:Enter the person's new date of birth, use the birth \w to add location and time.
+H08:Enter the person's new date of death, use the death \w to add location, time and cause.
+H09:Enter the name of the person's new father.  Press F1 for name completion to right, F2 to left.
+H10:Enter the name of the person's new mother.  Press F1 for name completion to right, F2 to left.
+H11:Turn on if the person is male.
+H12:Turn on if the person is female.
+H13:\Sclose the Edit \w without changing the person's details.
+H14:\Supdate the person's details.
+H15:Enter a person's name to make them the new current person.  Enter a new name to create a new person.  Press F1 for name completion to right, F2 to left.
+H16:\Sclose the Goto \w without changing the current person.
+H17:\Smake the named person the current person.
+H18:Enter the name of the new spouse.  Press F1 for name completion to right, F2 to left.
+H19:\Sclose the Marry \w without creating a new marriage.
+H20:\Sadd the new named spouse.
+H21:The name of the file in which to save the current database.
+H22:Drag this to a directory display to save the current data there in a file with the leafname shown.
+H23:\Ssave to the pathname shown.
+H24:\Sclose the save \w without saving.
+H25:\Senter the current person's name.
+H26:Drag this to a directory display to write the report there in a file with the leafname shown.
+H27:\Swrite the report to the pathname shown.
+H28:The name of the file in which to write the report.
+H29:\Sclear the database and proceed.  You will lose all changes made since the file was last saved.
+H30:\Sabort the current operation.
+H31:\Ssave the changes you have made.
+H32:The name of the file in which to write the DrawFile
+H33:Drag this to a directory display to write the Drawfile there in a file with the leafname shown.
+H34:\Swrite the DrawFile to the pathname shown.
+H35:Enter the person's Title or Military rank.
+H36:Enter the person's new date of Christening, use the Christening \w to add location and time
+H37:Enter the person's new date of Baptism, use the Baptism \w to add location and time
+H38:Enter the person's new date of Burial, use the Burial \w to add location and time
+H39:Tick if the person is believed living - this is to enable you to suppress personal details when generating web pages
+H40:Enter the date of the marriage
+H41:Enter the place (village/parish/town, county, etc.) of the marriage
+H42:Enter the site (name of church, register office, etc.) of the marriage
+H43:The name of the file in which to write the Ancestor tree
+H44:Drag this to a directory display to write the current person's Ancestor tree in a file with the leafname shown.
+H45:\Swrite the Ancestor tree to the pathname shown
+H46:The name of the file in which to write the Family Groups report
+H47:Drag this to a directory display to write the Family Groups report in a file with the leafname shown.
+H48:\Swrite the Family Groups report to the pathname shown
+H49:Enter the person's date of death.
+H50:Enter the person's time of death.
+H51:Enter the place (village/parish/town, county, etc.) where the person died
+H52:Enter the site (name of hospital, house, accident site, etc.) where the person died
+H53:\Sclose the Death \w without storing the changes
+H54:\Sclose the Death \w and store the new data
+H55:Enter the cause of the person's death (as on the death certificate)
+H56:Enter the person's date of birth
+H57:Enter the person's time of birth
+H58:Enter the place (village/parish/town, county, etc.) where the person was born
+H59:Enter the site (name of hospital, house, etc.) where the person was born
+H60:\Sclose the Birth \w without storing the changes
+H61:\Sclose the Birth \w and store the new data
+H62:Enter the person's date of christening
+H63:Enter the person's time of christening
+H64:Enter the place (village/parish/town, county, etc.) where the person was christened
+H65:Enter the site (name of church, chapel, etc.) where the person was christened
+H66:\Sclose the Christening \w without storing the changes
+H67:\Sclose the Christening \w and store the new data
+H68:Enter the person's date of baptism
+H69:Enter the person's time of baptism
+H70:Enter the place (village/parish/town, county, etc.) where the person was baptised
+H71:Enter the site (name of church, chapel, etc.) where the person was baptised
+H72:\Sclose the Baptism \w without storing the changes
+H73:\Sclose the Baptism \w and store the new data
+H74:Enter the (starting) time of the marriage ceremony
+H75:Enter the place (village/parish/town, county, etc.) where the couple were married
+H76:Enter the site (name of church, chapel, etc.) where the couple were married
+H77:\Sclose the Marriage \w without storing the changes
+H78:\Sclose the Marriage \w and store the new data
+H79:Enter the person's date of burial
+H80:Enter the person's time of burial
+H81:Enter the place (village/parish/town, county, etc.) where the person was buried
+H82:Enter the site (name of churchyard, cemetery, burial ground, etc.) where the person was buried
+H83:\Sclose the Burial \w without storing the changes
+H84:\Sclose the Burial \w and store the new data
+H85:Enter the date of the divorce (decree absolute)
+H86:Choose a behaviour when a GEDCOM cross-reference cannot be resolved within the loaded file. Unless you fully understand this, you should always choose "Abandon load"
+H87:This option will abort file loading if a bad cross-reference is found (safest)
+H88:This option will give warnings for each bad cross-reference, but still load the file unless the cross-reference is vital (ie. to FAM or INDI objects)
+H89:This option will load the file ignoring bad cross-references silently unless the cross-reference is vital (ie. to FAM or INDI objects)
+H90:Choose a format to use for the datestamp which appears at the head of a report
+H91:This option uses the internationally standard (and most logical) ISO-8601 "Format for dates and times in information interchange"
+H92:This option uses the same format that is used internally in GEDCOM files
+H93:This option allows you to specify a string to use with OS_ConvertDateAndTime
+H94:Enter a string with which to format your date and time
+H95:\Sclose the Miscellaneous options \w without storing the changes
+H96:Restore the options to those prevailing when the window was opened
+H97:\Sclose the Miscellaneous options \w storing the changes (remember to choose Choices=>Save in the iconbar menu to save these options permanently)
+H98:The name of the file in which to write the index to all the people in the tree. If this filename has an extension (such as /htm or /html) then this will be used for all the individuals' pages too.
+H99:Drag to a directory to make the index with the leafname shown, and individuals' pages to the same directory. There may be more than will fit in a Filecore directory - an image filing system will help (eg. x-files, DOSFS, or a zip).
+H100:\Swrite the index page to the pathname shown.
+H101:Choose this option to include a file at the start of each of the web pages you generate. Typically this would be an html fragment containing a navigation bar or similar.
+H102:Choose this option to include a file at the end of each of the web pages you generate. Typically this would be an html fragment containing links, acknowledgements or a copyright statement.
+H103:Choose this to suppress dates/notes for people flagged "Living" in the Edit \w. A good idea if your country has some form of legislation such as the UK's Data Protection Act and you intend to publish your web pages.
+H103a:Be warned that the date of marriage might be obtained from a dead spouse's page...
+H104:Enter the full pathname of a file to include, or drag a file here from a directory viewer
+H105:Don't forget that RISC OS' FileCore systems (ADFS, SCSI, RAMFS, etc.) only allow 77 files per directory and you will be generating one file for each individual in your tree, plus an index.
+H106:Statistics for the loaded tree. The maximum INDI and FAM Ids can be used to make sure any tree you merge won't have clashing cross-references.
+H107:Enter the location of the grave within the burial ground
+H108:Enter the person's new date of Cremation, use the Cremation \w to add location and time
+H109:Click here to open a dialogue box to set more details of the event whose date is set by the icon the caret is in
+H110:Enter the person's date of cremation
+H111:Enter the person's time of cremation
+H112:Enter the place (village/parish/town, county, etc.) where the person was cremated
+H113:Enter the crematorium where the person was cremated
+H114:\Sclose the Cremation \w without storing the changes
+H115:\Sclose the Cremation \w and store the new data
+H116:\Supdate the person's details without closing the Edit \w.
+
+#Without something here MessageTrans can't find the last message!

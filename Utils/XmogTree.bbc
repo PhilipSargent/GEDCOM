@@ -1,0 +1,197 @@
+*| Take a GEDCOM file with any arbitrary strings for xrefs, and make all
+*| the individuals have new xrefs @Innn@ and families have @Fnnn@, where
+*| nnn are consecutive numbers starting at Istart% and Fstart% respectively.
+*| any other xrefs are left unchanged.
+
+*| Usage: XmogTree -i <infile> [-o <outfile>] [-I <lowest INDI id>] [-F <lowest FAM id>] [-S <lowest SOUR id>] [-R <lowest REPO id>]
+
+*| Actually -o <outfile> is completely ignored and output is RAM:NewTree :-(
+
+*| Known bugs: turns the SOUR record of the HEAD into an incorrect line -
+*|             replaces the name of the source program with @S-1@ - oops !
+
+version$ = "0.02"
+vdate$ = "2000-02-20"
+
+SYS "OS_GetEnv" TO Cmd$
+
+in$=FNArg("-i","")
+IF in$="" ERROR 1,"Usage: XmogTree -i <infile> [-o <outfile>] [-I <lowest INDI id>] [-F <lowest FAM id>] [-S <lowest SOUR id>] [-R <lowest REPO id>]":END
+PRINT "XmogTree v ";version$;" ";vdate$
+out$=FNArg("-o",in$)
+arg$=FNArg("-I","1")
+IF LEFT$(arg$,1)="I" arg$=MID$(arg$,2)
+Istart% = VAL(arg$)
+arg$=FNArg("-F","1")
+IF LEFT$(arg$,1)="F" arg$=MID$(arg$,2)
+Fstart% = VAL(arg$)
+arg$=FNArg("-S","1")
+IF LEFT$(arg$,1)="S" arg$=MID$(arg$,2)
+Sstart% = VAL(arg$)
+arg$=FNArg("-R","1")
+IF LEFT$(arg$,1)="R" arg$=MID$(arg$,2)
+Rstart% = VAL(arg$)
+
+I%=0:O%=0
+ON ERROR REPORT:PRINT;" at line ";ERL:ON ERROR OFF:PROCtidy:END
+I%=OPENIN(in$)
+IF I%=0 ERROR 0,"Must specify an input file as   -i <fullpathname>"
+
+DIM Ind$(4000),Fam$(4000),Src$(500),Rep$(500)
+
+Inext% = Istart%
+Fnext% = Fstart%
+Snext% = Sstart%
+Rnext% = Rstart%
+
+PROCScan
+PRINT "Found ";Inext%-Istart%;" individuals in ";Fnext%-Fstart%;" families"
+PRINT "From ";Snext%-Sstart%;" sources in ";Rnext%-Rstart%;" repositories"
+PTR#I% = 0
+O% = OPENOUT("Ram:NewTree")
+OSCLI("SetType Ram:NewTree GEDCOM")
+PROCXmog
+CLOSE#I%:I%=0
+CLOSE#O%:O%=0
+END
+
+DEF PROCScan
+Line$ = GET$#I%
+WHILE NOTEOF#I%
+  Level% = VAL(LEFT$(Line$,1))
+  IF Level%=0 THEN
+    RefCh% = INSTR(Line$, "@")
+    IF RefCh%=3 THEN
+      Ref$ = FNGetRef(3)
+      REM now expecting either INDI or FAM tag in Rest$
+      IF LEN(Rest$)>4 Rest$=LEFT$(Rest$,4)
+      CASE Rest$ OF
+        WHEN "INDI"
+          Ind$(Inext%) = Ref$
+          Inext% += 1
+        WHEN "FAM"
+          Fam$(Fnext%) = Ref$
+          Fnext% += 1
+        WHEN "SOUR"
+          Src$(Snext%) = Ref$
+          Snext% += 1
+        WHEN "REPO"
+          Rep$(Rnext%) = Ref$
+          Rnext% += 1
+        WHEN "TRLR"
+          ENDPROC
+*|        OTHERWISE
+*|          X$(Xnext%) = Ref$
+*|          Xnext% += 1
+      ENDCASE
+    ENDIF
+  ENDIF
+  Line$ = GET$#I%
+ENDWHILE
+ENDPROC
+
+DEF PROCXmog
+Line$ = GET$#I%
+WHILE NOTEOF#I%
+  Level% = VAL(LEFT$(Line$,1))
+  CASE Level% OF
+    WHEN 0
+      RefCh% = INSTR(Line$, "@")
+      IF RefCh%<>0 Ref$ = FNGetRef(RefCh%) ELSE Ref$="-1":Rest$=MID$(Line$,2)
+      REM now expecting either INDI or FAM tag in Rest$
+      IF LEN(Rest$)>4 Rest$=LEFT$(Rest$,4)
+      CASE Rest$ OF
+        WHEN "INDI"
+          BPUT#O%,"0 @"+FNImog(Ref$)+"@ INDI"
+        WHEN "FAM"
+          BPUT#O%,"0 @"+FNFmog(Ref$)+"@ FAM"
+        WHEN "SOUR"
+          BPUT#O%,"0 @"+FNSmog(Ref$)+"@ SOUR"
+        WHEN"REPO"
+          BPUT#O%,"0 @"+FNRmog(Ref$)+"@ REPO"
+        OTHERWISE
+          BPUT#O%,Line$
+      ENDCASE
+    WHEN 1
+      Tag$ = MID$(Line$,3,4)
+      CASE Tag$ OF
+        WHEN "HUSB","CHIL","WIFE","FAMS","FAMC","SOUR","REPO"
+          RefCh% = INSTR(Line$, "@")
+          IF RefCh%<>0 Ref$ = FNGetRef(RefCh%) ELSE Ref$="-1"
+        OTHERWISE
+          Ref$="a bug if this gets into the GEDCOM"
+      ENDCASE
+      CASE Tag$ OF
+        WHEN "HUSB","CHIL","WIFE"
+          BPUT#O%,"1 "+Tag$+" @"+FNImog(Ref$)+"@"
+        WHEN "FAMS","FAMC"
+          BPUT#O%,"1 "+Tag$+" @"+FNFmog(Ref$)+"@"
+        WHEN "SOUR"
+          IF Ref$="-1" THEN
+            BPUT#O%,Line$ : REM 1 SOUR <name of source program> :-)
+          ELSE
+            BPUT#O%,"1 "+Tag$+" @"+FNSmog(Ref$)+"@"
+          ENDIF
+        WHEN "REPO"
+          BPUT#O%,"1 "+Tag$+" @"+FNRmog(Ref$)+"@"
+        OTHERWISE
+          BPUT#O%,Line$
+      ENDCASE
+    OTHERWISE
+      BPUT#O%,Line$
+  ENDCASE
+  Line$ = GET$#I%
+ENDWHILE
+BPUT#O%,Line$
+ENDPROC
+
+DEF FNGetRef(N%)
+LOCAL RefCh%
+  Ref$ = MID$(Line$,N%+1)
+  RefCh% = INSTR(Ref$,"@")
+  IF RefCh%=0 PRINT"Bad ref in '";Line$;"'":=""
+  Rest$ = MID$(Ref$,RefCh%+2)
+= LEFT$(Ref$,RefCh%-1)
+
+DEF FNImog(r$)
+LOCAL I%
+FOR I%=1 TO Inext%-1
+  IF r$=Ind$(I%) THEN="I"+STR$(I%)
+NEXT
+= r$
+
+DEF FNFmog(r$)
+LOCAL I%
+FOR I%=1 TO Fnext%-1
+  IF r$=Fam$(I%) THEN="F"+STR$(I%)
+NEXT
+= r$
+
+DEF FNSmog(r$)
+LOCAL I%
+FOR I%=1 TO Snext%-1
+  IF r$=Src$(I%) THEN="S"+STR$(I%)
+NEXT
+= r$
+
+DEF FNRmog(r$)
+LOCAL I%
+FOR I%=1 TO Rnext%-1
+  IF r$=Rep$(I%) THEN="R"+STR$(I%)
+NEXT
+= r$
+
+DEF PROCtidy
+IF I%<>0 CLOSE#I%:I%=0
+IF O%<>0 CLOSE#O%:O%=0
+ENDPROC
+
+DEF FNArg(opt$,default$)
+LOCAL I%,arg$
+I% = INSTR(Cmd$,opt$)
+IF I%=0 THEN =default$
+arg$=MID$(Cmd$,I%+1+LEN(opt$))
+WHILE LEFT$(arg$)=" ":arg$=RIGHT$(arg$):ENDWHILE
+I% = INSTR(arg$," ")
+IF I%=0 THEN = arg$
+= LEFT$(arg$,I%-1)

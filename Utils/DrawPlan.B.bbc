@@ -1,0 +1,798 @@
+REM > <Root$Dir>.Pennine.Stationery.YPlanner.DrawPlan/B
+:
+*| This requires BASIC V, but not RISC OS
+:
+*| A convention : Names With_Underlines are variables, UnderlineFree manifests
+:
+*| Correct rendering sequence is (each section could usefully be grouped) :
+*| 1) 5 big and one small grey blocks for midweeks (these never change)
+*| 2) single day white blocks for bank holidays.
+*| 3) horizontal and vertical lines
+*|     NB outside border should be a closed loop with relevant type corners
+*| 4) black blocks before start and after end of each month
+*| 5) text ie. days on top bar, months on side bar, dates in planner and year.
+*|    note that days and months don't change for the standard planner, but
+*|    months could change for arbitrary start month option and civil year
+*|     NB days don't line up very well, because they aren't all the same width
+*|      we will need a fudge factor to adjust the offset of each day, and this
+*|      depends on the font metric if we are going to be really accurate...
+:
+PROC_Init_Calendars
+PROC_Set_Text
+PROC_Get_Year
+PROC_Define_Manifests
+MainFont%=FN_AddFont("Trinity.Medium")      :REM for main text
+TitlFont%=FN_AddFont("Novarese.Bold.Italic"):REM for title
+PROC_Set_Tabs
+PROC_Open_Planner
+PROC_Create_Draw_Header
+PROC_Font_Table_Object
+PROC_Shaded_Blocks
+PROC_White_Bank_Hols
+PROC_Draw_Grid
+PROC_Black_Non_Days
+PROC_Fixed_Text
+PROC_Label_Days
+PROC_Finish_Planner
+END
+:
+DEF PROC_Get_Year : LOCAL I%
+*****************************************************************************
+*|
+*| Get_Year finds the Year for which we are to prepare a planner.
+*| For years before 1582, all calendars are Julian
+*| For years after 1752, all calendars are Gregorian
+*| For years in between, you get a choice. Note that we don't code for
+*| changeover years (such as 1752 in England) (exercise for reader :-)
+*| You also get a choice between New Style (start Jan 1st) years and
+*| Old Style (start March 25th Julian, or April 5th Gregorian)
+*| NB: 1800-1899, the fiscal year *should* have started April 6th, and from
+*| 1900-2099, on April 7th...
+*|
+*****************************************************************************
+INPUT"Enter Year : "year%
+PRINT"Civil (Fiscal) Year or January 1st ? ";
+REPEAT:C$=GET$:UNTIL INSTR("CcFfJj",C$)<>0:PRINT
+IF INSTR("CcFfJj",C$)<5 Style% = StyleOld% ELSE Style% = StyleNew%
+IF year% < 1582 THEN
+  Type% = Julian%
+ELSE
+  IF year% > 1752 THEN
+    Type% = Gregorian%
+  ELSE
+    PRINT"Gregorian or Julian Calendar ? ";
+    REPEAT:C$=GET$:UNTIL INSTR("JjGg",C$)<>0:PRINT
+    IF INSTR("JjGg",C$) < 3 Type%=Julian% ELSE Type%=Gregorian%
+  ENDIF
+ENDIF
+IF Style%=StyleNew% THEN
+  StDay% = 1: StMon% = 1
+  Start% = FN_Day(year%,1,1,Type%)
+  PRINT 'year%;" starts on ";Day$(Start%);" 1st Jan."'
+ELSE
+  IF Type%=Julian%    StDay% = 25:StMon% = 3
+  IF Type%=Gregorian% StDay% =  6:StMon% = 4
+  Start% = FN_Day(year%,StMon%,StDay%,Type%)
+  PRINT 'year%;" starts on ";Day$(Start%);" ";StDay%;" ";TextMonth$(StMon%-1)
+ENDIF
+StartMonth% = StMon% - 1
+*|IF (year% MOD 4) = 0 MonthDays%(1) = 29
+IF StartMonth%<2 LeapBasis% = year% ELSE LeapBasis% = year%-1
+IF FN_Leap(LeapBasis%,Type%) MonthDays%(1) = 29
+IF Type%=Gregorian% PROC_Find_Easter(year%,0):PROC_Find_Easter(year%+1,1) ELSE FoundEaster% = FALSE
+ENDPROC
+:
+DEF PROC_Open_Planner
+file$ = "RAM:Plan"+STR$(year%)+LEFT$(Type$(Type%),1)
+out% = OPENOUT(file$)
+IF out% = 0 PROC_error("Can't open output file "+file$+" for planner")
+ENDPROC
+:
+DEF PROC_Find_Easter(year%,ix%)
+*****************************************************************************
+*|
+*| The calculation here gets the right answer all of the 20th century*, but I
+*| don't have data to check for 19th or 21st centuries... The primary concern
+*| is missed leap years, of course, but if full moon is within a few minutes
+*| of midnight, we could be out by a month...
+*|
+*| Lunar orbital data is pretty accurate, but I'm not sure about the baseline
+*|  for the full moon. There is also no correction for earth orbit ellipticity
+*|  which isn't too critical as we are always looking at the same time of year
+*|
+*| * no, it doesn't :-( and the code bombs out completely for earlier
+*|
+*****************************************************************************
+Eyr% = year% - 1900
+GregFix% = 0 - (((Eyr%+4000) DIV 4) - 1000) + (((Eyr%+4000) DIV 100) - 40) - (((year%+4000) DIV 400) - 14)
+*| 1900 is a convenient starting point, nothing more
+Fmoondays = ( 23.6495 + ( Eyr% * 18.8965 ) + GregFix%)
+REM ( Eyr% DIV 4 ) + (Eyr% DIV 100) - ((year%-1600)DIV400)
+*| Full moon advances by ~18.9 days each year (17.9 for leaps),
+*| Easter full moon was March 22nd + 23.6 days in 1900. Not sure of the
+*|  accuracy of the 23.6495 figure (precision is better than 1 minute)
+Fmoons% = Fmoondays / 29.5305
+*| 29.53 is mean time between full moons, given an orbit of 27.3215 days
+*| (ie. 27 days 7 hours 43 minutes (source: IBM moon landing booklet))
+IF Fmoondays<0 Fmoons%-=1
+Fmoon  = Fmoondays - (29.5305 * Fmoons%)
+Fmoon% = Fmoon
+Fmoon  = Fmoon - Fmoon%
+FMhour%= Fmoon * 24
+FMmin% = Fmoon * 1440 - FMhour% * 60
+*| Fmoon% is offset (in days) to full moon from (midnight) March 22nd of general year
+Fmoon% = 22 + Fmoon%
+REM Adjust% = ( 2 * ( Eyr% MOD 4 ) + 4 * ( Eyr% MOD 7 ) + 6 * Fmoon% + 3 ) MOD 7
+IF Fmoon% > 31 Adjust% = FN_Day(year%,4,Fmoon%-31,Gregorian%) ELSE Adjust% = FN_Day(year%,3,Fmoon%,Gregorian%)
+*| Adjust will find the Sunday on or following
+Adjust% = (7 - Adjust%) MOD 7
+PRINT"Full moon on ";
+IF Fmoon% > 31 PRINT;"April ";Fmoon%-31; ELSE PRINT;"March ";Fmoon%;
+PRINT;" at ";RIGHT$("0"+STR$(FMhour%),2);":";RIGHT$("0"+STR$(FMmin%),2)
+Month$ = "March":Month%(ix%)=2
+Easter%(ix%) = Fmoon% + Adjust%
+IF Easter%(ix%) > 31 Easter%(ix%)-=31:Month$="April":Month%(ix%)=3
+PRINT '"Easter Sunday ";year%;" falls on ";Month$;" ";Easter%(ix%);" (probably)"'
+FoundEaster% = TRUE
+ENDPROC
+:
+DEF PROC_Create_Draw_Header : LOCAL I%
+BPUT#out%,"Draw";
+PROC_Put_Word( out%, 201)
+PROC_Put_Word( out%, 0)
+BPUT#out%,"YearPlanner";
+PROC_Pad_Word( out%, 1, 32 )
+PROC_Bounding_Box( Left%, Bottom%, FarRight%, VeryTop% )
+*| need to add line thicknesses to 1st, 2nd, 4th and year label size to 3rd
+*| the latter is a pain, since we don't know the font metrics
+ENDPROC
+:
+DEF FN_AddFont(Name$)
+IF NextFont%>FontMax% ERROR 1,"Too many fonts"
+FontName$(NextFont%) = Name$
+*| length of font name length of string + 1 for ID + 1 for terminator
+*| then add 3 and AND to round up to a word boundary
+FontLen%(NextFont%) = (5 + LEN(Name$)) AND &FFFFFFFC
+NextFont%+=1
+=NextFont%: REM Font_ID s have QuadIO 1, not zero
+
+DEF PROC_Font_Table_Object
+LOCAL I%
+FontTableSize% = 2 * 4
+FOR I% = 0 TO NextFont%-1
+  FontTableSize% += FontLen%(I%)
+NEXT
+PROC_Put_Word( out%, FontTableType% )
+PROC_Put_Word( out%, FontTableSize% )
+FOR Font_ID% = 1 TO NextFont%
+  BPUT#out%, Font_ID%
+  BPUT#out%,FontName$(Font_ID%-1);
+  PROC_Pad_Word( out%, 4-((1+LEN(FontName$(Font_ID%-1)))MOD 4), 0 )
+NEXT
+ENDPROC
+:
+DEF PROC_Shaded_Blocks : LOCAL I%, LowX%
+LowX% = DaysLeft% + FreeDayWidth%
+HighX% = LowX% + 4 * WeekWidth%
+PROC_Group_Object( "MidWeekDays ", 6 * RectangleSize%, LowX%, Bottom%, HighX%+WeekWidth%+WorkDayWidth%, Top% )
+FOR I% = LowX% TO HighX% STEP WeekWidth%
+  PROC_Rectangle( I%, Bottom%, I%+WorkWidth%, Top%, PaleGrey%, NoOutline%, Thin%, DefaultStyle% )
+NEXT
+I% = HighX%+WeekWidth%
+PROC_Rectangle( I%, Bottom%, I%+WorkDayWidth%, Top%, PaleGrey%, NoOutline%, Thin%, DefaultStyle% )
+ENDPROC
+:
+DEF PROC_White_Bank_Hols : LOCAL x%
+*| REM we should really be doing tests on year to see if the holiday was
+*| actually applicable to that year, but in the absence of enough data...
+
+*| New Year's day (as in Jan 1st, whenever year actually starts)
+LineMonth% = (13 - StMon%) MOD 12
+x% = DateX%( MonStart%(LineMonth%) ) - InDayOffset%
+y% = Top%-LineMonth%*MonthHeight%
+IF MonStart%(LineMonth%)=0 x% += FreeDayWidth%     :REM New Year Sunday
+IF MonStart%(LineMonth%)=6 x% += FreeDayWidth% * 2 :REM New Year Saturday
+PROC_Rectangle(x%,y%-MonthHeight%, x%+WorkDayWidth%, y%, White%, NoOutline%, Thin%, DefaultStyle%)
+
+IF FoundEaster% THEN
+  *| It's possible to have two Easters in one civil year, errrghhh :-(
+  PROC_ArbitraryHoliday(Month%(0),Easter%(0)-2):*| Good Friday 1st time
+  PROC_ArbitraryHoliday(Month%(0),Easter%(0)+1):*| Easter Monday
+  PROC_ArbitraryHoliday(Month%(1)+12,Easter%(1)-2):*| Good Friday again ?
+  PROC_ArbitraryHoliday(Month%(1)+12,Easter%(1)+1)
+ENDIF
+
+*| Mayday Monday
+LineMonth% = 5 - StMon%
+x% = DaysLeft% + FreeDayWidth%
+y% = Top% - LineMonth% * MonthHeight%
+IF MonStart%(LineMonth%) > 1 x%+=WeekWidth%
+PROC_Rectangle(x%, y%-MonthHeight%, x%+WorkDayWidth%, y%, White%, NoOutline%, Thin%, DefaultStyle%)
+*| Spring Bank Monday - I don't think this is ever May 31st, so:
+x% = DaysLeft% + FreeDayWidth% + 4 * WeekWidth%
+PROC_Rectangle(x%, y%-MonthHeight%, x%+WorkDayWidth%, y%, White%, NoOutline%, Thin%, DefaultStyle%)
+
+*| Late August Bank Monday - I think the same applies to August 31st ?
+y% -= 3 * MonthHeight%
+PROC_Rectangle(x%, y%-MonthHeight%, x%+WorkDayWidth%, y%, White%, NoOutline%, Thin%, DefaultStyle%)
+
+*| Christmas day and Boxing day or substitutes
+LineMonth% = 12 - StMon%
+y% = Top% - LineMonth% * MonthHeight%
+*| If 25th is Saturday, white out 27th and 28th. Is this correct ? not 24/27 ? Yes, see 1994 !
+IF MonStart%(LineMonth%)=3 x% = DateX%( 26 + MonStart%(LineMonth%) ) - InDayOffset%:PROC_Rectangle(x%, y%-MonthHeight%, x%+2*WorkDayWidth%, y%, White%, NoOutline%, Thin%, DefaultStyle%):ENDPROC
+*| If 25th is Sunday, white out 26th and 27th
+IF MonStart%(LineMonth%)=4 x% = DateX%( 25 + MonStart%(LineMonth%) ) - InDayOffset%:PROC_Rectangle(x%, y%-MonthHeight%, x%+2*WorkDayWidth%, y%, White%, NoOutline%, Thin%, DefaultStyle%):ENDPROC
+*| else unless 25th is Friday, white out 25th and 26th
+IF MonStart%(LineMonth%)<>2 x% = DateX%( 24 + MonStart%(LineMonth%) ) - InDayOffset%:PROC_Rectangle(x%, y%-MonthHeight%, x%+2*WorkDayWidth%, y%, White%, NoOutline%, Thin%, DefaultStyle%):ENDPROC
+*| If 25th is Friday, white out 25th and 28th (the only split case)
+x% = DateX%( 24 + MonStart%(LineMonth%) ) - InDayOffset%
+PROC_Rectangle(x%, y%-MonthHeight%, x%+WorkDayWidth%, y%, White%, NoOutline%, Thin%, DefaultStyle%)
+x% = DateX%( 27 + MonStart%(LineMonth%) ) - InDayOffset%
+PROC_Rectangle(x%, y%-MonthHeight%, x%+WorkDayWidth%, y%, White%, NoOutline%, Thin%, DefaultStyle%)
+ENDPROC
+:
+DEF PROC_ArbitraryHoliday(Mon%,Date%)
+IF Date% < 1 Mon%-=1:Date%+=MonthDays%(Mon%MOD12)
+IF Date% > MonthDays%(Mon%MOD12) Date%-=MonthDays%(Mon%MOD12):Mon%+=1
+LineMonth% = Mon% - StMon% + 1
+*| Clipping: ignore dates outside the arbitrary calendar year:
+IF LineMonth%<0 ENDPROC
+IF LineMonth%>MonthLines%-1 ENDPROC
+CASE LineMonth% OF
+  WHEN 0            : IF Date% <  StDay% ENDPROC
+  WHEN MonthLines%-1: IF Date% >= StDay% ENDPROC
+ENDCASE
+PRINT"Patching holiday at ";
+IF Mon%>12 PRINTyear%+1; ELSE PRINT year%;
+PRINT".";((Mon%+1)MOD12);".";Date%
+DayX% = MonStart%( LineMonth% ) + Date% - 1
+IF (Mon%+1)=StMon% DayX% -= StDay%-1
+y% = Top% - LineMonth% * MonthHeight%
+x% = DateX%( DayX% ) - InDayOffset%
+PROC_Rectangle(x%, y%-MonthHeight%, x%+WorkDayWidth%, y%, White%, NoOutline%, Thin%, DefaultStyle%)
+ENDPROC
+:
+REM redundant code - delete when replacement tested:
+  LineMonth% = (Month% - StMon% + 1)
+  DayX% = MonStart%( LineMonth% ) + Easter% - 3
+  y% = Top% - LineMonth% * MonthHeight%
+  IF (Month%=3) AND (Easter%<3) DayX% = MonStart%( LineMonth%-1 ) + 28 + Easter%:y%+=MonthHeight%
+  x% = DateX%( DayX% ) - InDayOffset%
+  PROC_Rectangle(x%, y%-MonthHeight%, x%+WorkDayWidth%, y%, White%, NoOutline%, Thin%, DefaultStyle%)
+  *| Easter Monday
+  DayX% = MonStart%( LineMonth% ) + Easter%
+  y% = Top% - LineMonth% * MonthHeight%
+  IF (Month%=2) AND (Easter%>30) DayX% = MonStart%( LineMonth%+1 ) + Easter% - 31:y%-=MonthHeight%
+  x% = DateX%( DayX% ) - InDayOffset%
+  PROC_Rectangle(x%, y%-MonthHeight%, x%+WorkDayWidth%, y%, White%, NoOutline%, Thin%, DefaultStyle%)
+:
+:
+DEF PROC_Draw_Grid : LOCAL I%, J%
+*| Eventually these should be grouped
+*| But in particular, the outside box should be a box with proper corners, not
+*| just 4 lines - this isn't yet sorted. Need Rectangle with Style% for corners
+:
+FOR I% = Bottom% TO Top% STEP MonthHeight%
+  PROC_Hline( I%, Left%, DaysRight% )
+NEXT
+  PROC_Hline( VeryTop%, Left%, DaysRight% )
+PROC_Vline( Left%, Bottom%, VeryTop% )
+I% = DaysLeft% : J% = 0
+REPEAT
+  PROC_Vline( I%, Bottom%, VeryTop% )
+  J% = ( J% + 1 ) MOD 7
+  IF J% < 2 THEN I% += FreeDayWidth% ELSE I% += WorkDayWidth%
+UNTIL I% > DaysRight%
+ENDPROC
+:
+DEF PROC_Black_Non_Days : LOCAL I%
+:
+Black_Block_Count% = 0
+FOR I% = 0 TO MonthLines%-1
+  IF MonStart%(I%) > 0 Black_Block_Count% += 1
+  IF MonEnd%(I%)  < 37 Black_Block_Count% += 1
+NEXT
+:
+PROC_Group_Object( "NotRealDays ", Black_Block_Count% * RectangleSize%, DaysLeft%, Bottom%, DaysRight%, Top% )
+:
+y0% = Top%
+y1% = y0% - MonthHeight%
+FOR I% = 0 TO MonthLines%-1
+:
+  IF MonStart%(I%) > 0 THEN
+    *|x% = DaysLeft% + FreeDayWidth%+((MonStart%(I%)-1)*WorkDayWidth%)
+    x% = DaysLeft% + MonStart%(I%)*WorkDayWidth% + FreeDayWider%
+    x% += ((MonStart%(I%))DIV7)*FreeDayWider%
+    x% += ((MonStart%(I%)-1)DIV7)*FreeDayWider%
+    PROC_Rectangle( DaysLeft%, y1%, x%, y0%, Black%, NoOutline%, Thin%, DefaultStyle% )
+  ENDIF
+  IF MonEnd%(I%) < 37 THEN
+    x% = DaysLeft%+(MonEnd%(I%) * WorkDayWidth%) + FreeDayWider%
+REM    IF MonEnd%( I% ) > 28 x% += FreeDayWider%
+REM    IF MonEnd%( I% ) > 34 x% += FreeDayWider%
+REM    IF MonEnd%( I% ) > 35 x% += FreeDayWider%
+    x% += ((MonEnd%(I%))DIV7)*FreeDayWider%
+    x% += ((MonEnd%(I%)-1)DIV7)*FreeDayWider%
+    PROC_Rectangle( x%, y1%, DaysRight%, y0%, Black%, NoOutline%, Thin%, DefaultStyle% )
+  ENDIF
+  y0% = y1%
+  y1% -= MonthHeight%
+NEXT
+:
+ENDPROC
+:
+DEF PROC_Fixed_Text : LOCAL I%, J%, X%, Y%
+*| days (Su..) FOR x = 36 TO 750 STEP ( 24,18,18,18,18,18,24 ), y = 790 TR 6 pt
+*| months (Jan..) x = 6, FOR y = 750 TO 310 STEP -40 TR 8 pt
+PROC_Font_Style( Black%, White%, MainFont%, 6, 6 )
+Y% = Top% + 0.5 * HeaderHeight%
+FOR I%=0 TO 36
+  J% = I% MOD 7
+  PROC_Text_Object( TextDay$( J% ), DateX%( I% ), Y% )
+NEXT
+PROC_Font_Style( Black%, White%, MainFont%, 8, 8 )
+X% = Left% + 0.2 * DayNameWidth%
+FOR I%=0 TO MonthLines%-1
+  J% = (I% + StMon% - 1) MOD 12
+  PROC_Text_Object( TextMonth$( J% ), X%, MonthY%( I% ) )
+NEXT
+ENDPROC
+:
+DEF PROC_Label_Days : LOCAL I%, J%, K%, S%, T%, X%, Y%
+PROC_Font_Style( Black%, HintGrey%, MainFont%, 8, 8 )
+FOR I%=0 TO MonthLines%-1
+  Y% = MonthY%(I%)
+  K% = MonStart%(I%)
+  S% = 0
+  T% = MonthDays%((I%+StartMonth%)MOD12) - 1
+  IF (I%=0)AND(StDay%>1) S%=StDay%-1
+  IF (I%=MonthLines%-1)AND(StDay%>1) T%=StDay%-2
+  FOR J% = S% TO T%
+    PROC_Text_Object( TextDate$( J% ), DateX%(K%), Y% )
+    K% += 1
+  NEXT
+NEXT
+ENDPROC
+:
+DEF PROC_Finish_Planner
+PROC_Title
+CLOSE#out%
+PROC_Stamped_Draw_File
+END
+:
+DEF PROC_Title
+PROC_Font_Style( Black%, White%, TitlFont%, 33, 33 )
+Title$ = "Pennine Software Year Planner "+STR$(year%)+" ("+Type$(Type%)
+IF Style%=StyleOld% Title$+="/Civil"
+PROC_Text_Object(Title$+")",Left%,Top%+1.5*HeaderHeight%)
+ENDPROC
+:
+DEF PROC_Group_Object( Title$, Size%, LowX%, LowY%, HighX%, HighY% )
+PROC_Put_Word( out%, GroupObjectType% )
+PROC_Put_Word( out%, Size% + GroupHeaderSize% )
+PROC_Bounding_Box( LowX%, LowY%, HighX%, HighY% )
+BPUT#out%,LEFT$( Title$+"            ", GroupNameSize% );
+ENDPROC
+:
+DEF PROC_Font_Style( Colour%, Back_Hint%, Style%, FontX, FontY )
+*| set up globals to avoid repetitive parameter passing to PROC_Text_Object
+Font_Colour% = Colour%
+Font_Back_Hint% = Back_Hint%
+Font_Style% = Style%
+Font_X_Size% = FontX*640
+Font_Y_Size% = FontY*640
+ENDPROC
+:
+DEF PROC_Text_Object( Text$, X%, Y% ) : LOCAL chars%
+chars% = LEN(Text$)
+PROC_Put_Word( out%, TextObjectType% )
+PROC_Put_Word( out%, TextObjectSize%+4*(chars%DIV4) )
+PROC_Bounding_Box( X%, Y%, X%+chars%*Font_X_Size%, Y%+Font_Y_Size% )
+PROC_Put_Word( out%, Font_Colour% )
+PROC_Put_Word( out%, Font_Back_Hint% )
+PROC_Put_Word( out%, Font_Style% )
+PROC_Put_Word( out%, Font_X_Size% )
+PROC_Put_Word( out%, Font_Y_Size% )
+PROC_Put_Word( out%,X% )
+PROC_Put_Word( out%,Y% )
+BPUT#out%,Text$;
+PROC_Pad_Word( out%, 4 - (chars% MOD 4), 0 )
+ENDPROC
+:
+DEF PROC_Rectangle( LowX%, LowY%, HighX%, HighY%, Colour%, Outline%, Line_Width%, Style% )
+*| note that the style MUST NOT specify a dashed outline (bit 7) or we will
+*| get a duff object. We could fix this easily, but don't need to currently.
+PROC_Put_Word( out%, PathObjectType% )
+PROC_Put_Word( out%, RectangleSize% )
+PROC_Bounding_Box( LowX%, LowY%, HighX%, HighY% )
+PROC_Put_Word( out%, Colour% )
+PROC_Put_Word( out%, Outline% )
+PROC_Put_Word( out%, Line_Width% )
+PROC_Put_Word( out%, Style% )
+*| Dash pattern would go here and would be at least 4 words.
+PROC_Put_Path_Component( MoveToAbs%, LowX%, LowY% )
+PROC_Put_Path_Component( DrawToAbs%, LowX%, HighY% )
+PROC_Put_Path_Component( DrawToAbs%, HighX%, HighY% )
+PROC_Put_Path_Component( DrawToAbs%, HighX%, LowY% )
+PROC_Put_Path_Tag( ClosePath% )
+PROC_Put_Path_Tag( EndPath% )
+ENDPROC
+:
+DEF PROC_Hline( Y%, LowX%, HighX% )
+PROC_Put_Word( out%, PathObjectType% )
+PROC_Put_Word( out%, LineSize% )
+PROC_Bounding_Box( LowX%, Y%, HighX%, Y% )
+PROC_Put_Word( out%, Transparent% )
+PROC_Put_Word( out%, Black% )
+PROC_Put_Word( out%, NormalWidth% )
+PROC_Put_Word( out%, DefaultStyle% )
+*| Dash pattern would go here and would be at least 4 words.
+PROC_Put_Path_Component( MoveToAbs%, LowX%, Y% )
+PROC_Put_Path_Component( DrawToAbs%, HighX%, Y% )
+PROC_Put_Path_Tag( EndPath% )
+ENDPROC
+:
+DEFPROC_Vline( X%, LowY%, HighY% )
+PROC_Put_Word( out%, PathObjectType% )
+PROC_Put_Word( out%, LineSize% )
+PROC_Bounding_Box( X%, LowY%, X%, HighY% )
+PROC_Put_Word( out%, Transparent% )
+PROC_Put_Word( out%, Black% )
+PROC_Put_Word( out%, NormalWidth% )
+PROC_Put_Word( out%, DefaultStyle% )
+*| Dash pattern would go here and would be at least 4 words.
+PROC_Put_Path_Component( MoveToAbs%, X%, LowY% )
+PROC_Put_Path_Component( DrawToAbs%, X%, HighY% )
+PROC_Put_Path_Tag( EndPath% )
+ENDPROC
+:
+DEF PROC_Put_Path_Component( Path_Tag%, X%, Y% )
+*| only move absolute and draw absolute...
+PROC_Put_Word( out%, Path_Tag% )
+PROC_Put_Word( out%, X% )
+PROC_Put_Word( out%, Y% )
+ENDPROC
+:
+DEF PROC_Put_Path_Tag( Path_Tag% )
+PROC_Put_Word( out%, Path_Tag% )
+ENDPROC
+:
+DEFPROC_Bounding_Box( LowX%, LowY%, HighX%, HighY% )
+PROC_Put_Word( out%, LowX% )
+PROC_Put_Word( out%, LowY% )
+PROC_Put_Word( out%, HighX% )
+PROC_Put_Word( out%, HighY% )
+ENDPROC
+:
+DEFPROC_Put_Word( out%, value% )
+BPUT#out%, value% AND &FF
+BPUT#out%, (value% >> 8) AND &FF
+BPUT#out%, (value% >> 16) AND &FF
+BPUT#out%, (value% >> 24) AND &FF
+ENDPROC
+:
+DEFPROC_Pad_Word( out%, I%, value% ) : LOCAL J%
+FOR J% = 1 TO I%
+ BPUT#out%, value%
+NEXT
+ENDPROC
+:
+DEF PROC_Set_Text
+DATA "Sun", 1, "Mon", 0, "Tue", 0, "Wed", 0, "Thu", 0, "Fri", 0, "Sat", 1
+DATA Jan,31,Feb,28,Mar,31,Apr,30,May,31,Jun,30
+DATA Jul,31,Aug,31,Sep,30,Oct,31,Nov,30,Dec,31
+DATA " 1"," 2"," 3"," 4"," 5"," 6"," 7"," 8"," 9","10"
+DATA "11","12","13","14","15","16","17","18","19","20"
+DATA "21","22","23","24","25","26","27","28","29","30","31"
+:
+DIM TextMonth$(12)
+DIM DateX%(36)
+DIM DateXint%(6)
+DIM TextDay$(6)
+DIM MonthDays%(12),MonStart%(12),MonEnd%(12)
+DIM TextDate$(30)
+DIM Month%(1),Easter%(1)
+FOR I%=0 TO 6
+ READ TextDay$(I%)
+ READ DateXint%(I%)
+NEXT
+FOR I%=0 TO 11
+ READ TextMonth$(I%)
+ READ MonthDays%(I%)
+NEXT
+FOR I%=0 TO 30
+ READ TextDate$(I%)
+NEXT
+ENDPROC
+:
+DEF PROC_Set_Tabs
+DIM MonthY%(12)
+JanY% = Top% - 0.6 * MonthHeight%
+FOR I%=0 TO 12
+ MonthY%(I%) = JanY% - I% * MonthHeight%
+NEXT
+DateX%(0) = DaysLeft% + InDayOffset%
+FOR I%=0 TO 35
+ DateX%( I%+1 ) = DateX%( I% ) + WorkDayWidth% + DateXint%( I% MOD 7 ) * FreeDayWider%
+NEXT
+:
+MonStart%(0) = Start%
+IF StDay%>1 THEN
+  MonStart%(0) += 7 * ((7+StDay%-Start%)DIV7)
+  MonEnd%(0) = MonStart%(0) + MonthDays%(StartMonth%) + 1 - StDay%
+ELSE
+  MonEnd%(0) = MonStart%(0) + MonthDays%(StartMonth%)
+ENDIF
+MonStart%(1) = MonEnd%(0) MOD 7
+FOR I% = 1 TO MonthLines%-2
+   MonEnd%(I%) = MonStart%(I%) + MonthDays%((I%+StartMonth%)MOD12)
+   IF I%=0 MonEnd%(I%)-= (StDay%-1)
+   MonStart%(I%+1) = MonEnd%(I%) MOD 7
+NEXT
+IF StDay%>1 THEN
+  MonEnd%(MonthLines%-1) = MonStart%(MonthLines%-1) + StDay% - 1
+ELSE
+  MonEnd%(MonthLines%-1) = MonStart%(MonthLines%-1) + MonthDays%((MonthLines%+StartMonth%-1)MOD12)
+ENDIF
+ENDPROC
+:
+DEF PROC_Stamped_Draw_File
+DIM time% 5
+?time%=3
+SYS 7,14,time%
+SYS 8,5,file$ TO type%,f%,load%,exec%,length%,attr%
+load% = &FFFAFF00 + time%?4
+exec% = !time%
+SYS 8,1,file$,load%,exec%,0,attr%
+ENDPROC
+:
+DEF PROC_Define_Manifests
+:
+*| Draw File Object types :
+:
+FontTableType%   = 0
+TextObjectType%  = 1
+PathObjectType%  = 2
+GroupObjectType% = 6
+*| this perhaps should live with the creator, FontTableSize% = 2 * 4 + 16  :
+*| since it will change when you add new fonts
+RectangleSize%   = 24 * 4    :*| no dashed outlines !
+LineSize%        = 17 * 4
+TextObjectSize%  = 14 * 4    :*| + LEN(text)DIV 4 (but includes the padding)
+GroupHeaderSize% =  9 * 4    :*| type + size + box(4) + name(3)
+GroupNameSize%   = 12
+FontMax%         = 4     :REM no more than five fonts on one page, please !
+DIM FontName$(FontMax%),FontLen%(FontMax%)
+NextFont% = 0
+:
+*| Path tag identifier bytes :
+:
+EndPath%         = 0
+MoveToAbs%       = 2
+ClosePath%       = 5
+DrawToAbs%       = 8
+BezierToAbs%     = 6
+:
+*| Path style words
+:
+NoOutline%       = 0
+Thin%            = 0
+NormalWidth%     = 1000
+DefaultStyle%    = 0
+:
+*| Colours
+:
+PaleGrey%    = &BBBBBB00 :REM shade &EE too pale for laser printer
+Transparent% = &FFFFFFFF
+White%       = &FFFFFF00
+*| it's too much work to sort out a background hint for each bit of text
+*| based on the real background, so take a compromise:
+HintGrey%    = (PaleGrey%+White%)>>1
+Black%       = 0
+:
+*| Dimensions :
+:
+IF Style%=StyleNew% THEN
+  MonthLines%=12:MonthHeight%  = 40*640
+ELSE
+  MonthLines%=13:MonthHeight% = 37*640
+ENDIF
+HeaderHeight% = 30*640
+WorkDayWidth% = 18*640
+FreeDayWidth% = 24*640
+FreeDayWider% = FreeDayWidth% - WorkDayWidth%
+InDayOffset%  =  6*640
+DayNameWidth% = 30*640
+Bottom%       = 20*640
+Left%         = 20*640
+:
+WorkWidth%    = 5 * WorkDayWidth%
+WeekEndWidth% = 2 * FreeDayWidth%
+WeekWidth%    = WorkWidth% + WeekEndWidth%
+YearNameWidth% = 30 :*| really need metrics
+Top%          = Bottom% + MonthLines% * MonthHeight%
+VeryTop%      = Top% + HeaderHeight%
+DaysLeft%     = Left% + DayNameWidth%
+DaysRight%    = DaysLeft% + 5 * WeekWidth% + FreeDayWidth% + WorkDayWidth%
+FarRight%     = DaysRight% + YearNameWidth%
+:
+ENDPROC
+:
+*| New Gregorian/Julian calendar code
+:
+DEF PROC_Init_Calendars
+DIM Day$(6),Mon$(12),M%(12),L%(1),MMx%(13)
+Day$(0)="Sunday":Day$(1)="Monday":Day$(2)="Tuesday":Day$(3)="Wednesday"
+Day$(4)="Thursday":Day$(5)="Friday":Day$(6)="Saturday"
+Mon$(1)="January":Mon$(2)="February":Mon$(3)="March"
+Mon$(4)="April":Mon$(5)="May":Mon$(6)="June"
+Mon$(7)="July":Mon$(8)="August":Mon$(9)="September"
+Mon$(10)="October":Mon$(11)="November":Mon$(12)="December"
+M%(0)=10:M%(1)=12:M%(2)=8:M%(3)=8:M%(4)=11:M%(5)=6:M%(6)=9
+M%(7)=11:M%(8)=7:M%(9)=10:M%(10)=12:M%(11)=8:M%(12)=10
+MMx%(0)=31:MMx%(1)=31:MMx%(2)=28:MMx%(3)=31:MMx%(4)=30:MMx%(5)=31:MMx%(6)=30
+MMx%(7)=31:MMx%(8)=31:MMx%(9)=30:MMx%(10)=31:MMx%(11)=30:MMx%(12)=31
+Julian%=0:Gregorian%=1
+DIM Type$(1):Type$(Julian%)="Julian":Type$(Gregorian%)="Gregorian"
+REM Dominical Letter (for checking against Encyclopedia Britannica)
+LOCAL I%
+DIM Dom$(6):FOR I%= 0 TO 6:Dom$(I%)=CHR$(ASC("A")+I%):NEXT
+*| New Year start date codes:
+StyleUnknown%      = 0 :REM not yet decided
+StyleNew%          = 1 :REM year starts on 1st Jan
+StyleOld%          = 2 :REM year starts on 25th March (Julian) or 5th April
+Style% = StyleUnknown%
+ENDPROC
+
+DEF FN_JDay(Y%,M%,D%)=Day$(FN_JulianDay(Y%,M%,D%))
+DEF FN_GDay(Y%,M%,D%)=Day$(FN_GregorianDay(Y%,M%,D%))
+
+DEF FN_JulianDay(Y%,M%,D%)
+REM Algorithm is based on New Year on January 1st
+LOCAL JIffy%
+REM if dates are OldStyle (or we use the first number in 1751/2...):
+ IF Y%<1752 THEN
+   IF M%<3 Y%+=1
+   IF M%=3 IF D%<25 Y%+=1
+ ENDIF
+JIffy%=Y%>1752
+IF Y%=1752 THEN
+ JIffy%=M%>9
+ IF M%=9 JIffy%=D%>2
+ENDIF
+IF JIffy% PRINT"Warning: Julian Calendar not used in UK after 1752.09.02"
+IF Y%<1 Y%+=1 :REM convert to rational year system
+WHILE Y%<0 Y%+=28:ENDWHILE: REM make DIV and MOD give kosher answers
+L%(1) = 5-((Y% + (Y%DIV4) + 4) MOD 7)
+IF (Y% MOD 4)=0 THEN
+  L%(0) = (L%(1) + 1) MOD 7
+  REM PRINT I%;TAB(12);Dom$(L%(0));Dom$(L%(1))
+ELSE
+  L%(0)=L%(1)
+  REM PRINT I%;TAB(12);Dom$(L%(0))
+ENDIF
+= (M%(M%)+D%-L%((M%>2)AND1))MOD7
+
+DEF FN_GregorianDay(Y%,M%,D%)
+LOCAL GIffy%,y%
+GIffy% = Y%<1582
+IF Y% = 1582 THEN
+  GIffy% = M%<10
+  IF M%=10 GIffy%=D%<15
+ENDIF
+IF GIffy% PRINT"Warning: Gregorian Calendar didn't exist before 1582.10.15"
+REM But do calculations as if it did:
+IF Y%<1 Y%+=1 :REM convert to rational year system
+y% = Y% MOD 400: IF y%<0 y%+=400 :REM convert to rational MOD
+L%(1) = 5-((y% + (y%DIV4) + 6 - (y%DIV100)) MOD 7)
+IF ((y% MOD 4)=0)AND(((y%MOD100)<>0)OR(y%=0)) THEN
+  L%(0) = (L%(1) + 1) MOD 7
+ELSE
+  L%(0) = L%(1)
+ENDIF
+= (M%(M%)+D%-L%((M%>2)AND1))MOD7
+
+DEF FN_Leap(Y%,Calendar%)
+IF Y%<1 Y%+=1 :REM need a rational year to get leaps right
+IF (Y% MOD 4) <> 0 THEN=FALSE
+IF Calendar%=Julian% THEN=TRUE
+LOCAL y%:y%=Y% MOD 400
+=((y%MOD100)<>0)OR(y%=0)
+
+DEF FN_Day(Y%,M%,D%,Calendar%)
+LOCAL y%
+IF Y%<1 Y%+=1 :REM convert to rational year system
+CASE Calendar% OF
+  WHEN Gregorian%
+    y% = Y% MOD 400: IF y%<0 y%+=400 :REM convert to rational MOD
+    L%(1) = 5-((y% + (y%DIV4) + 6 - (y%DIV100)) MOD 7)
+    IF ((y% MOD 4)=0)AND(((y%MOD100)<>0)OR(y%=0)) THEN
+      L%(0) = (L%(1) + 1) MOD 7
+    ELSE
+      L%(0) = L%(1)
+    ENDIF
+  WHEN Julian%
+    WHILE Y%<0 Y%+=28:ENDWHILE: REM make DIV and MOD give kosher answers
+    L%(1) = 5-((Y% + (Y%DIV4) + 4) MOD 7)
+    IF (Y% MOD 4)=0 THEN
+      L%(0) = (L%(1) + 1) MOD 7
+    ELSE
+      L%(0)=L%(1)
+    ENDIF
+ENDCASE
+= (M%(M%)+D%-L%((M%>2)AND1))MOD7
+
+DEF PROC_JulianToGregorian(RETURN Y%,RETURN M%,RETURN D%)
+IF Y%=0 ERROR 1, "Bad Year"
+IF (M%<1) OR (M%>12) ERROR 1,"Bad Month"
+IF Y%<1 Y%+=1 :REM convert to a year number where BC 1 = year 0
+IF (D%<1) OR (D%>FN_MMx(Y%,M%,Julian%)) ERROR 1,"Bad Day"
+REM we believe things are equal from Mar 1st 200 until Feb 28th 300
+RelY% = Y%-200
+REM this is out by one day in the first century A.D. because DIV doesn't
+REM work how you would hope it did, even slightly
+REM Offset% = (RelY%DIV100) - (Y%DIV400)
+Offset% = INT((RelY%+0.5)/100) - INT((Y%+0.5)/400)
+REM now that offset is right in non-leaps and leaps (J not G) Mar-Dec
+IF ((Y%MOD100)=0) AND ((Y%MOD400)<>0) AND (M%<3) Offset%-=1
+D%+=Offset%
+REM the offset could be negative (Y<200) so do both tests, and
+REM the change could be greater than a single month, so use WHILE
+WHILE D%>FNMMx(Y%,M%,Gregorian%)
+ D%-=FNMMx(Y%,M%,Gregorian%):M%+=1
+ IF M%>12 M%-=12:Y%+=1
+ENDWHILE
+WHILE D%<1
+ M%-=1:D%+=FNMMx(Y%,M%,Gregorian%)
+ IF M%<1 M%+=12:Y%-=1
+ENDWHILE
+IF Y%<1 Y%-=1 :REM convert back to system with no year zero
+ENDPROC
+
+DEF PROC_GregorianToJulian(RETURN Y%,RETURN M%,RETURN D%)
+IF Y%=0 ERROR 1, "Bad Year"
+IF (M%<1) OR (M%>12) ERROR 1,"Bad Month"
+IF Y%<1 Y%+=1 :REM convert to a year number where BC 1 = year 0
+IF (D%<1) OR (D%>FN_MMx(Y%,M%,Gregorian%)) ERROR 1,"Bad Day"
+RelY% = Y%-200
+REM this is out by one day in the first century A.D. because DIV doesn't
+REM work how you would hope it did, even slightly
+REM Offset% = (RelY%DIV100) - (Y%DIV400)
+Offset% = INT((RelY%+0.5)/100) - INT((Y%+0.5)/400)
+IF ((Y%MOD100)=0) AND ((Y%MOD400)<>0) AND (M%<3) Offset%-=1
+D%-=Offset%
+WHILE D%>FNMMx(Y%,M%,Julian%)
+ D%-=FNMMx(Y%,M%,Julian%):M%+=1
+ IF M%>12 M%-=12:Y%+=1
+ENDWHILE
+WHILE D%<1
+ M%-=1:D%+=FNMMx(Y%,M%,Julian%)
+ IF M%<1 M%+=12:Y%-=1
+ENDWHILE
+IF Y%<1 Y%-=1 :REM convert back to system with no year zero
+ENDPROC
+
+DEF FN_MMx(Y%,M%,Calendar%)
+LOCAL Mx%
+IF M%<>2 THEN =MMx%(M%):REM easy unless February
+IF Y%<1 Y%+=1 :REM there was no year zero, so correct to system 0 = BC 1
+IF (Y%MOD4) <> 0 THEN=MMx%(M%)
+IF (Y%MOD100) <> 0 THEN=MMx%(M%)+1
+CASE Calendar% OF
+  WHEN Julian%:=MMx%(M%)+1
+  WHEN Gregorian%:IF (Y%MOD400)=0:=MMx%(M%)+1
+    =MMx%(M%)
+ENDCASE
+
+DEF PROC_GtoJ(Y%,M%,D%)
+PROC_GregorianToJulian(Y%,M%,D%)
+PRINT Y%;".";FN_TwoDig(M%);".";FN_TwoDig(D%)
+ENDPROC
+
+DEF PROC_JtoG(Y%,M%,D%)
+PROC_JulianToGregorian(Y%,M%,D%)
+PRINT Y%;".";FN_TwoDig(M%);".";FN_TwoDig(D%)
+ENDPROC
+
+DEF FN_TwoDig(N%)=RIGHT$("0"+STR$(N%),2)

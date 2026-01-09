@@ -1,0 +1,197 @@
+*| Revision History:
+*| AERW G:2000.04.17 fixed bug that G->J conversions were one day out in 1st
+*|                   century A.D. Affected BC conversions too
+*| AERW G:2000.04.17 fixed G: BC 4714.11.24 (Julian day 0) converting to
+*|                   J: BC 4714.12.32 (not BC 4713.01.01) - all conversions
+*|                   where month changes by more than one were wrong
+*| AERW G:2000.04.17 fixed bug in dates BC because BC leap years are 1, 5 ...
+*|                   not 0, 4 ... - no year zero !
+*| AERW G:2000.04.17 fixed typo in number of days for one month (blush):
+*| AERW G:2000.04.17 fixed DIV/MOD coding so day-of-week works on BC dates
+
+*| Known bugs:
+
+REM Dominical A-G <=> 0-6
+REM Dominical for year zero (Julian) is 3 (D)
+REM Dominical goes back one at each year end, and one after Feb in leap years
+
+REM Dominical for year N is (3 - N - NDIV4)MOD7 for March-December
+REM and the same for the rest of the year if NMOD4<>0 ELSE (4 - N - NDIV4)
+
+REM Treating Monday as 0, January as 1, January 1st is 6-N%
+
+REM WAIT, wait, wait ... This is all assuming New Year on Jan 1st, which
+REM wasn't what happened. But Lady Day is *after* Feb 28th, so which years
+REM were the leap years ? Was there a February 29th 1748/9 or 1747/8 ?
+REM This would clearly fuck the whole basis on which we calculate the day
+REM of week ! However, when the Julian calendar was established, the Roman
+REM Civil Year began on Jan 1st, so we must assume that the leapness of
+REM February was based on year divisible-by-fourness of the year based on
+REM a January start day, so that there would be a 1747/8.02.29 (phew!)
+
+PROCInitCalendars
+END
+
+DEF PROCInitCalendars
+DIM Day$(6),Mon$(12),M%(12),L%(1),MMx%(13)
+Day$(0)="Monday":Day$(1)="Tuesday":Day$(2)="Wednesday":Day$(3)="Thursday"
+Day$(4)="Friday":Day$(5)="Saturday":Day$(6)="Sunday"
+Mon$(1)="January":Mon$(2)="February":Mon$(3)="March"
+Mon$(4)="April":Mon$(5)="May":Mon$(6)="June"
+Mon$(7)="July":Mon$(8)="August":Mon$(9)="September"
+Mon$(10)="October":Mon$(11)="November":Mon$(12)="December"
+M%(0)=10:M%(1)=12:M%(2)=8:M%(3)=8:M%(4)=11:M%(5)=6:M%(6)=9
+M%(7)=11:M%(8)=7:M%(9)=10:M%(10)=12:M%(11)=8:M%(12)=10
+MMx%(0)=31:MMx%(1)=31:MMx%(2)=28:MMx%(3)=31:MMx%(4)=30:MMx%(5)=31:MMx%(6)=30
+MMx%(7)=31:MMx%(8)=31:MMx%(9)=30:MMx%(10)=31:MMx%(11)=30:MMx%(12)=31
+Julian%=1:Gregorian%=2
+REM Dominical Letter (for checking against Encyclopedia Britannica)
+LOCAL I%
+DIM Dom$(6):FOR I%= 0 TO 6:Dom$(I%)=CHR$(ASC("A")+I%):NEXT
+ENDPROC
+  
+DEF FNJDay(Y%,M%,D%)=Day$(FNJulianDay(Y%,M%,D%))
+DEF FNGDay(Y%,M%,D%)=Day$(FNGregorianDay(Y%,M%,D%))
+
+DEF FNJulianDay(Y%,M%,D%)
+REM Algorithm is based on New Year on January 1st
+LOCAL JIffy%
+REM if dates are OldStyle (or we use the first number in 1751/2...):
+ IF Y%<1752 THEN
+   IF M%<3 Y%+=1
+   IF M%=3 IF D%<25 Y%+=1
+ ENDIF
+JIffy%=Y%>1752
+IF Y%=1752 THEN
+ JIffy%=M%>9
+ IF M%=9 JIffy%=D%>2
+ENDIF
+IF JIffy% PRINT"Warning: Julian Calendar not used in UK after 1752.09.02"
+IF Y%<1 Y%+=1 :REM convert to rational year system
+WHILE Y%<0 Y%+=28:ENDWHILE: REM make DIV and MOD give kosher answers
+L%(1) = 6-((Y% + (Y%DIV4) + 4) MOD 7)
+IF (Y% MOD 4)=0 THEN
+  L%(0) = (L%(1) + 1) MOD 7
+  REM PRINT I%;TAB(12);Dom$(L%(0));Dom$(L%(1))
+ELSE
+  L%(0)=L%(1)
+  REM PRINT I%;TAB(12);Dom$(L%(0))
+ENDIF
+= (M%(M%)+D%-L%((M%>2)AND1))MOD7
+
+DEF FNGregorianDay(Y%,M%,D%)
+LOCAL GIffy%,y%
+GIffy% = Y%<1582
+IF Y% = 1582 THEN
+  GIffy% = M%<10
+  IF M%=10 GIffy%=D%<15
+ENDIF
+IF GIffy% PRINT"Warning: Gregorian Calendar didn't exist before 1582.10.15"
+REM But do calculations as if it did:
+IF Y%<1 Y%+=1 :REM convert to rational year system
+y% = Y% MOD 400: IF y%<0 y%+=400 :REM convert to rational MOD
+L%(1) = 6-((y% + (y%DIV4) + 6 - (y%DIV100)) MOD 7)
+IF ((y% MOD 4)=0)AND(((y%MOD100)<>0)OR(y%=0)) THEN
+  L%(0) = (L%(1) + 1) MOD 7
+ELSE
+  L%(0) = L%(1)
+ENDIF
+= (M%(M%)+D%-L%((M%>2)AND1))MOD7
+
+DEF FNDay(Y%,M%,D%,Calendar%)
+LOCAL y%
+IF Y%<1 Y%+=1 :REM convert to rational year system
+CASE Calendar% OF
+  WHEN Gregorian%
+    y% = Y% MOD 400: IF y%<0 y%+=400 :REM convert to rational MOD
+    L%(1) = 6-((y% + (y%DIV4) + 6 - (y%DIV100)) MOD 7)
+    IF ((y% MOD 4)=0)AND(((y%MOD100)<>0)OR(y%=0)) THEN
+      L%(0) = (L%(1) + 1) MOD 7
+    ELSE
+      L%(0) = L%(1)
+    ENDIF
+  WHEN Julian%
+    WHILE Y%<0 Y%+=28:ENDWHILE: REM make DIV and MOD give kosher answers
+    L%(1) = 6-((Y% + (Y%DIV4) + 4) MOD 7)
+    IF (Y% MOD 4)=0 THEN
+      L%(0) = (L%(1) + 1) MOD 7
+    ELSE
+      L%(0)=L%(1)
+    ENDIF
+ENDCASE
+= (M%(M%)+D%-L%((M%>2)AND1))MOD7
+
+DEF PROCJulianToGregorian(RETURN Y%,RETURN M%,RETURN D%)
+IF Y%=0 ERROR 1, "Bad Year"
+IF (M%<1) OR (M%>12) ERROR 1,"Bad Month"
+IF Y%<1 Y%+=1 :REM convert to a year number where BC 1 = year 0
+IF (D%<1) OR (D%>FNMMx(Y%,M%,Julian%)) ERROR 1,"Bad Day"
+REM we believe things are equal from Mar 1st 200 until Feb 28th 300
+RelY% = Y%-200
+REM this is out by one day in the first century A.D. because DIV doesn't
+REM work how you would hope it did, even slightly
+REM Offset% = (RelY%DIV100) - (Y%DIV400)
+Offset% = INT((RelY%+0.5)/100) - INT((Y%+0.5)/400)
+REM now that offset is right in non-leaps and leaps (J not G) Mar-Dec
+IF ((Y%MOD100)=0) AND ((Y%MOD400)<>0) AND (M%<3) Offset%-=1
+D%+=Offset%
+REM the offset could be negative (Y<200) so do both tests, and
+REM the change could be greater than a single month, so use WHILE
+WHILE D%>FNMMx(Y%,M%,Gregorian%)
+ D%-=FNMMx(Y%,M%,Gregorian%):M%+=1
+ IF M%>12 M%-=12:Y%+=1
+ENDWHILE
+WHILE D%<1
+ M%-=1:D%+=FNMMx(Y%,M%,Gregorian%)
+ IF M%<1 M%+=12:Y%-=1
+ENDWHILE
+IF Y%<1 Y%-=1 :REM convert back to system with no year zero
+ENDPROC
+
+DEF PROCGregorianToJulian(RETURN Y%,RETURN M%,RETURN D%)
+LOCAL RelY%
+IF Y%=0 ERROR 1, "Bad Year"
+IF (M%<1) OR (M%>12) ERROR 1,"Bad Month"
+IF Y%<1 Y%+=1 :REM convert to a year number where BC 1 = year 0
+IF (D%<1) OR (D%>FNMMx(Y%,M%,Gregorian%)) ERROR 1,"Bad Day"
+RelY% = Y%-200
+REM this is out by one day in the first century A.D. because DIV doesn't
+REM work how you would hope it did, even slightly
+REM Offset% = (RelY%DIV100) - (Y%DIV400)
+Offset% = INT((RelY%+0.5)/100) - INT((Y%+0.5)/400)
+IF ((Y%MOD100)=0) AND ((Y%MOD400)<>0) AND (M%<3) Offset%-=1
+D%-=Offset%
+WHILE D%>FNMMx(Y%,M%,Julian%)
+ D%-=FNMMx(Y%,M%,Julian%):M%+=1
+ IF M%>12 M%-=12:Y%+=1
+ENDWHILE
+WHILE D%<1
+ M%-=1:D%+=FNMMx(Y%,M%,Julian%)
+ IF M%<1 M%+=12:Y%-=1
+ENDWHILE
+IF Y%<1 Y%-=1 :REM convert back to system with no year zero
+ENDPROC
+
+DEF FNMMx(Y%,M%,Calendar%)
+LOCAL Mx%
+IF M%<>2 THEN =MMx%(M%):REM easy unless February
+IF Y%<1 Y%+=1 :REM there was no year zero, so correct to system 0 = BC 1
+IF (Y%MOD4) <> 0 THEN=MMx%(M%)
+IF (Y%MOD100) <> 0 THEN=MMx%(M%)+1
+CASE Calendar% OF
+  WHEN Julian%:=MMx%(M%)+1
+  WHEN Gregorian%:IF (Y%MOD400)=0:=MMx%(M%)+1
+    =MMx%(M%)
+ENDCASE
+
+DEF PROCGtoJ(Y%,M%,D%)
+PROCGregorianToJulian(Y%,M%,D%)
+PRINT Y%;".";FNTwoDig(M%);".";FNTwoDig(D%)
+ENDPROC
+
+DEF PROCJtoG(Y%,M%,D%)
+PROCJulianToGregorian(Y%,M%,D%)
+PRINT Y%;".";FNTwoDig(M%);".";FNTwoDig(D%)
+ENDPROC
+
+DEF FNTwoDig(N%)=RIGHT$("0"+STR$(N%),2)
