@@ -1,16 +1,17 @@
 # GEDCOM
-Andy Waddington's GEDCOM editors. Rescued from failing hard-drives from Andy's machines.
-Andy died last year of pancreatic cancer, leaving far too much unfinished.
+The purpose of this repo is to publish Andy Waddington's GEDCOM editors for genealogical data. 
+These were rescued from failing hard-drives from Andy's machines.
+Andy (AERW) died last year (2025) of pancreatic cancer, leaving far too much unfinished.
+
+There are two variants of the GEDCOM editor: !Family for RISCOS and xFamily for Linux.
 
 The !Family code is written in BBC BASIC and runs under a RISCOS emulator on a Linux
-machine (or on an old RISCOS PC if you happen to have one in working order).
+machine (or on an old RISCOS PC if you happen to have one in working order). The xFamily code is writeen in C++
+and runs natively on Linux. Andy's preferred distribution was Kubuntu.
 
 The GEDCOM format used is Andy's interpretation of GEDCOM 5.3 with elements of 
 GEDCOM 5.4 - all of which are syntactically and semantically incompatible with 
 the current GEDCOM 5.5.5 standard.
-
-Andy also worked on a new build version called 'xfamily' written for Linux. His 
-preferred distribution was Kubuntu.
 
 In accordance with Andy's expressed wishes [cplusplus.htm in the xfamily source code], 
 this software is published with the GNU General Public License.
@@ -31,18 +32,12 @@ GEDCOM version incompatibilities.
 
 "!Family was producing GEDCOM which seemed to be correct on a
 reading of the GEDCOM 5.3 specification, but which seems to be incorrect on
-a careful reading of the 5.5 spec. In neither case is it very clear. !Family
-allows setting the time of an event such as a birth or death, and uses the TIME
-tag to do so. Within !Family up to 2.24, the TIME tag is treated as having the
-same "level" as the DATE tag. However, in those cases where the GEDCOM 5.5
-specification shows usage of the TIME tag at all, it is subordinate to the
-DATE tag, and the inference is that it should be so subordinate when used in
-an event context, too.", AERW in "Changes" file.
+a careful reading of the 5.5 spec. In neither case is it very clear.", AERW in "Changes" file.
 
 ## !Family history
 
 "!Family was developed over several years (up to version 2.18) by Denis Howe at Imperial College. 
-Pennine Software added features for local needs and intended sending these to Denis for 
+Pennine Software [i.e. Andy] added features for local needs and intended sending these to Denis for 
 incorporation into the released version. Following Denis's desire to pass support of the program 
 on to someone else, these updates are now being made available by Pennine Software [AERW] and can 
 be retrieved from the downloads page. There have been a number of user-interface changes, one or 
@@ -51,6 +46,17 @@ radical rethink of some aspects of the interface is currently [2003] in developm
 hoped will address all such confusion. Documentation is currently ahead of development (!), but if
 you use Acorn's interactive help program (!Help), the information it reports is almost up to the 
 minute in 2.24 and way out of date in 2.25." [from armbasic.htm in the xfamily source code tree.]
+
+## Conversion from GEDCOM 5.3 to modern GEDCOM 5.5.5
+
+In helping Andy's relatives get access to his genealogical data, I converted his personal .ged file (of
+nearly 6,000 people, dating back to before 1066) from his variant of GEDCOM 5.3 into modern v5.5.5.
+I used the wonderfully acerbic annotated 5.5.5 specification by Tamura Jones: <a href="https://www.tamurajones.net/GEDCOM555JustARevision.xhtml">GEDCOM555 discussion</a>.
+As she sayd: "the GEDCOM 5.5.1 specification includes support for a few new useful record types, such as those for email and web addresses, it is no more than a revision of GEDCOM 5.5, which was released on 11 Dec 1995, almost a quarter century ago.
+Nothing much has changed in a quarter century, and today's GEDCOM 5.5.5 release does not introduce any major new features. [...]
+GEDCOM 5.5.5 isn't a feature release, it's a maintenance release. The GEDCOM 5.5.5 focus isn't on features, but on resolving issues with GEDCOM itself.
+[...] It's a smaller, leaner, meaner and simpler GEDCOM." More details in the <a href="https://www.gedcom.org/press/PRGEDCOM555.pdf">5.5.5 release document</a>.
+The GEDCOM 5.5.5 annotated specification is (unfortunately) published as <a href="https://www.gedcom.org/specs/GEDCOM555.zip"a zipped PDF</a> and not as simple UTF-8 plain text which would be suitable for generating parsers and validators.
 
 ## Installation
 
