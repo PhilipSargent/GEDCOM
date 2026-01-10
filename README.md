@@ -63,7 +63,7 @@ More details in the <a href="https://www.gedcom.org/press/PRGEDCOM555.pdf">5.5.5
 The wonderfully acerbic 5.5.5 <em>annotated specification</em> is edited by Tamura Jones and is (unfortunately) published 
 as <a href="https://www.gedcom.org/specs/GEDCOM555.zip">a zipped PDF</a> and not as simple UTF-8 plain text which would be suitable for generating parsers and validators.
 
-My converter (converter.py) is hacked up just to deal with a single .ged file, so it is in no sense a general purpose converter. It fails with over 130 error messages on Andy's
+My converter (converter.py in this repo) is hacked up just to deal with a single .ged file, so it is in no sense a general purpose converter. It fails with over 130 error messages on Andy's
 85,000 line family tree .ged file. In developing it I used two validators: <a href="https://ged-inline.org/">GED inline</a> which is an online service and a locally-downloaded copy of 
 the open source <a href="https://gramps-project.org/blog/2025/11/gramps-6-0-6-released/">gramps</a> software (gramps v6.0.6).
 
