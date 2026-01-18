@@ -1,7 +1,7 @@
 # GEDCOM
 The purpose of this repo is to publish Andy Waddington's GEDCOM editors for genealogical data. 
 These were rescued from failing hard-drives from Andy's machines.
-Andy (AERW) died last year (2025) of pancreatic cancer, leaving far too much unfinished.
+Andy (AERW) died last year (2024) of pancreatic cancer, leaving far too much unfinished.
 
 There are two variants of the GEDCOM editor: !Family for RISCOS and xFamily for Linux.
 
